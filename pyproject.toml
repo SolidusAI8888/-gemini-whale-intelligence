@@ -1,0 +1,9 @@
+[project]
+name = "gemini-whale-intelligence"
+version = "0.1.0"
+description = "Gemini 美股聪明钱_政商巨鲸行动追踪 MVP"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
