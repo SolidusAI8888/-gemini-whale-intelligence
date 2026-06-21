@@ -1,5 +1,9 @@
 [
   "tests/test_consensus_quality.py::test_split_lots_do_not_create_full_consensus",
+  "tests/test_political_collector.py::test_action_normalization",
+  "tests/test_political_collector.py::test_amount_range_midpoint",
+  "tests/test_political_collector.py::test_extract_ticker_from_parentheses",
+  "tests/test_report_quality.py::test_report_splits_buy_and_sell_sections",
   "tests/test_scoring.py::test_consensus_and_opportunity",
   "tests/test_scoring.py::test_trade_score_buy_ceo"
 ]
