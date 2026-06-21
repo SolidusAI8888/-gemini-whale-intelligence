@@ -44,6 +44,36 @@ class SecClient:
         response.raise_for_status()
         return response.text
 
+
+    def browse_form4_atom(self, cik_or_ticker: str, count: int = 100) -> str:
+        # EDGAR browse with owner=include is important for issuer-level Form 4 discovery.
+        # Many Form 4 filings are stored under the reporting owner's CIK, not the issuer CIK,
+        # so submissions/CIK{issuer}.json can miss them. The Atom feed provides the actual
+        # filing href/base path.
+        url = (
+            "https://www.sec.gov/cgi-bin/browse-edgar"
+            f"?action=getcompany&CIK={cik_or_ticker}&type=4&owner=include&count={count}&output=atom"
+        )
+        return self.get_text(url)
+
+    def discover_xml_document_url_from_base(self, base: str) -> str | None:
+        base = base.rstrip("/")
+        index_url = f"{base}/index.json"
+        try:
+            data = self.get_json(index_url)
+        except Exception as exc:  # noqa: BLE001
+            log.debug("Could not read filing index %s: %s", index_url, exc)
+            return None
+        items = data.get("directory", {}).get("item", [])
+        xml_names = [i.get("name") for i in items if str(i.get("name", "")).lower().endswith(".xml")]
+        for name in xml_names:
+            lowered = str(name).lower()
+            if "primary_doc" in lowered or "ownership" in lowered or "form4" in lowered:
+                return f"{base}/{name}"
+        if xml_names:
+            return f"{base}/{xml_names[0]}"
+        return None
+
     def submissions(self, cik10: str) -> dict[str, Any]:
         return self.get_json(f"https://data.sec.gov/submissions/CIK{cik10}.json")
 

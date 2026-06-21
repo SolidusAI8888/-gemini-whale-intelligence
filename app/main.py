@@ -22,7 +22,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s - %(message)s",
     stream=sys.stdout,
 )
-log = logging.getLogger("gemini_whale")
+log = logging.getLogger("whale_gemini")
 
 
 def _row_to_dict(row: Any) -> dict:
@@ -57,9 +57,10 @@ def run_scan() -> dict:
     report_path = None
     try:
         log.info("Gemini Whale scan started")
-        log.info("Lookback days=%s max_companies=%s dry_run=%s", settings.lookback_days, settings.max_companies, settings.dry_run)
+        log.info("Settings: lookback_days=%s max_companies=%s min_opportunity_score=%s dry_run=%s enable_gemini=%s", settings.lookback_days, settings.max_companies, settings.min_opportunity_score, settings.dry_run, settings.enable_gemini)
 
         companies = build_company_universe(settings.sec_user_agent, settings.max_companies)
+        log.info("Company universe size after filters: %s", len(companies))
         sec_client = SecClient(settings.sec_user_agent)
 
         sec_trades = collect_sec_form4_trades(companies, sec_client, settings.lookback_days)
@@ -74,7 +75,9 @@ def run_scan() -> dict:
         scoring_base = trades if trades else [_row_to_dict(r) for r in fetch_recent_trades(limit=500)]
         consensus_rows = build_consensus_scores(scoring_base)
         scored = score_opportunities(consensus_rows)
+        pre_filter_count = len(scored)
         scored = [row for row in scored if row["opportunity_score"] >= settings.min_opportunity_score]
+        log.info("Opportunity scores: before_filter=%s after_filter=%s min_score=%s", pre_filter_count, len(scored), settings.min_opportunity_score)
         insert_scores(scored)
 
         top_scores = scored if scored else [_row_to_dict(r) for r in fetch_top_scores(limit=50)]

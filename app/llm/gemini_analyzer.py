@@ -8,32 +8,62 @@ from app.config import settings
 log = logging.getLogger(__name__)
 
 
+SYSTEM_INSTRUCTIONS = """
+你是一个证券披露情报分析助手，专门分析 SEC Form 4、13F、13D/13G、国会交易和其它公开披露记录。
+你的任务是把结构化披露数据转化为非个性化研究报告。
+
+硬性规则：
+- 只基于已经发生且公开披露的交易行为和权威来源分析。
+- 不要编造未提供的数据。
+- 不要给出个性化证券投资建议、保证收益、具体仓位、买入金额或精确买卖指令。
+- 可以输出观察名单、信号强弱、风险、数据滞后、需要二次验证的事项。
+- 明确区分主动买入/主动卖出、期权/授予/税务/薪酬/10b5-1 等可能非主动交易。
+"""
+
+
 def analyze_with_gemini(top_scores: list[dict], recent_trades: list[dict]) -> str:
     if not settings.enable_gemini or not settings.gemini_api_key:
         return "Gemini 分析未启用。"
 
-    try:
-        import google.generativeai as genai
+    if not top_scores and not recent_trades:
+        return (
+            "本次扫描没有可供 Gemini 深度分析的新增或近期披露数据。"
+            "系统已跳过 AI 生成，避免在空数据情况下输出泛化模板或无依据分析。"
+        )
 
-        genai.configure(api_key=settings.gemini_api_key)
-        model = genai.GenerativeModel(settings.gemini_model)
+    try:
+        from google import genai
+
+        client = genai.Client(api_key=settings.gemini_api_key)
         prompt = f"""
-你是一个证券披露情报分析助手。请基于以下已经发生且公开披露的交易记录做非个性化研究分析。
-不要给出具体买入金额、仓位、保证收益或个性化交易指令。
-请输出：
-1. 今日最值得关注的多头/空头披露信号
-2. 哪些可能是真正高信念交易，哪些可能只是薪酬、期权、税务或例行行为
-3. 多个内部人/类别共振的股票
-4. 主要风险和数据滞后限制
+{SYSTEM_INSTRUCTIONS}
+
+请基于以下已经采集并标准化的公开披露数据，生成中文研究分析摘要。
+
+重要约束：
+- 如果 Top scores JSON 和 Recent trades JSON 都为空，请只回复：本次没有可分析的披露数据。
+- 如果数据很少，请直接说明数据不足，不要输出假设性框架、教程或示例。
+- 不要说“请提供数据”，因为数据来自自动化系统；只需说明本次扫描数据不足。
+
+请输出以下部分：
+1. 今日最值得关注的多头披露信号
+2. 今日最值得关注的空头/减持披露信号
+3. 可能的高信念交易 vs 可能的例行/薪酬/税务/期权相关交易
+4. 多个巨鲸或多个类别共振的股票
+5. 需要人工复核的异常点
+6. 数据限制、披露滞后和风险提示
 
 Top scores JSON:
-{json.dumps(top_scores[:20], ensure_ascii=False, default=str)}
+{json.dumps(top_scores[:25], ensure_ascii=False, default=str)}
 
 Recent trades JSON:
-{json.dumps(recent_trades[:80], ensure_ascii=False, default=str)}
+{json.dumps(recent_trades[:120], ensure_ascii=False, default=str)}
 """
-        response = model.generate_content(prompt)
-        return response.text or "Gemini 没有返回分析内容。"
+        response = client.models.generate_content(
+            model=settings.gemini_model,
+            contents=prompt,
+        )
+        return getattr(response, "text", None) or "Gemini 没有返回分析内容。"
     except Exception as exc:  # noqa: BLE001
         log.warning("Gemini analysis failed: %s", exc)
         return f"Gemini 分析失败：{exc}"
