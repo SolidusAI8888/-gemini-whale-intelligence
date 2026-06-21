@@ -1,0 +1,4 @@
+[
+  "tests/test_scoring.py::test_consensus_and_opportunity",
+  "tests/test_scoring.py::test_trade_score_buy_ceo"
+]
