@@ -22,7 +22,13 @@ env:
   EMAIL_TO: ${{ secrets.EMAIL_TO }}
   ENABLE_GEMINI: ${{ secrets.ENABLE_GEMINI || 'true' }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-  GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
+  GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash-lite' }}
+  ENABLE_POLITICAL_TRADES: ${{ secrets.ENABLE_POLITICAL_TRADES || 'true' }}
+  POLITICAL_PROVIDER: ${{ vars.POLITICAL_PROVIDER || 'auto' }}
+  POLITICAL_MAX_FILINGS: ${{ vars.POLITICAL_MAX_FILINGS || '300' }}
+  FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+  FMP_MAX_PAGES: ${{ vars.FMP_MAX_PAGES || '5' }}
+  FMP_PAGE_LIMIT: ${{ vars.FMP_PAGE_LIMIT || '100' }}
 
 jobs:
   scan:
