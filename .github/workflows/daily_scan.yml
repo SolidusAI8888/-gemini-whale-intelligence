@@ -22,7 +22,7 @@ env:
   EMAIL_TO: ${{ secrets.EMAIL_TO }}
   ENABLE_GEMINI: ${{ secrets.ENABLE_GEMINI || 'true' }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-  GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash-lite' }}
+  GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
   ENABLE_POLITICAL_TRADES: ${{ secrets.ENABLE_POLITICAL_TRADES || 'true' }}
   POLITICAL_PROVIDER: ${{ vars.POLITICAL_PROVIDER || 'auto' }}
   POLITICAL_MAX_FILINGS: ${{ vars.POLITICAL_MAX_FILINGS || '300' }}
