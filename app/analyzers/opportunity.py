@@ -4,7 +4,7 @@ from app.analyzers.whale_score import clamp
 
 
 def signal_label(score: float, direction: str) -> str:
-    prefix = "多头" if direction == "BUY" else "空头/减持"
+    prefix = "多头" if direction == "BUY" else "减持/卖出预警"
     if score >= 85:
         return f"{prefix} S级"
     if score >= 75:
@@ -42,7 +42,8 @@ def calculate_opportunity_score(row: dict) -> dict:
     explanation = (
         f"方向={direction}; 共识分={consensus:.1f}; "
         f"买入记录={row['buy_count']} 笔/${row['buy_amount']:,.0f}; "
-        f"卖出记录={row['sell_count']} 笔/${row['sell_amount']:,.0f}. "
+        f"卖出记录={row['sell_count']} 笔/${row['sell_amount']:,.0f}; "
+        f"独立买入事件={row.get('unique_buy_events', 0)}; 独立卖出事件={row.get('unique_sell_events', 0)}. "
         "V1 暂未接入基本面/估值/行情，因此这些维度采用中性先验。"
     )
 
