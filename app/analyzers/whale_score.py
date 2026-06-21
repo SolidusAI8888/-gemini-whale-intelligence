@@ -12,6 +12,8 @@ CATEGORY_INFO_ADVANTAGE = {
     "10% Owner": 82,
     "Corporate Insider": 65,
     "Congress": 75,
+    "Political Whale:House": 86,
+    "Political Whale:Senate": 90,
     "Government Official": 80,
     "Institutional Investor": 60,
 }

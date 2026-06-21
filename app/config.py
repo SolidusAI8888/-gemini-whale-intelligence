@@ -47,5 +47,14 @@ class Settings:
     email_from: str = os.getenv("EMAIL_FROM", "")
     email_to: str = os.getenv("EMAIL_TO", "")
 
+    # Political whale module. Default provider "auto" uses the official House Clerk
+    # ZIP archive and, when FMP_API_KEY is supplied, optional FMP House/Senate endpoints.
+    enable_political_trades: bool = _bool("ENABLE_POLITICAL_TRADES", True)
+    political_provider: str = os.getenv("POLITICAL_PROVIDER", "auto")  # auto|official_house|fmp
+    political_max_filings: int = _int("POLITICAL_MAX_FILINGS", 300)
+    fmp_api_key: str = os.getenv("FMP_API_KEY", "")
+    fmp_max_pages: int = _int("FMP_MAX_PAGES", 5)
+    fmp_page_limit: int = _int("FMP_PAGE_LIMIT", 100)
+
 
 settings = Settings()

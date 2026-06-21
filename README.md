@@ -59,3 +59,40 @@ DRY_RUN=true
 ## 说明
 
 Gemini 只作为分析层。核心交易事实仍来自 SEC、国会披露、13F、13D/13G 等权威公开记录。
+
+## V5: Political Whale Signals
+
+V5 adds a political disclosure module so the report no longer relies only on SEC Form 4 corporate insiders.
+
+Default behavior:
+
+- `ENABLE_POLITICAL_TRADES=true`
+- `POLITICAL_PROVIDER=auto`
+- Official House Clerk yearly ZIP archive is parsed without an API key.
+- If `FMP_API_KEY` is configured, optional FMP House/Senate latest endpoints are also queried.
+
+Recommended GitHub Actions Variables:
+
+```text
+LOOKBACK_DAYS=365
+MAX_COMPANIES=0
+MIN_OPPORTUNITY_SCORE=0
+GEMINI_MODEL=gemini-2.5-flash-lite
+POLITICAL_PROVIDER=auto
+POLITICAL_MAX_FILINGS=500
+FMP_MAX_PAGES=5
+FMP_PAGE_LIMIT=100
+```
+
+Recommended GitHub Actions Secrets:
+
+```text
+ENABLE_POLITICAL_TRADES=true
+FMP_API_KEY=optional, for Senate + normalized House/Senate data
+```
+
+Notes:
+
+- House official disclosure ZIPs are public and require no API key, but PDF table parsing can be imperfect.
+- Senate eFD has no equally convenient official bulk machine-readable endpoint in this package, so Senate coverage is best enabled through FMP or another licensed structured provider.
+- Executive-branch/OGE disclosures are not yet fully automated in V5 and should be added as a separate V6 module.

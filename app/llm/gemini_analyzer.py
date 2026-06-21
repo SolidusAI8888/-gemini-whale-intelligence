@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+from typing import Iterable
 
 from app.config import settings
 
@@ -22,26 +24,72 @@ SYSTEM_INSTRUCTIONS = """
 """
 
 
-def _generate_with_google_genai(prompt: str) -> str:
-    """Use current google-genai SDK: pip package google-genai; import path from google import genai."""
+def _fallback_models() -> list[str]:
+    configured = [m.strip() for m in str(settings.gemini_model or "").split(",") if m.strip()]
+    # Flash-Lite/Flash are better suited for this daily batch summary than Pro when demand spikes.
+    defaults = ["gemini-2.5-flash-lite", "gemini-2.5-flash"]
+    models: list[str] = []
+    for model in configured + defaults:
+        if model and model not in models:
+            models.append(model)
+    return models
+
+
+def _is_transient_error(exc: Exception) -> bool:
+    text = str(exc).lower()
+    return any(key in text for key in ["503", "unavailable", "high demand", "rate limit", "temporarily", "timeout", "deadline"])
+
+
+def _generate_with_google_genai(prompt: str, model: str) -> str:
+    """Use current Google GenAI SDK: pip package google-genai; import path from google import genai."""
     from google import genai  # type: ignore
 
     client = genai.Client(api_key=settings.gemini_api_key)
     response = client.models.generate_content(
-        model=settings.gemini_model,
+        model=model,
         contents=prompt,
     )
     return getattr(response, "text", None) or "Gemini 没有返回分析内容。"
 
 
-def _generate_with_legacy_google_generativeai(prompt: str) -> str:
+def _generate_with_legacy_google_generativeai(prompt: str, model: str) -> str:
     """Fallback for older environments that installed google-generativeai instead."""
     import google.generativeai as genai  # type: ignore
 
     genai.configure(api_key=settings.gemini_api_key)
-    model = genai.GenerativeModel(settings.gemini_model)
-    response = model.generate_content(prompt)
+    legacy_model = genai.GenerativeModel(model)
+    response = legacy_model.generate_content(prompt)
     return getattr(response, "text", None) or "Gemini 没有返回分析内容。"
+
+
+def _try_models(prompt: str, models: Iterable[str]) -> str:
+    errors: list[str] = []
+    for model in models:
+        for attempt in range(1, 4):
+            try:
+                log.info("Calling Gemini model=%s attempt=%s", model, attempt)
+                return _generate_with_google_genai(prompt, model)
+            except Exception as exc:  # noqa: BLE001
+                errors.append(f"{model}/google-genai/attempt{attempt}: {exc}")
+                log.warning("Gemini google-genai failed model=%s attempt=%s: %s", model, attempt, exc)
+                if not _is_transient_error(exc):
+                    break
+                time.sleep(min(30, 5 * attempt))
+
+        # Legacy fallback: useful if the project still installs the old package.
+        try:
+            log.info("Calling Gemini legacy SDK model=%s", model)
+            return _generate_with_legacy_google_generativeai(prompt, model)
+        except Exception as exc:  # noqa: BLE001
+            errors.append(f"{model}/legacy: {exc}")
+            log.warning("Gemini legacy failed model=%s: %s", model, exc)
+
+    short_errors = " | ".join(errors[-4:])
+    return (
+        "Gemini 暂时未能完成深度分析；本次 SEC 披露采集、评分和报告已正常生成。"
+        "常见原因是 Gemini API 高需求/503、模型额度或临时网络问题。"
+        f"最近错误：{short_errors}"
+    )
 
 
 def analyze_with_gemini(top_scores: list[dict], recent_trades: list[dict]) -> str:
@@ -54,8 +102,11 @@ def analyze_with_gemini(top_scores: list[dict], recent_trades: list[dict]) -> st
             "系统已跳过 AI 生成，避免在空数据情况下输出泛化模板或无依据分析。"
         )
 
-    try:
-        prompt = f"""
+    # Feed Gemini mostly signal-bearing rows. This keeps the prompt smaller and reduces noise from A/M/F/G/J rows.
+    core_recent = [t for t in recent_trades if str(t.get("action") or "") in {"BUY", "SELL"}]
+    core_recent = core_recent[:80]
+
+    prompt = f"""
 {SYSTEM_INSTRUCTIONS}
 
 请基于以下已经采集并标准化的公开披露数据，生成中文研究分析摘要。
@@ -66,10 +117,11 @@ def analyze_with_gemini(top_scores: list[dict], recent_trades: list[dict]) -> st
 - 不要说“请提供数据”，因为数据来自自动化系统；只需说明本次扫描数据不足。
 - 对 S/M/F/A/G/J 等代码要谨慎解释：S 是卖出，但 M/A/F/G/J 通常不是主动买卖信号。
 - 如果某个股票的卖出来自同一报告人、同一 Form 4 的多笔拆分成交，必须说明这不是多个独立巨鲸共振。
+- 把 P/BUY 主动买入与 S/SELL 减持分开讨论；不要把卖出直接等同于做空。
 
 请输出以下部分：
-1. 今日最值得关注的多头披露信号
-2. 今日最值得关注的减持/卖出披露信号
+1. 主动买入信号：只列有 P/BUY 的股票；若没有，直接说明未发现强买入信号
+2. 减持/卖出预警：说明金额、独立事件数量、是否可能是计划性/薪酬/税务/分散化交易
 3. 可能的高信念交易 vs 可能的例行/薪酬/税务/期权相关交易
 4. 多个巨鲸或多个类别共振的股票
 5. 需要人工复核的异常点
@@ -78,21 +130,11 @@ def analyze_with_gemini(top_scores: list[dict], recent_trades: list[dict]) -> st
 Top scores JSON:
 {json.dumps(top_scores[:25], ensure_ascii=False, default=str)}
 
-Recent trades JSON:
-{json.dumps(recent_trades[:120], ensure_ascii=False, default=str)}
+Recent core BUY/SELL trades JSON:
+{json.dumps(core_recent, ensure_ascii=False, default=str)}
 """
-        try:
-            return _generate_with_google_genai(prompt)
-        except Exception as first_exc:  # noqa: BLE001
-            log.warning("google-genai call failed; trying legacy google-generativeai fallback: %s", first_exc)
-            try:
-                return _generate_with_legacy_google_generativeai(prompt)
-            except Exception as second_exc:  # noqa: BLE001
-                raise RuntimeError(
-                    "Gemini SDK 调用失败。请确认 requirements.txt 包含 google-genai>=1.0.0，"
-                    "GitHub Actions 已重新安装依赖，并且 GEMINI_API_KEY/GEMINI_MODEL 有效。"
-                    f" 原始错误1={first_exc}; 错误2={second_exc}"
-                ) from second_exc
+    try:
+        return _try_models(prompt, _fallback_models())
     except Exception as exc:  # noqa: BLE001
-        log.warning("Gemini analysis failed: %s", exc)
+        log.warning("Gemini analysis failed unexpectedly: %s", exc)
         return f"Gemini 分析失败：{exc}"

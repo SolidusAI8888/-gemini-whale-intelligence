@@ -10,7 +10,7 @@ from app.analyzers.opportunity import score_opportunities
 from app.collectors.congress import collect_congress_trades
 from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
-from app.collectors.universe import build_company_universe
+from app.collectors.universe import build_company_universe, tickers_from_companies
 from app.config import settings
 from app.db import fetch_recent_trades, fetch_top_scores, get_conn, init_db, insert_scores, upsert_trades
 from app.llm.gemini_analyzer import analyze_with_gemini
@@ -64,7 +64,9 @@ def run_scan() -> dict:
         sec_client = SecClient(settings.sec_user_agent)
 
         sec_trades = collect_sec_form4_trades(companies, sec_client, settings.lookback_days)
-        congress_trades = collect_congress_trades()
+        target_tickers = tickers_from_companies(companies)
+        congress_trades = collect_congress_trades(target_tickers, settings.sec_user_agent, settings.lookback_days)
+        log.info("Collected political trades: %s", len(congress_trades))
         trades = sec_trades + congress_trades
         log.info("Collected normalized trades: %s", len(trades))
 
