@@ -1,0 +1,5 @@
+[
+  "tests/test_consensus_quality.py::test_split_lots_do_not_create_full_consensus",
+  "tests/test_scoring.py::test_consensus_and_opportunity",
+  "tests/test_scoring.py::test_trade_score_buy_ceo"
+]
