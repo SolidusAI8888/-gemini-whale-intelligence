@@ -22,9 +22,13 @@ env:
   EMAIL_TO: ${{ secrets.EMAIL_TO }}
   ENABLE_GEMINI: ${{ secrets.ENABLE_GEMINI || 'true' }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-  GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
+  GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash-lite' }}
   ENABLE_POLITICAL_TRADES: ${{ secrets.ENABLE_POLITICAL_TRADES || 'true' }}
   POLITICAL_PROVIDER: ${{ vars.POLITICAL_PROVIDER || 'auto' }}
+  POLITICAL_UNIVERSE_SCOPE: ${{ vars.POLITICAL_UNIVERSE_SCOPE || 'all' }}
+  FMP_HOUSE_ENDPOINTS: ${{ vars.FMP_HOUSE_ENDPOINTS || 'house-latest,house-trades' }}
+  FMP_SENATE_ENDPOINTS: ${{ vars.FMP_SENATE_ENDPOINTS || 'senate-latest,senate-trades' }}
+  POLITICAL_WATCH_NAMES: ${{ vars.POLITICAL_WATCH_NAMES || 'Pelosi,Trump' }}
   POLITICAL_MAX_FILINGS: ${{ vars.POLITICAL_MAX_FILINGS || '300' }}
   FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
   FMP_MAX_PAGES: ${{ vars.FMP_MAX_PAGES || '5' }}
