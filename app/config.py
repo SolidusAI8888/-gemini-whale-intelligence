@@ -55,6 +55,18 @@ class Settings:
     fmp_api_key: str = os.getenv("FMP_API_KEY", "")
     fmp_max_pages: int = _int("FMP_MAX_PAGES", 5)
     fmp_page_limit: int = _int("FMP_PAGE_LIMIT", 100)
+    # Comma-separated FMP congressional endpoints. FMP has both latest-disclosure
+    # endpoints and symbol/name activity endpoints; use all by default for better recall.
+    fmp_house_endpoints: str = os.getenv("FMP_HOUSE_ENDPOINTS", "house-latest,house-trades")
+    fmp_senate_endpoints: str = os.getenv("FMP_SENATE_ENDPOINTS", "senate-latest,senate-trades")
+    # Names to query via FMP by-name endpoints. Useful for Pelosi/Trump/other watchlist figures
+    # whose trades may be outside the core S&P500/Nasdaq100 universe or reported as options.
+    political_watch_names: str = os.getenv("POLITICAL_WATCH_NAMES", "Pelosi,Trump")
+    # Political universe scope:
+    #   core = keep only S&P 500 + Nasdaq-100 tickers for political trades
+    #   all  = collect political trades even when ticker is outside the core universe
+    #   both = same as all, useful for diagnostics while report can show all political records
+    political_universe_scope: str = os.getenv("POLITICAL_UNIVERSE_SCOPE", "core").lower().strip()
 
 
 settings = Settings()

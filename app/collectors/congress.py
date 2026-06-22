@@ -130,19 +130,26 @@ def _normalize_ticker(ticker: str | None) -> str | None:
 
 
 def _extract_ticker(text: str, target_tickers: set[str]) -> str | None:
-    # Prefer explicit ticker in parentheses, e.g. Apple Inc. (AAPL).
+    """Extract a ticker from political disclosure text.
+
+    If target_tickers is non-empty, keep only symbols in that core universe.
+    If target_tickers is empty, return plausible explicit tickers. This is useful for
+    POLITICAL_UNIVERSE_SCOPE=all/both diagnostics so political trades are not lost
+    simply because they are outside S&P 500 / Nasdaq-100.
+    """
+    stop = {"PTR", "NEW", "N/A", "LLC", "INC", "ETF", "USD", "USA", "IRA", "SEP", "CBO", "CEO", "CFO", "THE", "AND", "FOR", "BUY", "SALE", "SOLD"}
     candidates = re.findall(r"\(([A-Z][A-Z0-9\.\-]{0,5})\)", text)
     candidates += re.findall(r"\bTicker[:\s]+([A-Z][A-Z0-9\.\-]{0,5})\b", text, flags=re.I)
-    # Some third-party normalized APIs already place symbol-like tokens in assetDescription.
     for c in candidates:
         t = _normalize_ticker(c)
-        if t in target_tickers:
+        if t and t not in stop and (not target_tickers or t in target_tickers):
             return t
-    # Last resort: scan all ticker-like tokens but ignore common words.
-    stop = {"PTR", "NEW", "N/A", "LLC", "INC", "ETF", "USD", "USA", "IRA", "SEP", "CBO", "CEO", "CFO"}
-    for token in re.findall(r"\b[A-Z]{1,5}\b", text):
-        if token not in stop and token in target_tickers:
-            return token
+    # Last resort: scan all ticker-like tokens but only accept them when they are in
+    # the target universe. In all-scope mode this is too noisy, so avoid token scan.
+    if target_tickers:
+        for token in re.findall(r"\b[A-Z]{1,5}\b", text):
+            if token not in stop and token in target_tickers:
+                return token
     return None
 
 
@@ -410,7 +417,7 @@ def _collect_fmp_endpoint(endpoint: str, chamber: str, target_tickers: set[str],
             asset = str(_get_first(row, "assetDescription", "asset", "asset_name", "security", "description") or "")
             if not symbol:
                 symbol = _extract_ticker(asset, target_tickers)
-            if symbol not in target_tickers:
+            if target_tickers and symbol not in target_tickers:
                 continue
             transaction_date = _date_str(_get_first(row, "transactionDate", "transaction_date", "transaction_date_formatted", "date"))
             filing_date = _date_str(_get_first(row, "disclosureDate", "filingDate", "filedDate", "filing_date", "publishedDate")) or transaction_date
@@ -446,14 +453,99 @@ def _collect_fmp_endpoint(endpoint: str, chamber: str, target_tickers: set[str],
     return out
 
 
+def _split_csv(value: str) -> list[str]:
+    return [x.strip() for x in (value or "").split(",") if x.strip()]
+
+
+def _collect_fmp_by_name_endpoint(endpoint: str, chamber: str, name: str, target_tickers: set[str], lookback_days: int) -> list[dict]:
+    """Collect FMP congressional trades by politician name.
+
+    FMP exposes endpoints such as senate-trades-by-name?name=Jerry. These are
+    especially useful for watchlist names such as Pelosi/Trump because the
+    latest feed can page past a specific person quickly.
+    """
+    api_key = settings.fmp_api_key
+    if not api_key or not name:
+        return []
+    cutoff = date.today() - timedelta(days=lookback_days)
+    out: list[dict] = []
+    for page in range(max(settings.fmp_max_pages, 1)):
+        params = {"name": name, "page": page, "limit": settings.fmp_page_limit, "apikey": api_key}
+        url = f"{FMP_BASE}/{endpoint}?{urlencode(params)}"
+        try:
+            response = requests.get(url, headers=_headers(), timeout=45)
+            if response.status_code in {401, 402, 403}:
+                log.warning("FMP %s by-name endpoint appears unavailable for this key: status=%s body=%s", endpoint, response.status_code, response.text[:300])
+                break
+            response.raise_for_status()
+            data = response.json()
+        except Exception as exc:  # noqa: BLE001
+            log.warning("FMP %s name=%s page=%s failed: %s", endpoint, name, page, exc)
+            break
+        rows = data.get("data") if isinstance(data, dict) else data
+        if isinstance(data, dict):
+            rows = data.get("data") or data.get("results") or data.get("items") or []
+        if not rows:
+            break
+        for i, row in enumerate(rows):
+            if not isinstance(row, Mapping):
+                continue
+            symbol = _normalize_ticker(str(_get_first(row, "symbol", "ticker") or ""))
+            asset = str(_get_first(row, "assetDescription", "asset", "asset_name", "security", "description") or "")
+            if not symbol:
+                symbol = _extract_ticker(asset, target_tickers)
+            # In all/both scope, keep non-core tickers if explicitly present. In core scope, filter.
+            if target_tickers and settings.political_universe_scope == "core" and symbol not in target_tickers:
+                continue
+            if not symbol:
+                continue
+            transaction_date = _date_str(_get_first(row, "transactionDate", "transaction_date", "transaction_date_formatted", "date"))
+            filing_date = _date_str(_get_first(row, "disclosureDate", "filingDate", "filedDate", "filing_date", "publishedDate")) or transaction_date
+            if filing_date and not _within_lookback(filing_date, cutoff):
+                continue
+            action_raw = _get_first(row, "type", "transactionType", "transaction_type", "transaction")
+            action, code = _normalize_action(str(action_raw or ""))
+            if action not in {"BUY", "SELL"}:
+                continue
+            politician = str(_get_first(row, "representative", "senator", "name", "member", "politician") or name)
+            amount = _amount_midpoint(_get_first(row, "amount", "amountRange", "range", "value"))
+            filing_url = str(_get_first(row, "link", "url", "filingUrl", "disclosureUrl") or "") or None
+            sid_base = _get_first(row, "id", "docID", "documentId", "disclosureId") or f"{name}:{page}:{i}"
+            source_id = f"FMP_{chamber.upper()}_NAME:{sid_base}:{symbol}:{action}:{transaction_date}:{amount or 0}"
+            out.append(_normalize_trade(source_id=source_id, ticker=symbol, politician=politician, chamber=chamber, action=action, transaction_code=code, amount_usd=amount, trade_date=transaction_date, filing_date=filing_date, filing_url=filing_url, raw=row))
+        if len(rows) < settings.fmp_page_limit:
+            break
+    log.info("FMP %s by-name political trades normalized for %s: %s", chamber, name, len(out))
+    return out
+
+
 def collect_fmp_congress_trades(target_tickers: set[str], lookback_days: int) -> list[dict]:
     if not settings.fmp_api_key:
         log.info("FMP_API_KEY not set; skipping optional FMP House/Senate political APIs")
         return []
-    return (
-        _collect_fmp_endpoint("house-latest", "House", target_tickers, lookback_days)
-        + _collect_fmp_endpoint("senate-latest", "Senate", target_tickers, lookback_days)
-    )
+
+    trades: list[dict] = []
+    house_endpoints = _split_csv(settings.fmp_house_endpoints) or ["house-latest"]
+    senate_endpoints = _split_csv(settings.fmp_senate_endpoints) or ["senate-latest"]
+    log.info("FMP congressional endpoints: house=%s senate=%s scope=%s watch_names=%s", house_endpoints, senate_endpoints, settings.political_universe_scope, settings.political_watch_names)
+
+    for endpoint in house_endpoints:
+        if endpoint.endswith("-by-name"):
+            continue
+        trades.extend(_collect_fmp_endpoint(endpoint, "House", target_tickers, lookback_days))
+    for endpoint in senate_endpoints:
+        if endpoint.endswith("-by-name"):
+            continue
+        trades.extend(_collect_fmp_endpoint(endpoint, "Senate", target_tickers, lookback_days))
+
+    # Always query by-name endpoints for watchlist names, independent of latest-feed paging.
+    watch_names = _split_csv(settings.political_watch_names)
+    for name in watch_names:
+        trades.extend(_collect_fmp_by_name_endpoint("house-trades-by-name", "House", name, target_tickers, lookback_days))
+        trades.extend(_collect_fmp_by_name_endpoint("senate-trades-by-name", "Senate", name, target_tickers, lookback_days))
+
+    log.info("FMP congressional trades total before provider de-dupe: %s", len(trades))
+    return trades
 
 
 def collect_congress_trades(target_tickers: Iterable[str] | None = None, user_agent: str | None = None, lookback_days: int | None = None) -> list[dict]:
@@ -462,9 +554,12 @@ def collect_congress_trades(target_tickers: Iterable[str] | None = None, user_ag
         log.info("ENABLE_POLITICAL_TRADES=false; skipping political collector")
         return []
     tickers = {str(t).upper() for t in (target_tickers or []) if t}
-    if not tickers:
-        log.warning("Political collector skipped because target_tickers is empty")
+    scope = settings.political_universe_scope
+    if not tickers and scope == "core":
+        log.warning("Political collector skipped because target_tickers is empty and POLITICAL_UNIVERSE_SCOPE=core")
         return []
+    if not tickers:
+        log.info("Political collector running without core ticker filter because POLITICAL_UNIVERSE_SCOPE=%s", scope)
     ua = user_agent or settings.sec_user_agent
     days = lookback_days or settings.lookback_days
     trades: list[dict] = []
@@ -477,5 +572,11 @@ def collect_congress_trades(target_tickers: Iterable[str] | None = None, user_ag
     dedup: dict[str, dict] = {}
     for trade in trades:
         dedup[trade["source_id"]] = trade
-    log.info("Political trades collected after de-duplication: %s", len(dedup))
-    return list(dedup.values())
+    out = list(dedup.values())
+    if tickers:
+        matched = sum(1 for t in out if str(t.get("ticker", "")).upper() in tickers)
+        off = len(out) - matched
+        log.info("Political trades collected after de-duplication: %s; core_universe=%s; off_universe=%s; scope=%s", len(out), matched, off, scope)
+    else:
+        log.info("Political trades collected after de-duplication: %s; scope=%s", len(out), scope)
+    return out

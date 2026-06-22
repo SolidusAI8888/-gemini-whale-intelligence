@@ -57,7 +57,7 @@ def run_scan() -> dict:
     report_path = None
     try:
         log.info("Gemini Whale scan started")
-        log.info("Settings: lookback_days=%s max_companies=%s min_opportunity_score=%s dry_run=%s enable_gemini=%s", settings.lookback_days, settings.max_companies, settings.min_opportunity_score, settings.dry_run, settings.enable_gemini)
+        log.info("Settings: lookback_days=%s max_companies=%s min_opportunity_score=%s dry_run=%s enable_gemini=%s enable_political=%s political_provider=%s political_scope=%s fmp_key_present=%s", settings.lookback_days, settings.max_companies, settings.min_opportunity_score, settings.dry_run, settings.enable_gemini, settings.enable_political_trades, settings.political_provider, settings.political_universe_scope, bool(settings.fmp_api_key))
 
         companies = build_company_universe(settings.sec_user_agent, settings.max_companies)
         log.info("Company universe size after filters: %s", len(companies))
@@ -65,7 +65,9 @@ def run_scan() -> dict:
 
         sec_trades = collect_sec_form4_trades(companies, sec_client, settings.lookback_days)
         target_tickers = tickers_from_companies(companies)
-        congress_trades = collect_congress_trades(target_tickers, settings.sec_user_agent, settings.lookback_days)
+        political_scope = settings.political_universe_scope
+        political_target_tickers = target_tickers if political_scope == "core" else set()
+        congress_trades = collect_congress_trades(political_target_tickers, settings.sec_user_agent, settings.lookback_days)
         log.info("Collected political trades: %s", len(congress_trades))
         trades = sec_trades + congress_trades
         log.info("Collected normalized trades: %s", len(trades))

@@ -96,3 +96,43 @@ Notes:
 - House official disclosure ZIPs are public and require no API key, but PDF table parsing can be imperfect.
 - Senate eFD has no equally convenient official bulk machine-readable endpoint in this package, so Senate coverage is best enabled through FMP or another licensed structured provider.
 - Executive-branch/OGE disclosures are not yet fully automated in V5 and should be added as a separate V6 module.
+
+
+## V6: Political universe scope
+
+If the political module is enabled but the report still shows no Pelosi/Congress trades, the records may be filtered out because they are outside the S&P 500 + Nasdaq-100 universe or are options/ETFs. Set this GitHub Actions variable for diagnostics:
+
+```text
+POLITICAL_UNIVERSE_SCOPE=all
+LOOKBACK_DAYS=365
+POLITICAL_PROVIDER=auto
+FMP_MAX_PAGES=20
+FMP_PAGE_LIMIT=100
+```
+
+Use `POLITICAL_UNIVERSE_SCOPE=core` for strict production mode, where political trades are limited to S&P 500 + Nasdaq-100 tickers. Use `all` or `both` to verify whether the political data source is returning records outside the core universe.
+
+## V7 FMP Senate/House endpoint notes
+
+FMP now documents both latest-disclosure and trading-activity endpoints. V7 queries:
+
+- `senate-latest`
+- `senate-trades`
+- `senate-trades-by-name`
+- `house-latest`
+- `house-trades`
+- `house-trades-by-name`
+
+Set GitHub Variables:
+
+```text
+POLITICAL_UNIVERSE_SCOPE=all
+FMP_HOUSE_ENDPOINTS=house-latest,house-trades
+FMP_SENATE_ENDPOINTS=senate-latest,senate-trades
+POLITICAL_WATCH_NAMES=Pelosi,Trump
+FMP_MAX_PAGES=20
+FMP_PAGE_LIMIT=100
+LOOKBACK_DAYS=365
+```
+
+`POLITICAL_UNIVERSE_SCOPE=all` is recommended during debugging so ETF/options/non-index politician trades are visible instead of being filtered by S&P500/Nasdaq100 membership.
