@@ -136,3 +136,66 @@ LOOKBACK_DAYS=365
 ```
 
 `POLITICAL_UNIVERSE_SCOPE=all` is recommended during debugging so ETF/options/non-index politician trades are visible instead of being filtered by S&P500/Nasdaq100 membership.
+
+
+## V9 free FMP mode / no-paid-political-API mode
+
+FMP's House/Senate congressional trading endpoints can return `402 Payment Required` for free or lower-tier keys.
+V9 keeps those paid/restricted congressional endpoints **disabled by default** and uses the official House Clerk ZIP/PDF source for political trades. This prevents noisy FMP 402 warnings while still showing political trades parsed from official House disclosures.
+
+Recommended GitHub Variables for free mode:
+
+```text
+POLITICAL_PROVIDER=official_house
+POLITICAL_UNIVERSE_SCOPE=all
+FMP_CONGRESSIONAL_ENABLED=false
+LOOKBACK_DAYS=365
+MIN_OPPORTUNITY_SCORE=0
+```
+
+You may keep `FMP_API_KEY` configured for future free FMP market/fundamental endpoints, but V9 will not call paid congressional endpoints unless `FMP_CONGRESSIONAL_ENABLED=true`.
+
+---
+
+## V10: Alpha Vantage + Finnhub 免费接口增强
+
+V10 在免费 House 官方政界披露基础上，新增 Alpha Vantage 与 Finnhub 免费 API，用于补充行情、趋势、基本面、新闻情绪和 Finnhub insider transactions 校验。
+
+### 新增 Secrets
+
+```text
+ALPHA_VANTAGE_API_KEY
+FINNHUB_API_KEY
+```
+
+### 新增 Variables
+
+```text
+ENABLE_MARKET_DATA=true
+MARKET_DATA_MAX_SYMBOLS=25
+ALPHA_DAILY_ENABLED=true
+ALPHA_OVERVIEW_ENABLED=true
+FINNHUB_BASIC_FINANCIALS_ENABLED=true
+FINNHUB_NEWS_ENABLED=true
+FINNHUB_INSIDER_ENABLED=true
+```
+
+免费 API 有请求次数限制。如果日志出现 rate limit 或 throttle，把 `MARKET_DATA_MAX_SYMBOLS` 调低到 10 或 15。
+
+### FMP 免费模式建议
+
+```text
+POLITICAL_PROVIDER=official_house
+POLITICAL_UNIVERSE_SCOPE=all
+FMP_CONGRESSIONAL_ENABLED=false
+```
+
+FMP Congressional / Senate endpoint 对当前 key 若返回 402，说明需要付费套餐。V10 默认不调用这些 endpoint。
+
+### 报告新增板块
+
+```text
+行情 / 基本面 / 新闻情绪补充
+```
+
+展示价格、20/60日趋势、PE/PS、趋势分、估值/基本面分、新闻情绪分，并对机会分做小幅透明调整。

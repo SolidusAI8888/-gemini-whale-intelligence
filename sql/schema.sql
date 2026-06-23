@@ -48,3 +48,40 @@ CREATE TABLE IF NOT EXISTS runs (
     report_path TEXT,
     notes TEXT
 );
+
+CREATE TABLE IF NOT EXISTS market_snapshots (
+    ticker TEXT PRIMARY KEY,
+    price REAL,
+    change_pct REAL,
+    volume REAL,
+    ret_20d REAL,
+    ret_60d REAL,
+    sma20 REAL,
+    sma50 REAL,
+    week_52_high REAL,
+    week_52_low REAL,
+    pe_ratio REAL,
+    ps_ratio REAL,
+    peg_ratio REAL,
+    revenue_growth_yoy REAL,
+    profit_margin REAL,
+    gross_margin REAL,
+    net_margin REAL,
+    market_cap REAL,
+    beta REAL,
+    news_buzz REAL,
+    news_sentiment_score REAL,
+    news_bearish_percent REAL,
+    finnhub_insider_buy_count INTEGER,
+    finnhub_insider_sell_count INTEGER,
+    finnhub_insider_buy_amount REAL,
+    finnhub_insider_sell_amount REAL,
+    trend_score REAL,
+    valuation_score REAL,
+    sentiment_score REAL,
+    data_sources TEXT,
+    summary_note TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_market_snapshots_updated ON market_snapshots(updated_at);

@@ -10,9 +10,9 @@ Data sources:
    The ZIP contains an XML index and disclosure PDFs. We use the XML index to
    locate PTR filings and parse PDF text for stock transactions.
 
-2. Optional Financial Modeling Prep House/Senate APIs (if FMP_API_KEY is set):
-   /stable/house-latest and /stable/senate-latest. This is useful for Senate,
-   whose official eFD pages are less convenient for unattended machine parsing.
+2. Optional Financial Modeling Prep House/Senate APIs. These endpoints are paid/restricted
+   on many FMP keys. They run only when FMP_CONGRESSIONAL_ENABLED=true.
+   The free/default mode relies on the official House Clerk ZIP/PDF source.
 
 The module emits the same normalized trade schema as SEC Form 4.
 """
@@ -520,6 +520,9 @@ def _collect_fmp_by_name_endpoint(endpoint: str, chamber: str, name: str, target
 
 
 def collect_fmp_congress_trades(target_tickers: set[str], lookback_days: int) -> list[dict]:
+    if not settings.fmp_congressional_enabled:
+        log.info("FMP congressional APIs disabled: FMP_CONGRESSIONAL_ENABLED=false. Using free official House source only.")
+        return []
     if not settings.fmp_api_key:
         log.info("FMP_API_KEY not set; skipping optional FMP House/Senate political APIs")
         return []

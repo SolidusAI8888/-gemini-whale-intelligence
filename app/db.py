@@ -90,6 +90,44 @@ def fetch_recent_trades(limit: int = 500) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def fetch_recent_political_trades(limit: int = 200) -> list[sqlite3.Row]:
+    """Return recent political trades separately from the general recent list.
+
+    The general recent table can be dominated by SEC Form 4 rows, which caused
+    POLITICAL_HOUSE records to be collected and inserted but not shown in the
+    report.  Match both source and whale_category to be robust across providers.
+    """
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM trades
+            WHERE (source LIKE 'POLITICAL%' OR whale_category LIKE 'Political%')
+              AND action IN ('BUY', 'SELL')
+            ORDER BY filing_date DESC, trade_date DESC, id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+
+
+def fetch_political_action_summary() -> list[sqlite3.Row]:
+    """Summarize political records so the report can diagnose empty displays."""
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT
+                action,
+                COUNT(*) AS record_count,
+                COUNT(DISTINCT ticker) AS ticker_count,
+                ROUND(SUM(COALESCE(amount_usd, 0)), 2) AS total_amount_usd
+            FROM trades
+            WHERE source LIKE 'POLITICAL%' OR whale_category LIKE 'Political%'
+            GROUP BY action
+            ORDER BY record_count DESC, action ASC
+            """
+        ).fetchall()
+
+
 def fetch_top_scores(limit: int = 50) -> list[sqlite3.Row]:
     with get_conn() as conn:
         return conn.execute(
@@ -99,4 +137,90 @@ def fetch_top_scores(limit: int = 50) -> list[sqlite3.Row]:
             LIMIT ?
             """,
             (limit,),
+        ).fetchall()
+
+
+def upsert_market_snapshots(rows: Iterable[Mapping[str, Any]]) -> int:
+    data = list(rows)
+    if not data:
+        return 0
+    sql = """
+    INSERT INTO market_snapshots (
+        ticker, price, change_pct, volume, ret_20d, ret_60d, sma20, sma50,
+        week_52_high, week_52_low, pe_ratio, ps_ratio, peg_ratio,
+        revenue_growth_yoy, profit_margin, gross_margin, net_margin, market_cap, beta,
+        news_buzz, news_sentiment_score, news_bearish_percent,
+        finnhub_insider_buy_count, finnhub_insider_sell_count,
+        finnhub_insider_buy_amount, finnhub_insider_sell_amount,
+        trend_score, valuation_score, sentiment_score, data_sources, summary_note, updated_at
+    ) VALUES (
+        :ticker, :price, :change_pct, :volume, :ret_20d, :ret_60d, :sma20, :sma50,
+        :week_52_high, :week_52_low, :pe_ratio, :ps_ratio, :peg_ratio,
+        :revenue_growth_yoy, :profit_margin, :gross_margin, :net_margin, :market_cap, :beta,
+        :news_buzz, :news_sentiment_score, :news_bearish_percent,
+        :finnhub_insider_buy_count, :finnhub_insider_sell_count,
+        :finnhub_insider_buy_amount, :finnhub_insider_sell_amount,
+        :trend_score, :valuation_score, :sentiment_score, :data_sources, :summary_note, CURRENT_TIMESTAMP
+    )
+    ON CONFLICT(ticker) DO UPDATE SET
+        price=excluded.price,
+        change_pct=excluded.change_pct,
+        volume=excluded.volume,
+        ret_20d=excluded.ret_20d,
+        ret_60d=excluded.ret_60d,
+        sma20=excluded.sma20,
+        sma50=excluded.sma50,
+        week_52_high=excluded.week_52_high,
+        week_52_low=excluded.week_52_low,
+        pe_ratio=excluded.pe_ratio,
+        ps_ratio=excluded.ps_ratio,
+        peg_ratio=excluded.peg_ratio,
+        revenue_growth_yoy=excluded.revenue_growth_yoy,
+        profit_margin=excluded.profit_margin,
+        gross_margin=excluded.gross_margin,
+        net_margin=excluded.net_margin,
+        market_cap=excluded.market_cap,
+        beta=excluded.beta,
+        news_buzz=excluded.news_buzz,
+        news_sentiment_score=excluded.news_sentiment_score,
+        news_bearish_percent=excluded.news_bearish_percent,
+        finnhub_insider_buy_count=excluded.finnhub_insider_buy_count,
+        finnhub_insider_sell_count=excluded.finnhub_insider_sell_count,
+        finnhub_insider_buy_amount=excluded.finnhub_insider_buy_amount,
+        finnhub_insider_sell_amount=excluded.finnhub_insider_sell_amount,
+        trend_score=excluded.trend_score,
+        valuation_score=excluded.valuation_score,
+        sentiment_score=excluded.sentiment_score,
+        data_sources=excluded.data_sources,
+        summary_note=excluded.summary_note,
+        updated_at=CURRENT_TIMESTAMP
+    """
+    with get_conn() as conn:
+        before = conn.total_changes
+        conn.executemany(sql, data)
+        conn.commit()
+        return conn.total_changes - before
+
+
+def fetch_market_snapshots(limit: int = 100) -> list[sqlite3.Row]:
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM market_snapshots
+            ORDER BY updated_at DESC, ticker ASC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+
+
+def fetch_market_snapshots_for_tickers(tickers: Iterable[str]) -> list[sqlite3.Row]:
+    symbols = [str(t).upper().strip() for t in tickers if str(t).strip()]
+    if not symbols:
+        return []
+    placeholders = ",".join("?" for _ in symbols)
+    with get_conn() as conn:
+        return conn.execute(
+            f"SELECT * FROM market_snapshots WHERE ticker IN ({placeholders}) ORDER BY ticker ASC",
+            symbols,
         ).fetchall()

@@ -53,6 +53,10 @@ class Settings:
     political_provider: str = os.getenv("POLITICAL_PROVIDER", "auto")  # auto|official_house|fmp
     political_max_filings: int = _int("POLITICAL_MAX_FILINGS", 300)
     fmp_api_key: str = os.getenv("FMP_API_KEY", "")
+    # FMP congressional House/Senate endpoints are paid/restricted for many keys.
+    # Keep them off by default so the free setup relies on official House disclosures
+    # and does not spam 402 Payment Required warnings. Turn on only after upgrading FMP.
+    fmp_congressional_enabled: bool = _bool("FMP_CONGRESSIONAL_ENABLED", False)
     fmp_max_pages: int = _int("FMP_MAX_PAGES", 5)
     fmp_page_limit: int = _int("FMP_PAGE_LIMIT", 100)
     # Comma-separated FMP congressional endpoints. FMP has both latest-disclosure
@@ -67,6 +71,20 @@ class Settings:
     #   all  = collect political trades even when ticker is outside the core universe
     #   both = same as all, useful for diagnostics while report can show all political records
     political_universe_scope: str = os.getenv("POLITICAL_UNIVERSE_SCOPE", "core").lower().strip()
+
+
+    # Free market-data connectors. These do not replace political disclosures;
+    # they add price, trend, basic fundamentals, news sentiment and independent
+    # insider/13F-adjacent checks to make the report less dependent on trades alone.
+    enable_market_data: bool = _bool("ENABLE_MARKET_DATA", True)
+    alpha_vantage_api_key: str = os.getenv("ALPHA_VANTAGE_API_KEY", "")
+    finnhub_api_key: str = os.getenv("FINNHUB_API_KEY", "")
+    market_data_max_symbols: int = _int("MARKET_DATA_MAX_SYMBOLS", 25)
+    alpha_daily_enabled: bool = _bool("ALPHA_DAILY_ENABLED", True)
+    alpha_overview_enabled: bool = _bool("ALPHA_OVERVIEW_ENABLED", True)
+    finnhub_basic_financials_enabled: bool = _bool("FINNHUB_BASIC_FINANCIALS_ENABLED", True)
+    finnhub_news_enabled: bool = _bool("FINNHUB_NEWS_ENABLED", True)
+    finnhub_insider_enabled: bool = _bool("FINNHUB_INSIDER_ENABLED", True)
 
 
 settings = Settings()

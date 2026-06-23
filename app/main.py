@@ -10,9 +10,21 @@ from app.analyzers.opportunity import score_opportunities
 from app.collectors.congress import collect_congress_trades
 from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
+from app.collectors.market_data import apply_market_context_to_scores, collect_market_snapshots
 from app.collectors.universe import build_company_universe, tickers_from_companies
 from app.config import settings
-from app.db import fetch_recent_trades, fetch_top_scores, get_conn, init_db, insert_scores, upsert_trades
+from app.db import (
+    fetch_political_action_summary,
+    fetch_recent_political_trades,
+    fetch_recent_trades,
+    fetch_top_scores,
+    fetch_market_snapshots,
+    get_conn,
+    init_db,
+    insert_scores,
+    upsert_market_snapshots,
+    upsert_trades,
+)
 from app.llm.gemini_analyzer import analyze_with_gemini
 from app.reports.html_report import build_html_report, save_report
 from app.reports.mailer import send_report
@@ -57,7 +69,7 @@ def run_scan() -> dict:
     report_path = None
     try:
         log.info("Gemini Whale scan started")
-        log.info("Settings: lookback_days=%s max_companies=%s min_opportunity_score=%s dry_run=%s enable_gemini=%s enable_political=%s political_provider=%s political_scope=%s fmp_key_present=%s", settings.lookback_days, settings.max_companies, settings.min_opportunity_score, settings.dry_run, settings.enable_gemini, settings.enable_political_trades, settings.political_provider, settings.political_universe_scope, bool(settings.fmp_api_key))
+        log.info("Settings: lookback_days=%s max_companies=%s min_opportunity_score=%s dry_run=%s enable_gemini=%s enable_political=%s political_provider=%s political_scope=%s fmp_key_present=%s enable_market_data=%s alpha_key_present=%s finnhub_key_present=%s", settings.lookback_days, settings.max_companies, settings.min_opportunity_score, settings.dry_run, settings.enable_gemini, settings.enable_political_trades, settings.political_provider, settings.political_universe_scope, bool(settings.fmp_api_key), settings.enable_market_data, bool(settings.alpha_vantage_api_key), bool(settings.finnhub_api_key))
 
         companies = build_company_universe(settings.sec_user_agent, settings.max_companies)
         log.info("Company universe size after filters: %s", len(companies))
@@ -79,6 +91,14 @@ def run_scan() -> dict:
         scoring_base = trades if trades else [_row_to_dict(r) for r in fetch_recent_trades(limit=500)]
         consensus_rows = build_consensus_scores(scoring_base)
         scored = score_opportunities(consensus_rows)
+        # Pull market/valuation/sentiment context for the highest-interest tickers,
+        # then apply a small, transparent adjustment to opportunity scores.
+        candidate_symbols = [row["ticker"] for row in sorted(scored, key=lambda r: r.get("opportunity_score", 0), reverse=True)]
+        market_snapshots = collect_market_snapshots(candidate_symbols)
+        market_new_count = upsert_market_snapshots(market_snapshots)
+        log.info("Market snapshots upserted: %s", market_new_count)
+        scored = apply_market_context_to_scores(scored, market_snapshots)
+
         pre_filter_count = len(scored)
         scored = [row for row in scored if row["opportunity_score"] >= settings.min_opportunity_score]
         log.info("Opportunity scores: before_filter=%s after_filter=%s min_score=%s", pre_filter_count, len(scored), settings.min_opportunity_score)
@@ -86,9 +106,29 @@ def run_scan() -> dict:
 
         top_scores = scored if scored else [_row_to_dict(r) for r in fetch_top_scores(limit=50)]
         recent_trades = [_row_to_dict(r) for r in fetch_recent_trades(limit=200)]
+        political_recent_trades = [_row_to_dict(r) for r in fetch_recent_political_trades(limit=200)]
+        political_summary = [_row_to_dict(r) for r in fetch_political_action_summary()]
+        market_context = [_row_to_dict(r) for r in fetch_market_snapshots(limit=50)]
+
+        # Ensure political trades are visible even when recent SEC Form 4 rows dominate
+        # the generic recent-trades query.
+        seen_source_ids = {str(t.get("source_id") or "") for t in recent_trades}
+        for t in political_recent_trades:
+            sid = str(t.get("source_id") or "")
+            if sid and sid not in seen_source_ids:
+                recent_trades.append(t)
+                seen_source_ids.add(sid)
+        log.info("Recent report rows: total=%s political=%s political_summary=%s", len(recent_trades), len(political_recent_trades), political_summary)
 
         ai_analysis = analyze_with_gemini(top_scores, recent_trades)
-        html = build_html_report(top_scores, recent_trades, ai_analysis, new_trade_count=new_count)
+        html = build_html_report(
+            top_scores,
+            recent_trades,
+            ai_analysis,
+            new_trade_count=new_count,
+            political_summary=political_summary,
+            market_context=market_context,
+        )
         path = save_report(html)
         report_path = str(path)
         log.info("Report saved: %s", report_path)

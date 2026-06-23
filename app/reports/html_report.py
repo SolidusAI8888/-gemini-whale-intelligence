@@ -66,9 +66,20 @@ def _trade_rows(trades: list[Mapping], limit: int = 80) -> list[list[str]]:
     return rows
 
 
-def _political_trade_rows(trades: list[Mapping], limit: int = 80) -> list[list[str]]:
+def _is_political_trade(t: Mapping) -> bool:
+    source = str(t.get("source") or "")
+    category = str(t.get("whale_category") or "")
+    return source.startswith("POLITICAL") or category.startswith("Political")
+
+
+def _political_trade_rows(trades: list[Mapping], limit: int = 120) -> list[list[str]]:
     rows = []
-    political = [t for t in trades if str(t.get("whale_category") or "").startswith("Political Whale") and str(t.get("action") or "") in {"BUY", "SELL"}]
+    political = [
+        t
+        for t in trades
+        if _is_political_trade(t) and str(t.get("action") or "").upper() in {"BUY", "SELL"}
+    ]
+    political.sort(key=lambda t: (str(t.get("filing_date") or ""), str(t.get("trade_date") or ""), str(t.get("ticker") or "")), reverse=True)
     for t in political[:limit]:
         url = t.get("filing_url") or ""
         src = escape(str(t.get("source") or "POLITICAL"))
@@ -79,8 +90,9 @@ def _political_trade_rows(trades: list[Mapping], limit: int = 80) -> list[list[s
                 escape(str(t.get("trade_date") or "")),
                 f"<b>{escape(str(t.get('ticker') or ''))}</b>",
                 escape(str(t.get("action") or "")),
+                escape(str(t.get("transaction_code") or "")),
                 escape(str(t.get("whale_name") or "")),
-                escape(str(t.get("insider_role") or "")),
+                escape(str(t.get("insider_role") or t.get("whale_category") or "")),
                 _money(t.get("amount_usd")),
                 filing,
             ]
@@ -88,11 +100,67 @@ def _political_trade_rows(trades: list[Mapping], limit: int = 80) -> list[list[s
     return rows
 
 
+def _political_summary_rows(summary: list[Mapping]) -> list[list[str]]:
+    rows = []
+    for row in summary:
+        rows.append(
+            [
+                escape(str(row.get("action") or "")),
+                escape(str(row.get("record_count") or 0)),
+                escape(str(row.get("ticker_count") or 0)),
+                _money(row.get("total_amount_usd")),
+            ]
+        )
+    return rows
+
+
+
+def _fmt_pct(value) -> str:
+    try:
+        return f"{float(value):.1f}%"
+    except Exception:  # noqa: BLE001
+        return "-"
+
+
+def _fmt_num(value, digits: int = 1) -> str:
+    try:
+        return f"{float(value):.{digits}f}"
+    except Exception:  # noqa: BLE001
+        return "-"
+
+
+def _market_rows(items: list[Mapping], limit: int = 50) -> list[list[str]]:
+    rows = []
+    # Put rows with more complete signals first.
+    def completeness(row: Mapping) -> tuple[int, str]:
+        fields = ["price", "trend_score", "valuation_score", "sentiment_score", "pe_ratio", "ret_20d"]
+        return (sum(1 for f in fields if row.get(f) not in (None, "")), str(row.get("ticker") or ""))
+    for item in sorted(items, key=completeness, reverse=True)[:limit]:
+        rows.append(
+            [
+                f"<b>{escape(str(item.get('ticker') or ''))}</b>",
+                _money(item.get("price")),
+                _fmt_pct(item.get("change_pct")),
+                _fmt_pct(item.get("ret_20d")),
+                _fmt_pct(item.get("ret_60d")),
+                _fmt_num(item.get("pe_ratio")),
+                _fmt_num(item.get("ps_ratio")),
+                _fmt_num(item.get("trend_score"), 0),
+                _fmt_num(item.get("valuation_score"), 0),
+                _fmt_num(item.get("sentiment_score"), 0),
+                escape(str(item.get("data_sources") or "")),
+                escape(str(item.get("summary_note") or "")),
+            ]
+        )
+    return rows
+
 def build_html_report(
     top_scores: list[Mapping],
     recent_trades: list[Mapping],
     ai_analysis: str = "",
     new_trade_count: int = 0,
+    political_summary: list[Mapping] | None = None,
+    market_context: list[Mapping] | None = None,
 ) -> str:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -102,7 +170,7 @@ def build_html_report(
     # For readability, the main recent-trades table focuses on P/S only.
     # Non-core A/M/F/G/J rows remain in the SQLite artifact for audit.
     core_recent_trades = [t for t in recent_trades if str(t.get("action") or "") in {"BUY", "SELL"}]
-    political_recent_trades = [t for t in recent_trades if str(t.get("whale_category") or "").startswith("Political Whale") and str(t.get("action") or "") in {"BUY", "SELL"}]
+    political_recent_trades = [t for t in recent_trades if _is_political_trade(t) and str(t.get("action") or "").upper() in {"BUY", "SELL"}]
 
     if new_trade_count == 0:
         summary = "本次扫描未发现新的披露记录。邮件不重复列出历史内容；下方如有表格，是数据库中最近留存记录。"
@@ -112,7 +180,9 @@ def build_html_report(
     buy_table = _table(['股票', '信号', '机会分', '共识分', '风险分', '解释'], _score_rows(buy_scores)) if buy_scores else '<p>暂无主动买入类可评分信号。</p>'
     sell_table = _table(['股票', '信号', '机会分', '共识分', '风险分', '解释'], _score_rows(sell_scores)) if sell_scores else '<p>暂无减持/卖出类可评分信号。</p>'
     core_trade_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(core_recent_trades)) if core_recent_trades else '<p>暂无近期 BUY/SELL 核心交易记录。</p>'
-    political_trade_table = _table(['披露日', '交易日', '股票', '方向', '政界巨鲸', '机构/角色', '估算金额', '来源'], _political_trade_rows(political_recent_trades)) if political_recent_trades else '<p>暂无近期政界巨鲸 BUY/SELL 交易记录。若未配置 FMP_API_KEY，当前默认仅解析官方 House ZIP；Senate/行政官员模块需要另接数据源。</p>'
+    political_trade_table = _table(['披露日', '交易日', '股票', '方向', '代码', '政界巨鲸', '机构/角色', '估算金额', '来源'], _political_trade_rows(political_recent_trades)) if political_recent_trades else '<p>暂无近期政界巨鲸 BUY/SELL 交易记录。若日志显示 Political trades collected 大于 0，请检查 action 标准化或报告查询条件。</p>'
+    political_summary_table = _table(['动作', '记录数', '涉及标的数', '估算金额合计'], _political_summary_rows(political_summary or [])) if political_summary else '<p>暂无政界交易诊断汇总。</p>'
+    market_table = _table(['股票', '价格', '日变动', '20日', '60日', 'PE', 'PS', '趋势分', '估值/基本面分', '情绪分', '数据源', '备注'], _market_rows(market_context or [])) if market_context else '<p>暂无行情/基本面/新闻情绪数据。请确认 ENABLE_MARKET_DATA=true，并配置 ALPHA_VANTAGE_API_KEY 或 FINNHUB_API_KEY。</p>'
 
     html = f"""
 <!doctype html>
@@ -138,7 +208,7 @@ th {{ background: #f9fafb; text-align: left; }}
 <p class="small">生成时间：{escape(now)}</p>
 <p class="notice">{escape(summary)}</p>
 <p><b>重要说明：</b>本报告是基于公开披露文件的研究筛选结果，不构成个性化投资建议。Form 4 和其他披露存在时间滞后、交易目的复杂、自动交易计划等限制。</p>
-<p class="note">V5 报告把主动买入、减持/卖出、政界巨鲸信号分开展示。近期交易表默认只显示 P/BUY 与 S/SELL 核心交易；A/M/F/G/J 等授予、期权、税务、赠与或其它记录保留在随报告上传的 SQLite 数据库中，供审计追溯。</p>
+<p class="note">V10 报告把主动买入、减持/卖出、政界巨鲸、行情/基本面/新闻情绪分开展示。政界侧默认使用免费 House 官方披露；FMP Congressional 默认关闭。行情与基本面可由 Alpha Vantage 和 Finnhub 免费 API 补充。</p>
 
 <h2>主动买入 Top Signals</h2>
 {buy_table}
@@ -149,6 +219,12 @@ th {{ background: #f9fafb; text-align: left; }}
 <h2>政界巨鲸 BUY/SELL 披露</h2>
 {political_trade_table}
 
+<h2>政界交易诊断汇总</h2>
+{political_summary_table}
+
+<h2>行情 / 基本面 / 新闻情绪补充</h2>
+{market_table}
+
 <h2>近期核心 BUY/SELL 披露</h2>
 {core_trade_table}
 
@@ -156,7 +232,7 @@ th {{ background: #f9fafb; text-align: left; }}
 <pre style="white-space: pre-wrap; background:#f9fafb; padding:12px; border:1px solid #e5e7eb;">{escape(ai_analysis or '未启用。')}</pre>
 
 <h2>评分口径</h2>
-<p>V5 同时识别 SEC Form 4 公司内部人交易与政治人物披露交易。公司内部人侧重点识别 P（公开/私下买入）与 S（公开/私下卖出）；政界侧接入 House 官方披露 ZIP，并可选接入 FMP House/Senate API。CEO、CFO、董事、10% 持有人、众议员、参议员等类别按信息优势加权；金额、披露新鲜度和多巨鲸共振会提高分数。同一报告人、同一文件、同一方向的多笔拆分成交只计为一个独立事件，以降低虚假共振。</p>
+<p>V10 同时识别 SEC Form 4 公司内部人交易与政治人物披露交易，并用 Alpha Vantage / Finnhub 免费接口补充行情、趋势、估值、基本面、新闻情绪与独立 insider 数据校验。机会分仍以公开披露交易为主，行情/基本面/情绪只做小幅透明调整；本报告不构成个性化投资建议。</p>
 </body>
 </html>
 """
