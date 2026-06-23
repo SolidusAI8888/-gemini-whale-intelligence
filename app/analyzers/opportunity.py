@@ -22,7 +22,8 @@ def calculate_opportunity_score(row: dict) -> dict:
     opposite_score = row["sell_score"] if direction == "BUY" else row["buy_score"]
     consensus = row["consensus_score"]
 
-    # V1 intentionally leaves sector/earnings/valuation/sentiment neutral until market-data connectors are added.
+    # V11 still keeps public-disclosure activity as the anchor. Market-data
+    # connectors apply small transparent adjustments later.
     sector_score = 50.0
     earnings_score = 50.0
     valuation_score = 50.0
@@ -44,11 +45,19 @@ def calculate_opportunity_score(row: dict) -> dict:
         f"买入记录={row['buy_count']} 笔/${row['buy_amount']:,.0f}; "
         f"卖出记录={row['sell_count']} 笔/${row['sell_amount']:,.0f}; "
         f"独立买入事件={row.get('unique_buy_events', 0)}; 独立卖出事件={row.get('unique_sell_events', 0)}. "
-        "V1 暂未接入基本面/估值/行情，因此这些维度采用中性先验。"
+        "行情/基本面/情绪若有配置，会在后续步骤小幅调整机会分。"
     )
 
     return {
         "ticker": row["ticker"],
+        "buy_count": row.get("buy_count", 0),
+        "sell_count": row.get("sell_count", 0),
+        "buy_amount": float(row.get("buy_amount") or 0),
+        "sell_amount": float(row.get("sell_amount") or 0),
+        "unique_buy_events": row.get("unique_buy_events", 0),
+        "unique_sell_events": row.get("unique_sell_events", 0),
+        "unique_buy_whales": row.get("unique_buy_whales", 0),
+        "unique_sell_whales": row.get("unique_sell_whales", 0),
         "buy_score": row["buy_score"],
         "sell_score": row["sell_score"],
         "whale_score": row["whale_score"],

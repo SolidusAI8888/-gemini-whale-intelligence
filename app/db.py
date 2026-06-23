@@ -224,3 +224,77 @@ def fetch_market_snapshots_for_tickers(tickers: Iterable[str]) -> list[sqlite3.R
             f"SELECT * FROM market_snapshots WHERE ticker IN ({placeholders}) ORDER BY ticker ASC",
             symbols,
         ).fetchall()
+
+from datetime import date, timedelta
+
+
+def _cutoff_date(days: int) -> str:
+    try:
+        d = int(days)
+    except Exception:
+        d = 365
+    return (date.today() - timedelta(days=max(d, 1))).isoformat()
+
+
+def fetch_core_trades_by_action(action: str, lookback_days: int = 365, limit: int = 120) -> list[sqlite3.Row]:
+    """Fetch core open-market/private BUY or SELL rows by disclosed amount.
+
+    This is intentionally separate from the generic recent list so large recent
+    SELL rows do not hide BUY rows.  It excludes political records because those
+    have their own report section.
+    """
+    action = str(action or "").upper()
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM trades
+            WHERE action = ?
+              AND NOT (source LIKE 'POLITICAL%' OR whale_category LIKE 'Political%')
+              AND COALESCE(filing_date, '') >= ?
+            ORDER BY COALESCE(amount_usd, 0) DESC, filing_date DESC, trade_date DESC, id DESC
+            LIMIT ?
+            """,
+            (action, _cutoff_date(lookback_days), limit),
+        ).fetchall()
+
+
+def fetch_noncore_recent_trades(lookback_days: int = 365, limit: int = 80) -> list[sqlite3.Row]:
+    """Fetch non-core SEC rows (option exercise, grant, tax, gift, etc.).
+
+    These rows are useful for explaining why a news headline may say an insider
+    'acquired' shares even though the BUY table correctly excludes the row from
+    active P/BUY signals.
+    """
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM trades
+            WHERE action NOT IN ('BUY', 'SELL')
+              AND NOT (source LIKE 'POLITICAL%' OR whale_category LIKE 'Political%')
+              AND COALESCE(filing_date, '') >= ?
+            ORDER BY COALESCE(amount_usd, 0) DESC, filing_date DESC, trade_date DESC, id DESC
+            LIMIT ?
+            """,
+            (_cutoff_date(lookback_days), limit),
+        ).fetchall()
+
+
+def fetch_trade_evidence_for_tickers(tickers: Iterable[str], action: str, lookback_days: int = 365, limit: int = 80) -> list[sqlite3.Row]:
+    """Fetch largest trades supporting top BUY/SELL signals."""
+    symbols = sorted({str(t).upper().strip() for t in tickers if str(t).strip()})
+    if not symbols:
+        return []
+    placeholders = ",".join("?" for _ in symbols)
+    params = [str(action).upper(), _cutoff_date(lookback_days), *symbols, int(limit)]
+    with get_conn() as conn:
+        return conn.execute(
+            f"""
+            SELECT * FROM trades
+            WHERE action = ?
+              AND COALESCE(filing_date, '') >= ?
+              AND ticker IN ({placeholders})
+            ORDER BY COALESCE(amount_usd, 0) DESC, filing_date DESC, trade_date DESC, id DESC
+            LIMIT ?
+            """,
+            params,
+        ).fetchall()

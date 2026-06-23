@@ -19,6 +19,9 @@ from app.db import (
     fetch_recent_trades,
     fetch_top_scores,
     fetch_market_snapshots,
+    fetch_core_trades_by_action,
+    fetch_noncore_recent_trades,
+    fetch_trade_evidence_for_tickers,
     get_conn,
     init_db,
     insert_scores,
@@ -105,10 +108,18 @@ def run_scan() -> dict:
         insert_scores(scored)
 
         top_scores = scored if scored else [_row_to_dict(r) for r in fetch_top_scores(limit=50)]
-        recent_trades = [_row_to_dict(r) for r in fetch_recent_trades(limit=200)]
-        political_recent_trades = [_row_to_dict(r) for r in fetch_recent_political_trades(limit=200)]
+        recent_trades = [_row_to_dict(r) for r in fetch_recent_trades(limit=300)]
+        political_recent_trades = [_row_to_dict(r) for r in fetch_recent_political_trades(limit=300)]
         political_summary = [_row_to_dict(r) for r in fetch_political_action_summary()]
         market_context = [_row_to_dict(r) for r in fetch_market_snapshots(limit=50)]
+
+        buy_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if str(r.get("signal_label", "")).startswith("多头")]
+        sell_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if str(r.get("signal_label", "")).startswith("减持")]
+        buy_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(buy_signal_tickers, "BUY", settings.lookback_days, limit=120)]
+        sell_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(sell_signal_tickers, "SELL", settings.lookback_days, limit=160)]
+        core_buy_trades = [_row_to_dict(r) for r in fetch_core_trades_by_action("BUY", settings.lookback_days, limit=120)]
+        core_sell_trades = [_row_to_dict(r) for r in fetch_core_trades_by_action("SELL", settings.lookback_days, limit=160)]
+        noncore_trades = [_row_to_dict(r) for r in fetch_noncore_recent_trades(settings.lookback_days, limit=100)]
 
         # Ensure political trades are visible even when recent SEC Form 4 rows dominate
         # the generic recent-trades query.
@@ -118,9 +129,10 @@ def run_scan() -> dict:
             if sid and sid not in seen_source_ids:
                 recent_trades.append(t)
                 seen_source_ids.add(sid)
-        log.info("Recent report rows: total=%s political=%s political_summary=%s", len(recent_trades), len(political_recent_trades), political_summary)
+        log.info("Recent report rows: total=%s political=%s buy_evidence=%s sell_evidence=%s noncore=%s political_summary=%s", len(recent_trades), len(political_recent_trades), len(buy_evidence), len(sell_evidence), len(noncore_trades), political_summary)
 
-        ai_analysis = analyze_with_gemini(top_scores, recent_trades)
+        ai_recent_context = (core_buy_trades[:40] + core_sell_trades[:40] + political_recent_trades[:40])
+        ai_analysis = analyze_with_gemini(top_scores, ai_recent_context)
         html = build_html_report(
             top_scores,
             recent_trades,
@@ -128,6 +140,11 @@ def run_scan() -> dict:
             new_trade_count=new_count,
             political_summary=political_summary,
             market_context=market_context,
+            buy_evidence=buy_evidence,
+            sell_evidence=sell_evidence,
+            core_buy_trades=core_buy_trades,
+            core_sell_trades=core_sell_trades,
+            noncore_trades=noncore_trades,
         )
         path = save_report(html)
         report_path = str(path)
