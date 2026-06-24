@@ -7,6 +7,7 @@ import io
 import json
 import logging
 import re
+from urllib.parse import urlparse
 from typing import Iterable
 
 import requests
@@ -23,6 +24,22 @@ AMOUNT_RANGE_RE = re.compile(
 MONEY_RE = re.compile(r"\$\s*([0-9][0-9,]*(?:\.\d+)?)")
 DATE_RE = re.compile(r"\b(\d{1,2}/\d{1,2}/\d{2,4}|\d{4}-\d{1,2}-\d{1,2})\b")
 TICKER_RE = re.compile(r"\(([A-Z][A-Z0-9.\-]{0,7})\)")
+SYMBOL_RE = re.compile(r"\b(?:ticker|symbol)\s*[:#\-]?\s*([A-Z][A-Z0-9.\-]{0,7})\b", re.I)
+KNOWN_TICKERS = {
+    "microsoft": "MSFT",
+    "meta platforms": "META",
+    "facebook": "META",
+    "amazon": "AMZN",
+    "nvidia": "NVDA",
+    "advanced micro devices": "AMD",
+    "oracle": "ORCL",
+    "apple": "AAPL",
+    "alphabet": "GOOGL",
+    "google": "GOOGL",
+    "tesla": "TSLA",
+    "netflix": "NFLX",
+    "broadcom": "AVGO",
+}
 ACTIONS = {
     "purchase": ("BUY", "P"),
     "buy": ("BUY", "P"),
@@ -70,20 +87,42 @@ def _parse_amount_range(text: str) -> tuple[float | None, float | None, float | 
 
 def _normalize_action(text: str) -> tuple[str | None, str | None]:
     lower = (text or "").lower()
-    # Prefer sale before sell, purchase before buy; avoid matching asset names by using word boundaries.
-    for word in ("purchase", "sale", "exchange", "buy", "sell", "sold"):
-        if re.search(rf"\b{re.escape(word)}\b", lower):
-            return ACTIONS[word]
+    # OGE PDFs are often OCR/extracted imperfectly: purchase can appear as
+    # "purd'lase", "purch ase", etc.  Treat common fragments defensively.
+    compact = re.sub(r"[^a-z]+", "", lower)
+    if re.search(r"\bexchange\b", lower):
+        return ACTIONS["exchange"]
+    if re.search(r"\b(sale|sell|sold)\b", lower) or "sale" in compact or "sold" in compact:
+        return ACTIONS["sale"]
+    if re.search(r"\b(purchase|buy|bought)\b", lower) or "purch" in compact or "purchase" in compact or "bought" in compact:
+        return ACTIONS["purchase"]
     return None, None
 
 
 def _looks_like_trade_block(text: str) -> bool:
-    if not TICKER_RE.search(text):
-        return False
     action, _ = _normalize_action(text)
     if not action:
         return False
-    return bool(DATE_RE.search(text))
+    # Must look like a dated row with a disclosed amount/range.  Ticker is optional
+    # at this stage because many OGE rows do not use Form-4 style "(MSFT)" text.
+    return bool(DATE_RE.search(text) and (AMOUNT_RANGE_RE.search(text) or MONEY_RE.search(text)))
+
+
+def _extract_ticker(block: str) -> str | None:
+    m = TICKER_RE.search(block)
+    if m:
+        candidate = m.group(1).replace(".", "-").upper()
+        # Avoid treating bond ratings / common form labels as stock tickers.
+        if candidate not in {"B", "C", "D", "E", "B/E", "B-C", "A", "N/A"}:
+            return candidate
+    m = SYMBOL_RE.search(block)
+    if m:
+        return m.group(1).replace(".", "-").upper()
+    lower = block.lower()
+    for key, ticker in KNOWN_TICKERS.items():
+        if key in lower:
+            return ticker
+    return None
 
 
 def _asset_name_from_block(block: str, ticker: str) -> str:
@@ -97,7 +136,18 @@ def _asset_name_from_block(block: str, ticker: str) -> str:
 
 
 def _pdf_text_from_url(url: str, user_agent: str) -> str:
-    resp = requests.get(url, headers={"User-Agent": user_agent}, timeout=60)
+    resp = requests.get(
+        url,
+        headers={"User-Agent": user_agent, "Accept": "application/pdf,*/*"},
+        timeout=90,
+    )
+    log.info(
+        "OGE PDF fetch: url=%s status=%s content_type=%s bytes=%s",
+        _mask_url(url),
+        resp.status_code,
+        resp.headers.get("content-type", ""),
+        len(resp.content or b""),
+    )
     resp.raise_for_status()
     reader = PdfReader(io.BytesIO(resp.content))
     pages = []
@@ -106,7 +156,9 @@ def _pdf_text_from_url(url: str, user_agent: str) -> str:
             pages.append(page.extract_text() or "")
         except Exception as exc:  # noqa: BLE001
             log.warning("Failed to extract OGE PDF page text: %s", exc)
-    return "\n".join(pages)
+    text = "\n".join(pages)
+    log.info("OGE PDF extracted: pages=%s text_chars=%s", len(reader.pages), len(text))
+    return text
 
 
 def _blocks_from_text(text: str) -> list[str]:
@@ -153,10 +205,9 @@ def _parse_trade_blocks(
     today = date.today().isoformat()
     rows: list[dict] = []
     for block in _blocks_from_text(text):
-        ticker_m = TICKER_RE.search(block)
-        if not ticker_m:
+        ticker = _extract_ticker(block)
+        if not ticker:
             continue
-        ticker = ticker_m.group(1).replace(".", "-").upper()
         action, code = _normalize_action(block)
         if not action or not code:
             continue
@@ -224,7 +275,18 @@ class ExecutiveReportSpec:
 
 
 def _split_urls(value: str) -> list[str]:
-    return [x.strip() for x in re.split(r"[,\n;]+", value or "") if x.strip()]
+    # URLs can legally contain commas in filenames (e.g. "Trump, Donald J.").
+    # Only semicolon and newline are supported as separators.
+    return [x.strip() for x in re.split(r"[;\n]+", value or "") if x.strip()]
+
+
+def _mask_url(url: str) -> str:
+    try:
+        parsed = urlparse(url)
+        tail = parsed.path.rsplit("/", 1)[-1]
+        return f"{parsed.netloc}/.../{tail[:80]}"
+    except Exception:
+        return "<unparseable-url>"
 
 
 def _cabinet_specs(value: str) -> list[ExecutiveReportSpec]:
@@ -254,8 +316,21 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
         log.info("OGE executive collector disabled")
         return []
 
+    trump_urls = _split_urls(settings.oge_trump_report_urls)
+    cabinet_specs = _cabinet_specs(settings.oge_cabinet_reports)
+    log.info(
+        "OGE executive config: enabled=%s trump_url_present=%s trump_url_count=%s cabinet_spec_count=%s max_reports=%s",
+        settings.enable_oge_executive_trades,
+        bool(settings.oge_trump_report_urls),
+        len(trump_urls),
+        len(cabinet_specs),
+        settings.oge_max_reports,
+    )
+    for idx, url in enumerate(trump_urls, 1):
+        log.info("OGE Trump URL %s/%s: %s", idx, len(trump_urls), _mask_url(url))
+
     specs: list[ExecutiveReportSpec] = []
-    for url in _split_urls(settings.oge_trump_report_urls):
+    for url in trump_urls:
         specs.append(
             ExecutiveReportSpec(
                 name=settings.oge_trump_filer_name,
@@ -264,7 +339,7 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
                 url=url,
             )
         )
-    specs.extend(_cabinet_specs(settings.oge_cabinet_reports))
+    specs.extend(cabinet_specs)
     if not specs:
         log.info("OGE executive collector enabled but no report URLs configured")
         return []
@@ -275,6 +350,8 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
         try:
             log.info("Fetching OGE executive report: %s / %s", spec.name, spec.url)
             text = _pdf_text_from_url(spec.url, user_agent)
+            parser_blocks = _blocks_from_text(text)
+            log.info("OGE parser candidate blocks for %s: %s", spec.name, len(parser_blocks))
             rows = _parse_trade_blocks(
                 text=text,
                 filer_name=spec.name,
