@@ -43,6 +43,11 @@ env:
   FINNHUB_BASIC_FINANCIALS_ENABLED: ${{ vars.FINNHUB_BASIC_FINANCIALS_ENABLED || 'true' }}
   FINNHUB_NEWS_ENABLED: ${{ vars.FINNHUB_NEWS_ENABLED || 'true' }}
   FINNHUB_INSIDER_ENABLED: ${{ vars.FINNHUB_INSIDER_ENABLED || 'true' }}
+  ENABLE_OGE_EXECUTIVE_TRADES: ${{ vars.ENABLE_OGE_EXECUTIVE_TRADES || 'true' }}
+  OGE_TRUMP_REPORT_URLS: ${{ secrets.OGE_TRUMP_REPORT_URLS }}
+  OGE_CABINET_REPORTS: ${{ secrets.OGE_CABINET_REPORTS }}
+  OGE_MAX_REPORTS: ${{ vars.OGE_MAX_REPORTS || '20' }}
+  OGE_EXECUTIVE_WATCHLIST: ${{ vars.OGE_EXECUTIVE_WATCHLIST || 'Donald J. Trump,JD Vance,Secretary of State,Secretary of the Treasury,Secretary of Defense,Attorney General,Secretary of the Interior,Secretary of Agriculture,Secretary of Commerce,Secretary of Labor,Secretary of Health and Human Services,Secretary of Housing and Urban Development,Secretary of Transportation,Secretary of Energy,Secretary of Education,Secretary of Veterans Affairs,Secretary of Homeland Security,Director of National Intelligence,U.S. Trade Representative,Director of OMB,EPA Administrator,CIA Director,SBA Administrator,SEC Chair,FTC Chair' }}
 
 jobs:
   scan:
