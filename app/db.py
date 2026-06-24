@@ -214,6 +214,54 @@ def fetch_market_snapshots(limit: int = 100) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def fetch_oge_executive_trades(limit: int = 500) -> list[sqlite3.Row]:
+    """Return OGE executive branch trades, including Trump and cabinet officials."""
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM trades
+            WHERE source LIKE 'OGE_EXECUTIVE%' OR whale_category LIKE 'Executive:%'
+            ORDER BY filing_date DESC, trade_date DESC, COALESCE(amount_usd, 0) DESC, id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+
+
+def fetch_trump_oge_trades(limit: int = 500) -> list[sqlite3.Row]:
+    """Return Trump OGE trades for the dedicated President section."""
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM trades
+            WHERE source = 'OGE_EXECUTIVE_TRUMP'
+               OR (whale_category LIKE 'Executive:%' AND whale_name LIKE '%Trump%')
+            ORDER BY filing_date DESC, trade_date DESC, COALESCE(amount_usd, 0) DESC, id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+
+
+def fetch_oge_action_summary() -> list[sqlite3.Row]:
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT
+                whale_name,
+                insider_role,
+                action,
+                COUNT(*) AS record_count,
+                COUNT(DISTINCT ticker) AS ticker_count,
+                ROUND(SUM(COALESCE(amount_usd, 0)), 2) AS total_amount_usd
+            FROM trades
+            WHERE source LIKE 'OGE_EXECUTIVE%' OR whale_category LIKE 'Executive:%'
+            GROUP BY whale_name, insider_role, action
+            ORDER BY whale_name ASC, action ASC
+            """
+        ).fetchall()
+
+
 def fetch_market_snapshots_for_tickers(tickers: Iterable[str]) -> list[sqlite3.Row]:
     symbols = [str(t).upper().strip() for t in tickers if str(t).strip()]
     if not symbols:

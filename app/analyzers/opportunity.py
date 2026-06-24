@@ -42,8 +42,8 @@ def calculate_opportunity_score(row: dict) -> dict:
 
     explanation = (
         f"方向={direction}; 共识分={consensus:.1f}; "
-        f"买入记录={row['buy_count']} 笔/${row['buy_amount']:,.0f}; "
-        f"卖出记录={row['sell_count']} 笔/${row['sell_amount']:,.0f}; "
+        f"买入记录={row['buy_count']} 笔，去重经济笔数={row.get('buy_economic_count', row['buy_count'])}，金额=${row['buy_amount']:,.0f}; "
+        f"卖出记录={row['sell_count']} 笔，去重经济笔数={row.get('sell_economic_count', row['sell_count'])}，金额=${row['sell_amount']:,.0f}; "
         f"独立买入事件={row.get('unique_buy_events', 0)}; 独立卖出事件={row.get('unique_sell_events', 0)}. "
         "行情/基本面/情绪若有配置，会在后续步骤小幅调整机会分。"
     )
@@ -52,6 +52,8 @@ def calculate_opportunity_score(row: dict) -> dict:
         "ticker": row["ticker"],
         "buy_count": row.get("buy_count", 0),
         "sell_count": row.get("sell_count", 0),
+        "buy_economic_count": row.get("buy_economic_count", row.get("buy_count", 0)),
+        "sell_economic_count": row.get("sell_economic_count", row.get("sell_count", 0)),
         "buy_amount": float(row.get("buy_amount") or 0),
         "sell_amount": float(row.get("sell_amount") or 0),
         "unique_buy_events": row.get("unique_buy_events", 0),

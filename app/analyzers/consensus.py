@@ -8,17 +8,44 @@ from app.analyzers.whale_score import calculate_trade_whale_score, clamp
 HIGH_SIGNAL_ACTIONS = {"BUY", "SELL"}
 
 
-def _unique_key(row: Mapping) -> tuple[str, str, str]:
-    """Collapse split lots from one owner/form/action into one consensus unit.
+def _economic_key(row: Mapping) -> tuple[str, ...]:
+    """Key for one underlying economic trade line.
 
-    A Form 4 can contain many line items for the same owner and same economic event.
-    Counting every lot as an independent whale greatly overstates consensus.
+    SEC Form 4 joint filings often list the same purchase/sale under multiple
+    reporting owners in the same accession.  Counting each reporting owner as a
+    separate dollar trade can multiply the true economic amount.  This key keeps
+    split lots with different prices/amounts separate, while collapsing exact
+    duplicate economic lines that differ only by reporting owner.
     """
+    return (
+        str(row.get("ticker") or "").upper(),
+        str(row.get("action") or "").upper(),
+        str(row.get("transaction_code") or ""),
+        str(row.get("trade_date") or ""),
+        str(row.get("filing_date") or ""),
+        str(row.get("accession_number") or row.get("filing_url") or row.get("source_id") or ""),
+        f"{float(row.get('amount_usd') or 0):.4f}",
+        f"{float(row.get('shares') or 0):.4f}",
+        f"{float(row.get('price') or 0):.4f}",
+        str(row.get("source") or ""),
+    )
+
+
+def _unique_key(row: Mapping) -> tuple[str, str, str, str]:
+    """Collapse split lots from one form/action into one consensus unit."""
     return (
         str(row.get("whale_name") or ""),
         str(row.get("accession_number") or row.get("filing_url") or ""),
         str(row.get("action") or ""),
+        str(row.get("trade_date") or ""),
     )
+
+
+def _economic_rows(rows: list[Mapping]) -> list[Mapping]:
+    seen: dict[tuple[str, ...], Mapping] = {}
+    for row in rows:
+        seen.setdefault(_economic_key(row), row)
+    return list(seen.values())
 
 
 def build_consensus_scores(trades: Iterable[Mapping]) -> list[dict]:
@@ -36,6 +63,9 @@ def build_consensus_scores(trades: Iterable[Mapping]) -> list[dict]:
         if not buy_rows and not sell_rows:
             continue
 
+        buy_economic = _economic_rows(buy_rows)
+        sell_economic = _economic_rows(sell_rows)
+
         unique_buy_whales = {str(r.get("whale_name")) for r in buy_rows}
         unique_sell_whales = {str(r.get("whale_name")) for r in sell_rows}
         unique_buy_categories = {str(r.get("whale_category")) for r in buy_rows}
@@ -43,24 +73,25 @@ def build_consensus_scores(trades: Iterable[Mapping]) -> list[dict]:
         unique_buy_events = {_unique_key(r) for r in buy_rows}
         unique_sell_events = {_unique_key(r) for r in sell_rows}
 
-        buy_amount = sum(float(r.get("amount_usd") or 0) for r in buy_rows)
-        sell_amount = sum(float(r.get("amount_usd") or 0) for r in sell_rows)
+        # Economic amounts are de-duplicated across joint reporters.  Raw row
+        # counts remain visible separately for auditability.
+        buy_amount = sum(float(r.get("amount_usd") or 0) for r in buy_economic)
+        sell_amount = sum(float(r.get("amount_usd") or 0) for r in sell_economic)
         trade_scores = [calculate_trade_whale_score(r) for r in rows]
-        buy_scores = [calculate_trade_whale_score(r) for r in buy_rows]
-        sell_scores = [calculate_trade_whale_score(r) for r in sell_rows]
+        buy_scores = [calculate_trade_whale_score(r) for r in buy_economic]
+        sell_scores = [calculate_trade_whale_score(r) for r in sell_economic]
 
-        # Consensus should reward independent whales/forms/categories, not every split lot.
         buy_consensus = clamp(
-            len(unique_buy_whales) * 20
-            + len(unique_buy_categories) * 10
+            len(unique_buy_whales) * 16
+            + len(unique_buy_categories) * 8
             + min(len(unique_buy_events), 6) * 8
-            + min(len(buy_rows), 10) * 1.5
+            + min(len(buy_economic), 10) * 1.5
         )
         sell_consensus = clamp(
-            len(unique_sell_whales) * 16
-            + len(unique_sell_categories) * 8
+            len(unique_sell_whales) * 14
+            + len(unique_sell_categories) * 7
             + min(len(unique_sell_events), 6) * 6
-            + min(len(sell_rows), 10) * 1.0
+            + min(len(sell_economic), 10) * 1.0
         )
 
         whale_score = round(sum(trade_scores) / len(trade_scores), 2) if trade_scores else 0.0
@@ -75,6 +106,8 @@ def build_consensus_scores(trades: Iterable[Mapping]) -> list[dict]:
                 "ticker": ticker,
                 "buy_count": len(buy_rows),
                 "sell_count": len(sell_rows),
+                "buy_economic_count": len(buy_economic),
+                "sell_economic_count": len(sell_economic),
                 "buy_amount": buy_amount,
                 "sell_amount": sell_amount,
                 "unique_buy_whales": len(unique_buy_whales),

@@ -73,6 +73,17 @@ class Settings:
     political_universe_scope: str = os.getenv("POLITICAL_UNIVERSE_SCOPE", "core").lower().strip()
 
 
+    # OGE Executive Branch disclosures. This is separate from House/Senate PTR.
+    # Configure official OGE/OGE-hosted PDF URLs. Trump gets a dedicated report
+    # section; cabinet reports use entries formatted as Name|Title|PDF_URL|Agency.
+    enable_oge_executive_trades: bool = _bool("ENABLE_OGE_EXECUTIVE_TRADES", True)
+    oge_trump_report_urls: str = os.getenv("OGE_TRUMP_REPORT_URLS", "")
+    oge_trump_filer_name: str = os.getenv("OGE_TRUMP_FILER_NAME", "Donald J. Trump")
+    oge_cabinet_reports: str = os.getenv("OGE_CABINET_REPORTS", "")
+    oge_max_reports: int = _int("OGE_MAX_REPORTS", 20)
+    oge_executive_watchlist: str = os.getenv("OGE_EXECUTIVE_WATCHLIST", "Donald J. Trump,JD Vance,Secretary of State,Secretary of the Treasury,Secretary of Defense,Attorney General,Secretary of the Interior,Secretary of Agriculture,Secretary of Commerce,Secretary of Labor,Secretary of Health and Human Services,Secretary of Housing and Urban Development,Secretary of Transportation,Secretary of Energy,Secretary of Education,Secretary of Veterans Affairs,Secretary of Homeland Security,Director of National Intelligence,U.S. Trade Representative,Director of OMB,EPA Administrator,CIA Director,SBA Administrator,SEC Chair,FTC Chair")
+
+
     # Free market-data connectors. These do not replace political disclosures;
     # they add price, trend, basic fundamentals, news sentiment and independent
     # insider/13F-adjacent checks to make the report less dependent on trades alone.

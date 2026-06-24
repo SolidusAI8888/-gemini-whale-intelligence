@@ -11,6 +11,7 @@ from app.collectors.congress import collect_congress_trades
 from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
 from app.collectors.market_data import apply_market_context_to_scores, collect_market_snapshots
+from app.collectors.oge_executive import collect_oge_executive_trades
 from app.collectors.universe import build_company_universe, tickers_from_companies
 from app.config import settings
 from app.db import (
@@ -19,6 +20,9 @@ from app.db import (
     fetch_recent_trades,
     fetch_top_scores,
     fetch_market_snapshots,
+    fetch_oge_action_summary,
+    fetch_oge_executive_trades,
+    fetch_trump_oge_trades,
     fetch_core_trades_by_action,
     fetch_noncore_recent_trades,
     fetch_trade_evidence_for_tickers,
@@ -72,7 +76,7 @@ def run_scan() -> dict:
     report_path = None
     try:
         log.info("Gemini Whale scan started")
-        log.info("Settings: lookback_days=%s max_companies=%s min_opportunity_score=%s dry_run=%s enable_gemini=%s enable_political=%s political_provider=%s political_scope=%s fmp_key_present=%s enable_market_data=%s alpha_key_present=%s finnhub_key_present=%s", settings.lookback_days, settings.max_companies, settings.min_opportunity_score, settings.dry_run, settings.enable_gemini, settings.enable_political_trades, settings.political_provider, settings.political_universe_scope, bool(settings.fmp_api_key), settings.enable_market_data, bool(settings.alpha_vantage_api_key), bool(settings.finnhub_api_key))
+        log.info("Settings: lookback_days=%s max_companies=%s min_opportunity_score=%s dry_run=%s enable_gemini=%s enable_political=%s political_provider=%s political_scope=%s fmp_key_present=%s enable_market_data=%s alpha_key_present=%s finnhub_key_present=%s enable_oge=%s", settings.lookback_days, settings.max_companies, settings.min_opportunity_score, settings.dry_run, settings.enable_gemini, settings.enable_political_trades, settings.political_provider, settings.political_universe_scope, bool(settings.fmp_api_key), settings.enable_market_data, bool(settings.alpha_vantage_api_key), bool(settings.finnhub_api_key), settings.enable_oge_executive_trades)
 
         companies = build_company_universe(settings.sec_user_agent, settings.max_companies)
         log.info("Company universe size after filters: %s", len(companies))
@@ -84,7 +88,9 @@ def run_scan() -> dict:
         political_target_tickers = target_tickers if political_scope == "core" else set()
         congress_trades = collect_congress_trades(political_target_tickers, settings.sec_user_agent, settings.lookback_days)
         log.info("Collected political trades: %s", len(congress_trades))
-        trades = sec_trades + congress_trades
+        oge_trades = collect_oge_executive_trades(settings.sec_user_agent, settings.lookback_days)
+        log.info("Collected OGE executive trades: %s", len(oge_trades))
+        trades = sec_trades + congress_trades + oge_trades
         log.info("Collected normalized trades: %s", len(trades))
 
         new_count = upsert_trades(trades)
@@ -112,9 +118,12 @@ def run_scan() -> dict:
         political_recent_trades = [_row_to_dict(r) for r in fetch_recent_political_trades(limit=300)]
         political_summary = [_row_to_dict(r) for r in fetch_political_action_summary()]
         market_context = [_row_to_dict(r) for r in fetch_market_snapshots(limit=50)]
+        trump_oge_trades = [_row_to_dict(r) for r in fetch_trump_oge_trades(limit=500)]
+        oge_executive_trades = [_row_to_dict(r) for r in fetch_oge_executive_trades(limit=800)]
+        oge_summary = [_row_to_dict(r) for r in fetch_oge_action_summary()]
 
-        buy_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if str(r.get("signal_label", "")).startswith("多头")]
-        sell_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if str(r.get("signal_label", "")).startswith("减持")]
+        buy_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if float(r.get("buy_amount") or 0) > 0]
+        sell_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if float(r.get("sell_amount") or 0) > 0 and str(r.get("signal_label", "")).startswith("减持")]
         buy_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(buy_signal_tickers, "BUY", settings.lookback_days, limit=120)]
         sell_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(sell_signal_tickers, "SELL", settings.lookback_days, limit=160)]
         core_buy_trades = [_row_to_dict(r) for r in fetch_core_trades_by_action("BUY", settings.lookback_days, limit=120)]
@@ -131,7 +140,7 @@ def run_scan() -> dict:
                 seen_source_ids.add(sid)
         log.info("Recent report rows: total=%s political=%s buy_evidence=%s sell_evidence=%s noncore=%s political_summary=%s", len(recent_trades), len(political_recent_trades), len(buy_evidence), len(sell_evidence), len(noncore_trades), political_summary)
 
-        ai_recent_context = (core_buy_trades[:40] + core_sell_trades[:40] + political_recent_trades[:40])
+        ai_recent_context = (core_buy_trades[:40] + core_sell_trades[:40] + political_recent_trades[:40] + trump_oge_trades[:40])
         ai_analysis = analyze_with_gemini(top_scores, ai_recent_context)
         html = build_html_report(
             top_scores,
@@ -145,6 +154,9 @@ def run_scan() -> dict:
             core_buy_trades=core_buy_trades,
             core_sell_trades=core_sell_trades,
             noncore_trades=noncore_trades,
+            trump_oge_trades=trump_oge_trades,
+            oge_executive_trades=oge_executive_trades,
+            oge_summary=oge_summary,
         )
         path = save_report(html)
         report_path = str(path)
