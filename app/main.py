@@ -123,9 +123,17 @@ def run_scan() -> dict:
         oge_summary = [_row_to_dict(r) for r in fetch_oge_action_summary()]
 
         buy_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if float(r.get("buy_amount") or 0) > 0]
-        sell_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if float(r.get("sell_amount") or 0) > 0 and str(r.get("signal_label", "")).startswith("减持")]
-        buy_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(buy_signal_tickers, "BUY", settings.lookback_days, limit=120)]
-        sell_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(sell_signal_tickers, "SELL", settings.lookback_days, limit=160)]
+        # Include BUY-radar tickers in SELL evidence so related SELL rows (for
+        # example TSLA) remain auditable even when they do not make the global
+        # sell Top N by amount/opportunity score.
+        sell_signal_tickers = sorted({
+            str(r.get("ticker") or "")
+            for r in top_scores
+            if float(r.get("sell_amount") or 0) > 0
+            and (str(r.get("signal_label", "")).startswith("减持") or float(r.get("buy_amount") or 0) > 0)
+        })
+        buy_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(buy_signal_tickers, "BUY", settings.lookback_days, limit=160)]
+        sell_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(sell_signal_tickers, "SELL", settings.lookback_days, limit=220)]
         core_buy_trades = [_row_to_dict(r) for r in fetch_core_trades_by_action("BUY", settings.lookback_days, limit=120)]
         core_sell_trades = [_row_to_dict(r) for r in fetch_core_trades_by_action("SELL", settings.lookback_days, limit=160)]
         noncore_trades = [_row_to_dict(r) for r in fetch_noncore_recent_trades(settings.lookback_days, limit=100)]

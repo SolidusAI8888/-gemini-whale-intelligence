@@ -14,7 +14,7 @@ def test_report_splits_buy_and_sell_sections():
         ai_analysis="ok",
         new_trade_count=1,
     )
-    assert "主动买入 Top Signals" in html
+    assert "主动买入雷达" in html
     assert "减持/卖出预警 Top Signals" in html
     assert "BUYME" in html
     assert "SELLME" in html

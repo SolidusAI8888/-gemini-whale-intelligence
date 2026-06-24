@@ -194,6 +194,191 @@ def _sort_grouped_trades(trades: list[Mapping], price_by_ticker: dict[str, float
     return ordered
 
 
+def _ratio(numerator: float, denominator: float) -> str:
+    if denominator <= 0 and numerator > 0:
+        return "∞"
+    if numerator <= 0 and denominator <= 0:
+        return "-"
+    return f"{numerator / max(denominator, 1):.1f}x"
+
+
+def _economic_trade_key(row: Mapping) -> tuple[str, ...]:
+    return (
+        str(row.get("ticker") or "").upper(),
+        str(row.get("action") or "").upper(),
+        str(row.get("transaction_code") or ""),
+        str(row.get("trade_date") or ""),
+        str(row.get("filing_date") or ""),
+        str(row.get("accession_number") or row.get("filing_url") or row.get("source_id") or ""),
+        f"{_safe_float(row.get('amount_usd')):.4f}",
+        f"{_safe_float(row.get('shares')):.4f}",
+        f"{_safe_float(row.get('price')):.4f}",
+        str(row.get("source") or ""),
+    )
+
+
+def _dedup_economic_trades(trades: list[Mapping]) -> list[dict]:
+    """Collapse joint reporters for chart/summary amounts while preserving names."""
+    seen: dict[tuple[str, ...], dict] = {}
+    for t in trades:
+        key = _economic_trade_key(t)
+        if key not in seen:
+            row = dict(t)
+            names = []
+            if row.get("whale_name"):
+                names.append(str(row.get("whale_name")))
+            row["_joint_reporters"] = names
+            seen[key] = row
+        else:
+            name = str(t.get("whale_name") or "")
+            if name and name not in seen[key]["_joint_reporters"]:
+                seen[key]["_joint_reporters"].append(name)
+    for row in seen.values():
+        names = row.get("_joint_reporters") or []
+        if len(names) > 1:
+            row["_display_whale_name"] = ", ".join(names[:3]) + (f" 等{len(names)}方" if len(names) > 3 else "")
+        else:
+            row["_display_whale_name"] = names[0] if names else str(row.get("whale_name") or "")
+    return list(seen.values())
+
+
+def _major_whales_for_ticker(trades: list[Mapping], ticker: str, action: str, price_by_ticker: dict[str, float], max_names: int = 3) -> str:
+    target = str(ticker or "").upper()
+    action = str(action or "").upper()
+    rows = [t for t in _dedup_economic_trades(trades) if str(t.get("ticker") or "").upper() == target and str(t.get("action") or "").upper() == action]
+    by_name: dict[str, float] = defaultdict(float)
+    for t in rows:
+        name = str(t.get("_display_whale_name") or t.get("whale_name") or "Unknown")
+        by_name[name] += _trade_amount_for_display(t, price_by_ticker)[0]
+    names = [name for name, _ in sorted(by_name.items(), key=lambda kv: kv[1], reverse=True)[:max_names]]
+    return ", ".join(names) if names else "-"
+
+
+def _buy_strength_label(buy_amount: float) -> str:
+    if buy_amount >= 100_000_000:
+        return "强买入"
+    if buy_amount >= 10_000_000:
+        return "明显买入"
+    if buy_amount >= 1_000_000:
+        return "买入观察"
+    return "小额买入"
+
+
+def _net_flow_label(buy_amount: float, sell_amount: float) -> str:
+    net = buy_amount - sell_amount
+    if buy_amount > 0 and sell_amount <= 0:
+        return "纯买入"
+    if net > 0:
+        return "净买入"
+    if net < 0:
+        return "净卖出"
+    return "买卖均衡"
+
+
+def _risk_tags_for_item(item: Mapping) -> str:
+    tags = []
+    buy_amount = _safe_float(item.get("buy_amount"))
+    sell_amount = _safe_float(item.get("sell_amount"))
+    if sell_amount > 0:
+        tags.append("关联SELL需审计")
+    if sell_amount > buy_amount:
+        tags.append("卖出压力高")
+    if _safe_float(item.get("risk_score")) >= 35:
+        tags.append("风险分偏高")
+    if _safe_float(item.get("buy_economic_count")) < _safe_float(item.get("buy_count")):
+        tags.append("共同报告人已去重")
+    return "；".join(tags) if tags else "无明显附加风险"
+
+
+def _buy_radar_explanation(item: Mapping) -> str:
+    buy_amount = _safe_float(item.get("buy_amount"))
+    sell_amount = _safe_float(item.get("sell_amount"))
+    net = buy_amount - sell_amount
+    return (
+        "入选原因=存在 P/BUY 主动买入；"
+        f"买入记录={item.get('buy_count', 0)} 笔，去重经济笔数={item.get('buy_economic_count', item.get('buy_count', 0))}；"
+        f"同期SELL={item.get('sell_count', 0)} 笔，去重经济笔数={item.get('sell_economic_count', item.get('sell_count', 0))}；"
+        f"净额={_money(net)}；买/卖比={_ratio(buy_amount, sell_amount)}。"
+        "本表展示主动买入雷达，不把全局净方向写成 SELL；若存在卖出，见下方关联 SELL 审计。"
+    )
+
+
+def _buy_radar_rows(items: list[Mapping]) -> list[list[str]]:
+    rows = []
+    sorted_items = sorted(items, key=lambda x: (_safe_float(x.get("buy_amount")), _safe_float(x.get("opportunity_score"))), reverse=True)
+    for item in sorted_items[:30]:
+        buy_amount = _safe_float(item.get("buy_amount"))
+        sell_amount = _safe_float(item.get("sell_amount"))
+        rows.append([
+            f"<b>{escape(str(item['ticker']))}</b>",
+            escape(_buy_strength_label(buy_amount)),
+            escape(_net_flow_label(buy_amount, sell_amount)),
+            escape(_risk_tags_for_item(item)),
+            _money(buy_amount),
+            _money(sell_amount),
+            _money(buy_amount - sell_amount),
+            escape(_ratio(buy_amount, sell_amount)),
+            escape(str(item.get("buy_count", ""))),
+            escape(str(item.get("buy_economic_count", item.get("buy_count", "")))),
+            f"{float(item.get('opportunity_score') or 0):.1f}",
+            escape(_buy_radar_explanation(item)),
+        ])
+    return rows
+
+
+def _key_summary_rows(items: list[Mapping], trades: list[Mapping], action: str, price_by_ticker: dict[str, float], limit: int = 8) -> list[list[str]]:
+    action = action.upper()
+    amount_key = "buy_amount" if action == "BUY" else "sell_amount"
+    opposite_key = "sell_amount" if action == "BUY" else "buy_amount"
+    rows = []
+    filtered = [x for x in items if _safe_float(x.get(amount_key)) > 0]
+    filtered = sorted(filtered, key=lambda x: (_safe_float(x.get(amount_key)), abs(_safe_float(x.get(amount_key)) - _safe_float(x.get(opposite_key)))), reverse=True)
+    for item in filtered[:limit]:
+        ticker = str(item.get("ticker") or "")
+        amount = _safe_float(item.get(amount_key))
+        opposite = _safe_float(item.get(opposite_key))
+        net = amount - opposite if action == "BUY" else opposite - amount
+        whales = _major_whales_for_ticker(trades, ticker, action, price_by_ticker)
+        if action == "BUY":
+            conclusion = _buy_strength_label(amount)
+            explanation = f"买入{_money(amount)}，同期卖出{_money(opposite)}，净额{_money(amount-opposite)}，买/卖比{_ratio(amount, opposite)}。"
+        else:
+            conclusion = "明显卖出" if amount >= 100_000_000 else "卖出观察"
+            explanation = f"卖出{_money(amount)}，同期买入{_money(opposite)}，净卖出{_money(amount-opposite)}，卖/买比{_ratio(amount, opposite)}。"
+        rows.append([
+            f"<b>{escape(ticker)}</b>",
+            escape(conclusion),
+            _money(amount),
+            _money(opposite),
+            _money(net),
+            escape(whales),
+            escape(explanation),
+        ])
+    return rows
+
+
+def _key_summary_chart(buy_scores: list[Mapping], sell_scores: list[Mapping]) -> str:
+    rows = []
+    for item in sorted(buy_scores, key=lambda x: _safe_float(x.get("buy_amount")), reverse=True)[:6]:
+        rows.append((str(item.get("ticker") or ""), "BUY", _safe_float(item.get("buy_amount"))))
+    for item in sorted(sell_scores, key=lambda x: _safe_float(x.get("sell_amount")), reverse=True)[:6]:
+        rows.append((str(item.get("ticker") or ""), "SELL", _safe_float(item.get("sell_amount"))))
+    if not rows:
+        return "<p>暂无关键结论图表数据。</p>"
+    max_amt = max([r[2] for r in rows] + [1.0])
+    html = ['<div class="chart">']
+    for ticker, action, amount in rows:
+        cls = "buy" if action == "BUY" else "sell"
+        width = max(2, min(100, amount / max_amt * 100))
+        html.append(
+            f'<div class="bar-row"><div class="bar-label"><b>{escape(ticker)}</b> · {escape(action)}</div>'
+            f'<div class="bar-track"><div class="bar {cls}" style="width:{width:.1f}%"></div></div>'
+            f'<div class="bar-value">{escape(_money(amount))}</div></div>'
+        )
+    html.append('</div>')
+    return "".join(html)
+
+
 def _score_rows(items: list[Mapping], direction: str) -> list[list[str]]:
     rows = []
     amount_key = "buy_amount" if direction == "BUY" else "sell_amount"
@@ -380,7 +565,7 @@ def _market_rows(items: list[Mapping], limit: int = 50) -> list[list[str]]:
 
 
 def _chart_rows(trades: list[Mapping], price_by_ticker: dict[str, float], actions: set[str] | None = None, top_tickers: int = 10, buy_first: bool = False) -> str:
-    rows = [t for t in trades if not actions or str(t.get("action") or "").upper() in actions]
+    rows = [t for t in _dedup_economic_trades(trades) if not actions or str(t.get("action") or "").upper() in actions]
     if not rows:
         return "<p>暂无可绘制图表的数据。</p>"
     ticker_totals: dict[str, float] = defaultdict(float)
@@ -395,7 +580,7 @@ def _chart_rows(trades: list[Mapping], price_by_ticker: dict[str, float], action
     for t in rows:
         amt = _trade_amount_for_display(t, price_by_ticker)[0]
         max_amt = max(max_amt, amt)
-        items.append((str(t.get("ticker") or "").upper(), str(t.get("action") or "").upper(), str(t.get("whale_name") or ""), amt))
+        items.append((str(t.get("ticker") or "").upper(), str(t.get("action") or "").upper(), str(t.get("_display_whale_name") or t.get("whale_name") or ""), amt))
     # group by ticker then action/whale
     agg: dict[tuple[str, str, str], float] = defaultdict(float)
     for ticker, action, whale, amt in items:
@@ -514,14 +699,20 @@ def build_html_report(
 
     buy_chart = _chart_rows(buy_evidence or core_buy_trades, price_by_ticker, actions={"BUY"}, top_tickers=10)
     sell_chart = _chart_rows(sell_evidence or core_sell_trades, price_by_ticker, actions={"SELL"}, top_tickers=10)
+    key_summary_chart = _key_summary_chart(buy_scores, sell_scores)
     political_chart = _chart_rows(political_recent_trades, price_by_ticker, actions={"BUY", "SELL"}, top_tickers=12, buy_first=True)
     trump_oge_chart = _chart_rows(trump_oge_trades, price_by_ticker, actions={"BUY", "SELL", "EXCHANGE"}, top_tickers=12, buy_first=True)
     cabinet_oge_chart = _chart_rows([t for t in oge_executive_trades if str(t.get("source") or "") != "OGE_EXECUTIVE_TRUMP"], price_by_ticker, actions={"BUY", "SELL", "EXCHANGE"}, top_tickers=12, buy_first=True)
 
-    buy_table = _table(['股票', '净信号', '去重买入金额', '原始买入笔数', '去重经济笔数', '独立买入事件', '机会分', '共识分', '风险分', '解释'], _score_rows(buy_scores, "BUY")) if buy_scores else '<p>暂无主动买入类可评分信号。</p>'
+    key_buy_summary_table = _table(['股票', '结论', '买入总金额', '同期卖出', '净额', '主要买入巨鲸', '摘要'], _key_summary_rows(buy_scores, buy_evidence or core_buy_trades, "BUY", price_by_ticker, limit=8)) if buy_scores else '<p>暂无明显主动买入结论。</p>'
+    key_sell_summary_table = _table(['股票', '结论', '卖出总金额', '同期买入', '净额', '主要卖出巨鲸', '摘要'], _key_summary_rows(sell_scores, sell_evidence or core_sell_trades, "SELL", price_by_ticker, limit=8)) if sell_scores else '<p>暂无明显卖出结论。</p>'
+    buy_table = _table(['股票', '买入强度', '净流向', '风险标签', '去重买入金额', '同期卖出金额', '净额', '买/卖比', '原始买入笔数', '去重经济笔数', '机会分', '解释'], _buy_radar_rows(buy_scores)) if buy_scores else '<p>暂无主动买入类可评分信号。</p>'
     sell_table = _table(['股票', '信号', '去重卖出金额', '原始卖出笔数', '去重经济笔数', '独立卖出事件', '机会分', '共识分', '风险分', '解释'], _score_rows(sell_scores, "SELL")) if sell_scores else '<p>暂无减持/卖出类可评分信号。</p>'
     buy_evidence_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(buy_evidence, limit=100, price_by_ticker=price_by_ticker)) if buy_evidence else '<p>暂无可展示的主动买入明细。</p>'
-    sell_evidence_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(sell_evidence, limit=100, price_by_ticker=price_by_ticker)) if sell_evidence else '<p>暂无可展示的减持/卖出明细。</p>'
+    sell_evidence_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(sell_evidence, limit=140, price_by_ticker=price_by_ticker)) if sell_evidence else '<p>暂无可展示的减持/卖出明细。</p>'
+    buy_tickers = {str(x.get("ticker") or "").upper() for x in buy_scores}
+    associated_sell_evidence = [t for t in sell_evidence if str(t.get("ticker") or "").upper() in buy_tickers]
+    associated_sell_table = _table(['披露日', '交易日', '股票', '方向', '代码', '卖出巨鲸', '角色', '估算金额', '来源'], _trade_rows(associated_sell_evidence, limit=120, price_by_ticker=price_by_ticker)) if associated_sell_evidence else '<p>进入主动买入雷达的股票暂无可展示的关联 SELL 明细。</p>'
     core_buy_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(core_buy_trades, limit=100, price_by_ticker=price_by_ticker)) if core_buy_trades else '<p>暂无近期核心 BUY 交易记录。</p>'
     core_sell_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(core_sell_trades, limit=120, price_by_ticker=price_by_ticker)) if core_sell_trades else '<p>暂无近期核心 SELL 交易记录。</p>'
     noncore_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(noncore_trades, limit=80, price_by_ticker=price_by_ticker)) if noncore_trades else '<p>暂无近期非主动/期权/授予类披露记录。</p>'
@@ -571,7 +762,16 @@ th {{ background: #f9fafb; text-align: left; }}
 <p class="small">生成时间：{escape(now)}</p>
 <p class="notice">{escape(summary)}</p>
 <p><b>重要说明：</b>本报告是基于公开披露文件的研究筛选结果，不构成个性化投资建议。Form 4 和其他披露存在时间滞后、交易目的复杂、自动交易计划等限制。</p>
-<p class="note">V13 报告新增 OGE 行政分支模块：特朗普 OGE 278-T 专题、部长/Cabinet 披露雷达、OGE 金额区间中点排序，以及共同报告人去重、同股票集中展示和离线 HTML 图表。Top Signals 是按 {escape(str(settings.lookback_days))} 天窗口聚合后的评分；明细表按“股票总金额优先、同股票内金额降序”展示。核心 BUY 只统计 P/BUY，核心 SELL 只统计 S/SELL；M/A/F/G/J 等非主动记录单独列入审计表。</p>
+<p class="note">V15 报告重构第一屏关键结论、主动买入雷达和关联 SELL 审计：主动买入雷达只表示存在 P/BUY 主动买入，不再把全局净方向写成 SELL；若同一股票存在卖出，将在关联 SELL 审计中强制展示。Top Signals 是按 {escape(str(settings.lookback_days))} 天窗口聚合后的评分；明细表按“股票总金额优先、同股票内金额降序”展示。核心 BUY 只统计 P/BUY，核心 SELL 只统计 S/SELL；M/A/F/G/J 等非主动记录单独列入审计表。</p>
+
+<h2>关键结论摘要</h2>
+<p class="note">本节综合全报告，优先列出明显买入与明显卖出的股票、对应交易总金额和主要巨鲸。金额使用共同报告人去重后的经济金额；图表用于快速比较 BUY/SELL 规模，详细审计见后续明细表。</p>
+<h3>关键金额对比图</h3>
+{key_summary_chart}
+<h3>明显主动买入</h3>
+{key_buy_summary_table}
+<h3>明显减持/卖出</h3>
+{key_sell_summary_table}
 
 <h2>Gemini 综合分析</h2>
 <pre style="white-space: pre-wrap; background:#f9fafb; padding:12px; border:1px solid #e5e7eb;">{escape(ai_text)}</pre>
@@ -597,19 +797,25 @@ th {{ background: #f9fafb; text-align: left; }}
 <h3>OGE 行政分支交易汇总</h3>
 {oge_summary_table}
 
-<h2>主动买入概览图（股票 × 巨鲸，按金额）</h2>
+<h2>主动买入雷达概览图（股票 × 巨鲸，按去重金额）</h2>
 {buy_chart}
 
-<h2>主动买入 Top Signals（按去重买入金额）</h2>
+<h2>主动买入雷达（P/BUY，按去重买入金额）</h2>
+<p class="small">本表入选条件是存在 P/BUY 主动买入。若同一股票同期存在 SELL，不再把本表写成“方向=SELL”，而是用“净流向/风险标签”提示，并在下方关联 SELL 审计中核对。</p>
 {buy_table}
 
 <h2>主动买入明细佐证（同股票集中，按金额）</h2>
 {buy_evidence_table}
 
-<h2>减持/卖出概览图（股票 × 巨鲸，按金额）</h2>
+<h2>主动买入股票关联 SELL 审计</h2>
+<p class="small">只要股票进入主动买入雷达且同期存在 SELL，就在这里展示必要卖出明细；因此 TSLA 这类股票不会因为全市场卖出 Top N 截断而无法核对。</p>
+{associated_sell_table}
+
+<h2>减持/卖出概览图（股票 × 巨鲸，按去重金额）</h2>
 {sell_chart}
 
-<h2>减持/卖出预警 Top Signals（按去重卖出金额）</h2>
+<h2>减持/卖出预警 Top Signals（全市场，按去重卖出金额）</h2>
+<p class="small">本表显示全市场卖出金额 Top N，不代表其它股票没有 SELL。进入主动买入雷达股票的关联 SELL 请优先看上方“关联 SELL 审计”。</p>
 {sell_table}
 
 <h2>减持/卖出明细佐证（同股票集中，按金额）</h2>
@@ -638,7 +844,7 @@ th {{ background: #f9fafb; text-align: left; }}
 {noncore_table}
 
 <h2>评分口径</h2>
-<p>V13 同时识别 SEC Form 4 公司内部人交易、House 政界披露和 OGE 行政分支披露，并用 Alpha Vantage / Finnhub 免费接口补充行情、趋势、估值、基本面、新闻情绪与独立 insider 数据校验。机会分仍以公开披露交易为主；行情/基本面/情绪只做小幅透明调整。共同报告人同一经济交易会进行金额去重，但原始报告人仍保留在明细中供审计。本报告不构成个性化投资建议。</p>
+<p>V15 同时识别 SEC Form 4 公司内部人交易、House 政界披露和 OGE 行政分支披露，并用 Alpha Vantage / Finnhub 免费接口补充行情、趋势、估值、基本面、新闻情绪与独立 insider 数据校验。机会分仍以公开披露交易为主；行情/基本面/情绪只做小幅透明调整。共同报告人同一经济交易会进行金额去重，但原始报告人仍保留在明细中供审计。本报告不构成个性化投资建议。</p>
 </body>
 </html>
 """
