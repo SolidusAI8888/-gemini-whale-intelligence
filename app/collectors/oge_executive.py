@@ -7,7 +7,7 @@ import io
 import json
 import logging
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin, unquote
 from typing import Iterable
 
 import requests
@@ -305,6 +305,89 @@ def _cabinet_specs(value: str) -> list[ExecutiveReportSpec]:
     return specs
 
 
+
+def _name_tokens(name: str) -> set[str]:
+    cleaned = re.sub(r"[^A-Za-z\s.-]", " ", name or "")
+    parts = [p.strip().lower() for p in re.split(r"\s+", cleaned) if len(p.strip()) >= 3]
+    return set(parts)
+
+
+def _infer_spec_from_url(url: str, context: str, default_position: str = "Executive Branch Watchlist") -> ExecutiveReportSpec | None:
+    text = unquote(" ".join([url, context or ""]))
+    # Restrict auto-discovery to transaction reports; 278e asset disclosures need a
+    # different parser and should not be treated as new trades.
+    if not re.search(r"278\s*T|278T|Transaction", text, re.I):
+        return None
+    watch_names = [x.strip() for x in re.split(r"[,;\n]+", settings.oge_discovery_watchlist or settings.oge_executive_watchlist or "") if x.strip()]
+    lower = text.lower()
+    matched_name = None
+    for name in watch_names:
+        tokens = _name_tokens(name)
+        if not tokens:
+            continue
+        # Prefer exact full-name match, otherwise require the surname/last token.
+        if name.lower() in lower or any(tok in lower for tok in sorted(tokens, key=len, reverse=True)[:1]):
+            matched_name = name
+            break
+    if not matched_name:
+        # Try filename patterns like Scott-Bessent-07.14.2025-278T.pdf.
+        tail = unquote(urlparse(url).path.rsplit("/", 1)[-1])
+        m = re.match(r"([A-Za-z]+)[,\-\s]+([A-Za-z.]+).*278\s*T", tail, re.I)
+        if m:
+            matched_name = f"{m.group(1)} {m.group(2)}".replace("-", " ").strip()
+    if not matched_name:
+        return None
+    position = "President" if "trump" in matched_name.lower() else default_position
+    agency = "White House" if position == "President" else "Executive Branch"
+    return ExecutiveReportSpec(name=matched_name, position=position, agency=agency, url=url)
+
+
+def _discover_oge_specs(user_agent: str) -> list[ExecutiveReportSpec]:
+    if not settings.enable_oge_auto_discovery:
+        log.info("OGE auto-discovery disabled")
+        return []
+    urls = _split_urls(settings.oge_discovery_urls)
+    if not urls:
+        return []
+    found: dict[str, ExecutiveReportSpec] = {}
+    for page_url in urls:
+        try:
+            log.info("OGE discovery fetch: %s", _mask_url(page_url))
+            resp = requests.get(page_url, headers={"User-Agent": user_agent, "Accept": "text/html,*/*"}, timeout=45)
+            log.info("OGE discovery page status=%s bytes=%s", resp.status_code, len(resp.content or b""))
+            resp.raise_for_status()
+            html = resp.text or ""
+        except Exception as exc:  # noqa: BLE001
+            log.warning("OGE discovery failed for %s: %s", _mask_url(page_url), exc)
+            continue
+        # Keep anchor text context near each href. This covers direct extapps2 PDF links
+        # and OGE pages exposing $FILE PDF URLs.
+        for m in re.finditer(r'<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', html, re.I | re.S):
+            href = m.group(1).replace("&amp;", "&")
+            label = re.sub(r"<[^>]+>", " ", m.group(2))
+            full = urljoin(page_url, href)
+            if not ("%24FILE" in full or "$FILE" in full or full.lower().endswith(".pdf") or "extapps2.oge.gov" in full.lower()):
+                continue
+            spec = _infer_spec_from_url(full, label)
+            if spec:
+                found[spec.url] = spec
+                if len(found) >= max(settings.oge_discovery_max_links, 1):
+                    break
+        # Some OGE pages include bare URLs not wrapped in anchors.
+        for raw in re.findall(r'https?://[^\s"\'<>]+', html, re.I):
+            full = raw.replace("&amp;", "&")
+            if not ("%24FILE" in full or "$FILE" in full or full.lower().endswith(".pdf") or "extapps2.oge.gov" in full.lower()):
+                continue
+            spec = _infer_spec_from_url(full, full)
+            if spec:
+                found[spec.url] = spec
+                if len(found) >= max(settings.oge_discovery_max_links, 1):
+                    break
+    log.info("OGE discovery specs found: %s", len(found))
+    for spec in found.values():
+        log.info("OGE discovery candidate: %s / %s / %s", spec.name, spec.position, _mask_url(spec.url))
+    return list(found.values())
+
 def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[dict]:
     """Collect OGE executive branch 278-T transactions from configured PDF URLs.
 
@@ -318,12 +401,15 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
 
     trump_urls = _split_urls(settings.oge_trump_report_urls)
     cabinet_specs = _cabinet_specs(settings.oge_cabinet_reports)
+    discovered_specs = _discover_oge_specs(user_agent)
     log.info(
-        "OGE executive config: enabled=%s trump_url_present=%s trump_url_count=%s cabinet_spec_count=%s max_reports=%s",
+        "OGE executive config: enabled=%s trump_url_present=%s trump_url_count=%s cabinet_spec_count=%s discovery_enabled=%s discovered_count=%s max_reports=%s",
         settings.enable_oge_executive_trades,
         bool(settings.oge_trump_report_urls),
         len(trump_urls),
         len(cabinet_specs),
+        settings.enable_oge_auto_discovery,
+        len(discovered_specs),
         settings.oge_max_reports,
     )
     for idx, url in enumerate(trump_urls, 1):
@@ -340,6 +426,13 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
             )
         )
     specs.extend(cabinet_specs)
+    # Auto-discovered reports are appended after explicitly configured URLs so
+    # manual Trump/Cabinet PDFs remain deterministic and first in processing.
+    seen_urls = {spec.url for spec in specs}
+    for spec in discovered_specs:
+        if spec.url not in seen_urls:
+            specs.append(spec)
+            seen_urls.add(spec.url)
     if not specs:
         log.info("OGE executive collector enabled but no report URLs configured")
         return []

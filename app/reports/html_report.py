@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime
-from html import escape
+from html import escape, unescape
 from pathlib import Path
 import json
 import re
@@ -33,6 +33,27 @@ def _table(headers: list[str], rows: Iterable[list[str]]) -> str:
     )
     return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
 
+
+
+
+TRUMP_HIGHLIGHT_RE = re.compile(r"(Donald\s+J\.\s+Trump|Donald\s+Trump|Trump|特朗普)", re.I)
+
+
+def _highlight_trump_in_text(text: str) -> str:
+    """Highlight visible Trump mentions without touching HTML tags/attributes."""
+    if not text:
+        return text
+
+    def repl(match: re.Match) -> str:
+        label = match.group(0)
+        return f'<span class="trump-highlight">{label}</span>'
+
+    parts = re.split(r"(<[^>]+>)", text)
+    for idx, part in enumerate(parts):
+        if not part or part.startswith("<"):
+            continue
+        parts[idx] = TRUMP_HIGHLIGHT_RE.sub(repl, part)
+    return "".join(parts)
 
 def _safe_float(value) -> float:
     try:
@@ -609,6 +630,125 @@ def _chart_rows(trades: list[Mapping], price_by_ticker: dict[str, float], action
     return "".join(html)
 
 
+
+def _role_bucket(t: Mapping) -> str:
+    source = str(t.get("source") or "")
+    role = str(t.get("insider_role") or t.get("whale_category") or "")
+    name = str(t.get("whale_name") or "")
+    raw = _raw_json_text(t)
+    text = " ".join([source, role, name, raw]).lower()
+    if source.startswith("OGE_EXECUTIVE") or "executive:" in text:
+        return "OGE/行政分支"
+    if source.startswith("POLITICAL") or "political" in text:
+        return "政界披露"
+    if any(k in text for k in ["10b5-1", "10b5", "rule 10b5"]):
+        return "10b5-1/计划交易"
+    if any(k in text for k in ["tax", "withholding", "cover taxes", "f tax"]):
+        return "税务/薪酬相关"
+    if any(k in text for k in ["trust", "foundation", "endowment", "family", "estate"]):
+        return "信托/基金会/家族实体"
+    if "10% owner" in text or "10 percent" in text:
+        return "10% Owner"
+    if "officer" in text or "ceo" in text or "cfo" in text or "president" in text:
+        return "高管/Officer"
+    if "director" in text:
+        return "董事/Director"
+    return "其它/待复核"
+
+
+def _associated_sell_rows_for_ticker(rows: list[Mapping], ticker: str, price_by_ticker: dict[str, float]) -> list[Mapping]:
+    target = str(ticker or "").upper()
+    return [
+        t for t in _dedup_economic_trades(rows)
+        if str(t.get("ticker") or "").upper() == target and str(t.get("action") or "").upper() == "SELL"
+    ]
+
+
+def _associated_sell_summary_rows(buy_scores: list[Mapping], sell_rows: list[Mapping], price_by_ticker: dict[str, float], per_ticker_detail_limit: int = 20) -> list[list[str]]:
+    out: list[list[str]] = []
+    by_ticker = {str(x.get("ticker") or "").upper(): x for x in buy_scores if _safe_float(x.get("sell_amount")) > 0}
+    for ticker, item in sorted(by_ticker.items(), key=lambda kv: _safe_float(kv[1].get("sell_amount")), reverse=True):
+        rows = _associated_sell_rows_for_ticker(sell_rows, ticker, price_by_ticker)
+        rows_sorted = sorted(rows, key=lambda t: _trade_amount_for_display(t, price_by_ticker)[0], reverse=True)
+        total_sell = _safe_float(item.get("sell_amount"))
+        fetched_amount = sum(_trade_amount_for_display(t, price_by_ticker)[0] for t in rows_sorted)
+        shown_rows = rows_sorted[:per_ticker_detail_limit]
+        shown_amount = sum(_trade_amount_for_display(t, price_by_ticker)[0] for t in shown_rows)
+        not_shown_amount = max(total_sell - shown_amount, 0.0)
+        not_fetched_amount = max(total_sell - fetched_amount, 0.0)
+        top_whales = _major_whales_for_ticker(rows_sorted, ticker, "SELL", price_by_ticker, max_names=4)
+        coverage_note = []
+        if not_fetched_amount > max(total_sell * 0.01, 1):
+            coverage_note.append(f"仍有约{_money(not_fetched_amount)}未抓取到明细")
+        if len(rows_sorted) > per_ticker_detail_limit:
+            coverage_note.append(f"明细截断：展示Top {per_ticker_detail_limit} / 共{len(rows_sorted)}条")
+        if not coverage_note:
+            coverage_note.append("明细覆盖充分")
+        out.append([
+            f"<b>{escape(ticker)}</b>",
+            _money(total_sell),
+            escape(str(item.get("sell_count", ""))),
+            escape(str(item.get("sell_economic_count", item.get("sell_count", "")))),
+            _money(shown_amount),
+            _money(not_shown_amount),
+            escape(top_whales),
+            escape("；".join(coverage_note)),
+        ])
+    return out
+
+
+def _associated_sell_breakdown_rows(buy_scores: list[Mapping], sell_rows: list[Mapping], price_by_ticker: dict[str, float]) -> list[list[str]]:
+    out: list[list[str]] = []
+    tickers = {str(x.get("ticker") or "").upper() for x in buy_scores if _safe_float(x.get("sell_amount")) > 0}
+    for ticker in sorted(tickers):
+        rows = _associated_sell_rows_for_ticker(sell_rows, ticker, price_by_ticker)
+        bucket_amount: dict[str, float] = defaultdict(float)
+        bucket_count: dict[str, int] = defaultdict(int)
+        for t in rows:
+            bucket = _role_bucket(t)
+            bucket_amount[bucket] += _trade_amount_for_display(t, price_by_ticker)[0]
+            bucket_count[bucket] += 1
+        for bucket, amount in sorted(bucket_amount.items(), key=lambda kv: kv[1], reverse=True):
+            out.append([
+                f"<b>{escape(ticker)}</b>",
+                escape(bucket),
+                _money(amount),
+                escape(str(bucket_count[bucket])),
+                escape("用于判断卖出性质；仍需点击原始披露核对 footnote/10b5-1/税务说明。"),
+            ])
+    return out
+
+
+def _associated_sell_detail_rows(buy_scores: list[Mapping], sell_rows: list[Mapping], price_by_ticker: dict[str, float], per_ticker_limit: int = 20) -> list[list[str]]:
+    rows_out: list[list[str]] = []
+    tickers = sorted({str(x.get("ticker") or "").upper() for x in buy_scores if _safe_float(x.get("sell_amount")) > 0})
+    for ticker in tickers:
+        rows = sorted(_associated_sell_rows_for_ticker(sell_rows, ticker, price_by_ticker), key=lambda t: _trade_amount_for_display(t, price_by_ticker)[0], reverse=True)
+        current = None
+        for t in rows[:per_ticker_limit]:
+            url = t.get("filing_url") or ""
+            src = escape(str(t.get("source") or "SEC"))
+            filing = f'<a href="{escape(url)}">{src}</a>' if url else src
+            show_ticker = f"<b>{escape(ticker)}</b>" if current != ticker else f"<span class=\"small\">↳ {escape(ticker)}</span>"
+            current = ticker
+            _, amount_display, amount_note = _trade_amount_for_display(t, price_by_ticker)
+            amount_html = escape(amount_display)
+            if amount_note:
+                amount_html += f"<br><span class=\"small\">{escape(amount_note)}</span>"
+            rows_out.append([
+                escape(str(t.get("filing_date") or "")),
+                escape(str(t.get("trade_date") or "")),
+                show_ticker,
+                escape(str(t.get("action") or "")),
+                escape(str(t.get("transaction_code") or "")),
+                escape(str(t.get("_display_whale_name") or t.get("whale_name") or "")),
+                escape(str(t.get("insider_role") or t.get("whale_category") or "")),
+                escape(_role_bucket(t)),
+                amount_html,
+                filing,
+            ])
+    return rows_out
+
 def _auto_analysis(top_scores: list[Mapping], buy_evidence: list[Mapping], sell_evidence: list[Mapping], political: list[Mapping], price_by_ticker: dict[str, float]) -> str:
     buy_scores = sorted(
         [x for x in top_scores if _safe_float(x.get("buy_amount")) > 0],
@@ -712,7 +852,9 @@ def build_html_report(
     sell_evidence_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(sell_evidence, limit=140, price_by_ticker=price_by_ticker)) if sell_evidence else '<p>暂无可展示的减持/卖出明细。</p>'
     buy_tickers = {str(x.get("ticker") or "").upper() for x in buy_scores}
     associated_sell_evidence = [t for t in sell_evidence if str(t.get("ticker") or "").upper() in buy_tickers]
-    associated_sell_table = _table(['披露日', '交易日', '股票', '方向', '代码', '卖出巨鲸', '角色', '估算金额', '来源'], _trade_rows(associated_sell_evidence, limit=120, price_by_ticker=price_by_ticker)) if associated_sell_evidence else '<p>进入主动买入雷达的股票暂无可展示的关联 SELL 明细。</p>'
+    associated_sell_summary_table = _table(['股票', 'SELL总金额', '原始SELL笔数', '去重SELL笔数', '已展示明细金额', '未展开/待核对金额', '主要卖出巨鲸', '覆盖说明'], _associated_sell_summary_rows(buy_scores, associated_sell_evidence, price_by_ticker)) if associated_sell_evidence else '<p>进入主动买入雷达的股票暂无可展示的关联 SELL 汇总。</p>'
+    associated_sell_breakdown_table = _table(['股票', '卖出性质/角色桶', '已抓取金额', '去重笔数', '解释'], _associated_sell_breakdown_rows(buy_scores, associated_sell_evidence, price_by_ticker)) if associated_sell_evidence else '<p>暂无关联 SELL 性质拆解。</p>'
+    associated_sell_table = _table(['披露日', '交易日', '股票', '方向', '代码', '卖出巨鲸', '角色', '性质标签', '估算金额', '来源'], _associated_sell_detail_rows(buy_scores, associated_sell_evidence, price_by_ticker, per_ticker_limit=20)) if associated_sell_evidence else '<p>进入主动买入雷达的股票暂无可展示的关联 SELL 明细。</p>'
     core_buy_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(core_buy_trades, limit=100, price_by_ticker=price_by_ticker)) if core_buy_trades else '<p>暂无近期核心 BUY 交易记录。</p>'
     core_sell_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(core_sell_trades, limit=120, price_by_ticker=price_by_ticker)) if core_sell_trades else '<p>暂无近期核心 SELL 交易记录。</p>'
     noncore_table = _table(['披露日', '交易日', '股票', '方向', '代码', '巨鲸', '角色', '估算金额', '来源'], _trade_rows(noncore_trades, limit=80, price_by_ticker=price_by_ticker)) if noncore_trades else '<p>暂无近期非主动/期权/授予类披露记录。</p>'
@@ -755,6 +897,7 @@ th {{ background: #f9fafb; text-align: left; }}
 .bar.sell {{ background: #dc2626; }}
 .bar.other {{ background: #6b7280; }}
 .bar-value {{ text-align: right; color: #374151; }}
+.trump-highlight {{ background: #fef08a; color: #78350f; font-weight: 700; padding: 0 2px; border-radius: 3px; }}
 </style>
 </head>
 <body>
@@ -762,7 +905,7 @@ th {{ background: #f9fafb; text-align: left; }}
 <p class="small">生成时间：{escape(now)}</p>
 <p class="notice">{escape(summary)}</p>
 <p><b>重要说明：</b>本报告是基于公开披露文件的研究筛选结果，不构成个性化投资建议。Form 4 和其他披露存在时间滞后、交易目的复杂、自动交易计划等限制。</p>
-<p class="note">V15 报告重构第一屏关键结论、主动买入雷达和关联 SELL 审计：主动买入雷达只表示存在 P/BUY 主动买入，不再把全局净方向写成 SELL；若同一股票存在卖出，将在关联 SELL 审计中强制展示。Top Signals 是按 {escape(str(settings.lookback_days))} 天窗口聚合后的评分；明细表按“股票总金额优先、同股票内金额降序”展示。核心 BUY 只统计 P/BUY，核心 SELL 只统计 S/SELL；M/A/F/G/J 等非主动记录单独列入审计表。</p>
+<p class="note">V16 报告强化关联 SELL 审计、OGE 自动发现与 Trump 高亮：主动买入雷达只表示存在 P/BUY 主动买入，不再把全局净方向写成 SELL；若同一股票存在卖出，将在关联 SELL 审计中强制展示。Top Signals 是按 {escape(str(settings.lookback_days))} 天窗口聚合后的评分；明细表按“股票总金额优先、同股票内金额降序”展示。核心 BUY 只统计 P/BUY，核心 SELL 只统计 S/SELL；M/A/F/G/J 等非主动记录单独列入审计表。</p>
 
 <h2>关键结论摘要</h2>
 <p class="note">本节综合全报告，优先列出明显买入与明显卖出的股票、对应交易总金额和主要巨鲸。金额使用共同报告人去重后的经济金额；图表用于快速比较 BUY/SELL 规模，详细审计见后续明细表。</p>
@@ -806,10 +949,14 @@ th {{ background: #f9fafb; text-align: left; }}
 
 <h2>主动买入明细佐证（同股票集中，按金额）</h2>
 {buy_evidence_table}
-
-<h2>主动买入股票关联 SELL 审计</h2>
-<p class="small">只要股票进入主动买入雷达且同期存在 SELL，就在这里展示必要卖出明细；因此 TSLA 这类股票不会因为全市场卖出 Top N 截断而无法核对。</p>
-{associated_sell_table}
+	<h2>主动买入股票关联 SELL 审计</h2>
+	<p class="small">只要股票进入主动买入雷达且同期存在 SELL，就在这里展示关联卖出。汇总表用评分层 SELL 总额作为基准，明细表按每只股票 Top 20 展示；若有未展开金额，会在覆盖说明中明确标出。</p>
+	<h3>关联 SELL 汇总覆盖度</h3>
+	{associated_sell_summary_table}
+	<h3>关联 SELL 性质拆解</h3>
+	{associated_sell_breakdown_table}
+	<h3>关联 SELL 明细 Top 20 / 股票</h3>
+	{associated_sell_table}
 
 <h2>减持/卖出概览图（股票 × 巨鲸，按去重金额）</h2>
 {sell_chart}
@@ -844,11 +991,11 @@ th {{ background: #f9fafb; text-align: left; }}
 {noncore_table}
 
 <h2>评分口径</h2>
-<p>V15 同时识别 SEC Form 4 公司内部人交易、House 政界披露和 OGE 行政分支披露，并用 Alpha Vantage / Finnhub 免费接口补充行情、趋势、估值、基本面、新闻情绪与独立 insider 数据校验。机会分仍以公开披露交易为主；行情/基本面/情绪只做小幅透明调整。共同报告人同一经济交易会进行金额去重，但原始报告人仍保留在明细中供审计。本报告不构成个性化投资建议。</p>
+<p>V16 同时识别 SEC Form 4 公司内部人交易、House 政界披露和 OGE 行政分支披露，并用 Alpha Vantage / Finnhub 免费接口补充行情、趋势、估值、基本面、新闻情绪与独立 insider 数据校验。机会分仍以公开披露交易为主；行情/基本面/情绪只做小幅透明调整。共同报告人同一经济交易会进行金额去重，但原始报告人仍保留在明细中供审计。本报告不构成个性化投资建议。</p>
 </body>
 </html>
 """
-    return html
+    return _highlight_trump_in_text(html)
 
 
 def save_report(html: str) -> Path:
