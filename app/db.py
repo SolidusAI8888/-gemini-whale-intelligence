@@ -346,3 +346,18 @@ def fetch_trade_evidence_for_tickers(tickers: Iterable[str], action: str, lookba
             """,
             params,
         ).fetchall()
+
+
+def fetch_trades_since(start_date: str = "2026-01-01", limit: int = 50000) -> list[sqlite3.Row]:
+    """Fetch BUY/SELL/EXCHANGE rows by transaction date for formal reporting/scoring."""
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM trades
+            WHERE COALESCE(trade_date, filing_date, '') >= ?
+              AND action IN ('BUY', 'SELL', 'EXCHANGE')
+            ORDER BY trade_date DESC, filing_date DESC, COALESCE(amount_usd, 0) DESC, id DESC
+            LIMIT ?
+            """,
+            (start_date, int(limit)),
+        ).fetchall()

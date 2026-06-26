@@ -19,6 +19,7 @@ from app.db import (
     fetch_recent_political_trades,
     fetch_recent_trades,
     fetch_top_scores,
+    fetch_trades_since,
     fetch_market_snapshots,
     fetch_oge_action_summary,
     fetch_oge_executive_trades,
@@ -96,8 +97,12 @@ def run_scan() -> dict:
         new_count = upsert_trades(trades)
         log.info("Inserted new trades: %s", new_count)
 
-        # Use the freshly collected rows for scoring; if none collected, use recent DB records to keep report informative.
-        scoring_base = trades if trades else [_row_to_dict(r) for r in fetch_recent_trades(limit=500)]
+        # V18 formal report/scoring window starts at SCAN_START_DATE (default 2026-01-01).
+        # Use the DB window after inserting fresh rows, so daily reports reflect the
+        # full 2026-to-date activity instead of only the current collector lookback.
+        scoring_base = [_row_to_dict(r) for r in fetch_trades_since(settings.scan_start_date, limit=50000)]
+        if not scoring_base:
+            scoring_base = [t for t in trades if str(t.get("trade_date") or t.get("filing_date") or "")[:10] >= settings.scan_start_date]
         consensus_rows = build_consensus_scores(scoring_base)
         scored = score_opportunities(consensus_rows)
         # Pull market/valuation/sentiment context for the highest-interest tickers,
@@ -114,7 +119,7 @@ def run_scan() -> dict:
         insert_scores(scored)
 
         top_scores = scored if scored else [_row_to_dict(r) for r in fetch_top_scores(limit=50)]
-        recent_trades = [_row_to_dict(r) for r in fetch_recent_trades(limit=300)]
+        recent_trades = [_row_to_dict(r) for r in fetch_trades_since(settings.scan_start_date, limit=1000)]
         political_recent_trades = [_row_to_dict(r) for r in fetch_recent_political_trades(limit=300)]
         political_summary = [_row_to_dict(r) for r in fetch_political_action_summary()]
         market_context = [_row_to_dict(r) for r in fetch_market_snapshots(limit=50)]

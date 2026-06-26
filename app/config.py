@@ -38,6 +38,10 @@ class Settings:
     lookback_days: int = _int("LOOKBACK_DAYS", 3)
     max_companies: int = _int("MAX_COMPANIES", 0)  # 0 = all companies in universe
     min_opportunity_score: float = _float("MIN_OPPORTUNITY_SCORE", 55.0)
+
+    # Formal report scan window.  V18 report excludes trade dates before this date
+    # so older 2025 records do not dominate the daily brief.
+    scan_start_date: str = os.getenv("SCAN_START_DATE", "2026-01-01")
     dry_run: bool = _bool("DRY_RUN", True)
     send_email: bool = _bool("SEND_EMAIL", False)
     enable_gemini: bool = _bool("ENABLE_GEMINI", True)
