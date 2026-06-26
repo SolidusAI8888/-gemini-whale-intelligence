@@ -2,7 +2,8 @@ name: Daily Gemini Whale Scan
 
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 6 * * *'  # 08:00 Berlin during CEST
+    - cron: '0 7 * * *'  # 08:00 Berlin during CET
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,8 @@ permissions:
 env:
   DATABASE_PATH: data/whale.db
   REPORT_DIR: data/reports
-  LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS || '3' }}
+  LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS || '200' }}
+  SCAN_START_DATE: ${{ vars.SCAN_START_DATE || '2026-01-01' }}
   MAX_COMPANIES: ${{ vars.MAX_COMPANIES || '0' }}
   MIN_OPPORTUNITY_SCORE: ${{ vars.MIN_OPPORTUNITY_SCORE || '55' }}
   SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
@@ -60,20 +62,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Check Berlin 08:00 window
+        id: berlin_window
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          HOUR=$(TZ=Europe/Berlin date +%H)
+          if [ "$HOUR" = "08" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping because Berlin local hour is $HOUR, not 08."
+          fi
       - name: Set up Python
+        if: steps.berlin_window.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
       - name: Install dependencies
+        if: steps.berlin_window.outputs.run == 'true'
         run: pip install -r requirements.txt
       - name: Run tests
+        if: steps.berlin_window.outputs.run == 'true'
         run: pytest -q
       - name: Run daily scan
+        if: steps.berlin_window.outputs.run == 'true'
         run: python -m app.main
       - name: Upload report artifact
+        if: always() && steps.berlin_window.outputs.run == 'true'
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: gemini-whale-report
           path: |
