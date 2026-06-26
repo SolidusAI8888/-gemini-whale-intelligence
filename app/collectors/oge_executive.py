@@ -40,6 +40,19 @@ KNOWN_TICKERS = {
     "netflix": "NFLX",
     "broadcom": "AVGO",
 }
+
+OGE_STANDARD_RANGES = [
+    (1001, 15000),
+    (15001, 50000),
+    (50001, 100000),
+    (100001, 250000),
+    (250001, 500000),
+    (500001, 1000000),
+    (1000001, 5000000),
+    (5000001, 25000000),
+    (25000001, 50000000),
+]
+
 ACTIONS = {
     "purchase": ("BUY", "P"),
     "buy": ("BUY", "P"),
@@ -66,23 +79,85 @@ def _parse_money_num(value: str) -> float:
     return float(value.replace(",", ""))
 
 
-def _parse_amount_range(text: str) -> tuple[float | None, float | None, float | None, str | None]:
+def _repair_oge_range(lo: float, hi: float) -> tuple[float, float, str | None]:
+    """Repair common OGE PDF text-extraction truncations and validate ranges.
+
+    OGE 278-T values are reported in fixed buckets.  PDF extraction sometimes
+    turns "$1,000,001 - $5,000,000" into "$1 - $5,000,000", or
+    "$1,001 - $15,000" into "$1,001 - $15".  We only repair values that map
+    unambiguously to an official bucket; otherwise the row is quarantined by
+    returning midpoint None upstream.
+    """
+    original = (lo, hi)
+    # Repair truncated upper thousands/millions, e.g. 15 -> 15,000.
+    if hi < lo and hi in {15, 50, 100, 250, 500, 1000, 5000, 25000, 50000}:
+        hi *= 1000
+    # Repair first-term truncation by matching the bucket upper bound.
+    if lo in {1, 1001} or (lo < 1000 and hi >= 15000):
+        for std_lo, std_hi in OGE_STANDARD_RANGES:
+            if abs(hi - std_hi) < 0.01:
+                lo = float(std_lo)
+                break
+    # Accept exact official OGE buckets only.
+    for std_lo, std_hi in OGE_STANDARD_RANGES:
+        if abs(lo - std_lo) < 0.01 and abs(hi - std_hi) < 0.01:
+            warning = None if original == (lo, hi) else f"repaired_range_from_{original[0]:.0f}_{original[1]:.0f}"
+            return float(std_lo), float(std_hi), warning
+    return lo, hi, "non_standard_amount_range"
+
+
+def _parse_amount_range(text: str) -> tuple[float | None, float | None, float | None, str | None, str | None]:
     clean = " ".join((text or "").replace("\u2013", "-").replace("\u2014", "-").split())
     m = AMOUNT_RANGE_RE.search(clean)
     if m:
         lo = _parse_money_num(m.group(1))
         hi = _parse_money_num(m.group(2))
-        # OGE range labels normally omit the $ in the second term after extraction.
-        return lo, hi, (lo + hi) / 2.0, f"${lo:,.0f}–${hi:,.0f}"
+        lo, hi, warning = _repair_oge_range(lo, hi)
+        if warning == "non_standard_amount_range":
+            return None, None, None, f"${lo:,.0f}–${hi:,.0f}", warning
+        return lo, hi, (lo + hi) / 2.0, f"${lo:,.0f}–${hi:,.0f}", warning
     over = re.search(r"(?:over|greater than|more than)\s+\$\s*([0-9][0-9,]*(?:\.\d+)?)", clean, re.I)
     if over:
         lo = _parse_money_num(over.group(1))
-        return lo, None, lo, f">${lo:,.0f}"
+        return lo, None, lo, f">${lo:,.0f}", None
+    # Single-money extraction is too ambiguous for OGE ranges and is often an
+    # OCR fragment, so keep it out of normalized scoring.
     monies = MONEY_RE.findall(clean)
     if monies:
         val = _parse_money_num(monies[-1])
-        return val, val, val, f"${val:,.0f}"
-    return None, None, None, None
+        return None, None, None, f"${val:,.0f}", "single_amount_fragment"
+    return None, None, None, None, "missing_amount"
+
+
+def _clean_oge_trade_date(raw_date: str | None, filing_date: str | None, block: str) -> tuple[str | None, str | None]:
+    """Correct or quarantine impossible OGE transaction dates.
+
+    Trump's 2026 OGE PDF extraction has been observed to read 2026 as 2028.
+    When a date is in the future but replacing year-2 produces a plausible
+    non-future date, we correct it and flag the correction.  Otherwise the row
+    is quarantined by returning None.
+    """
+    if not raw_date:
+        return raw_date, None
+    try:
+        d = datetime.strptime(raw_date, "%Y-%m-%d").date()
+    except ValueError:
+        return raw_date, "invalid_date"
+    today = date.today()
+    filing_dt = None
+    if filing_date:
+        try:
+            filing_dt = datetime.strptime(filing_date, "%Y-%m-%d").date()
+        except ValueError:
+            filing_dt = None
+    max_allowed = max([x for x in [today + timedelta(days=30), filing_dt + timedelta(days=30) if filing_dt else None] if x])
+    if d <= max_allowed:
+        return d.isoformat(), None
+    # Common OCR error: 2026 -> 2028.
+    candidate = date(d.year - 2, d.month, d.day) if d.year - 2 >= 2020 else None
+    if candidate and candidate <= max_allowed:
+        return candidate.isoformat(), f"corrected_future_date_from_{d.isoformat()}"
+    return None, f"future_date_quarantined_{d.isoformat()}"
 
 
 def _normalize_action(text: str) -> tuple[str | None, str | None]:
@@ -215,10 +290,16 @@ def _parse_trade_blocks(
         dates = [d for d in dates if d]
         trade_date = dates[0] if dates else None
         filing_date = dates[-1] if len(dates) > 1 else today
-        amount_low, amount_high, amount_mid, amount_label = _parse_amount_range(block)
-        if amount_mid is None:
-            # OGE 278-T reports use broad amount ranges.  Rows without an amount
-            # are kept out of the scoring store to avoid false signals.
+        trade_date, date_warning = _clean_oge_trade_date(trade_date, filing_date, block)
+        amount_low, amount_high, amount_mid, amount_label, amount_warning = _parse_amount_range(block)
+        if not trade_date or amount_mid is None:
+            log.info(
+                "OGE parser quarantined row: ticker=%s date_warning=%s amount_warning=%s block=%s",
+                ticker,
+                date_warning,
+                amount_warning,
+                block[:240],
+            )
             continue
         asset_name = _asset_name_from_block(block, ticker)
         raw = {
@@ -235,6 +316,9 @@ def _parse_trade_blocks(
             "discretionary_account_flag": discretionary,
             "source_url": source_url,
             "parser_block": block,
+            "date_parse_warning": date_warning,
+            "amount_parse_warning": amount_warning,
+            "parse_status": "repaired" if (date_warning or amount_warning) else "ok",
         }
         source_id = "OGE:" + hashlib.sha256(
             f"{source_url}|{filer_name}|{ticker}|{action}|{trade_date}|{amount_label}|{asset_name}".encode("utf-8")

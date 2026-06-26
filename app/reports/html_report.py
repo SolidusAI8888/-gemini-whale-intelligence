@@ -40,7 +40,7 @@ TRUMP_HIGHLIGHT_RE = re.compile(r"(Donald\s+J\.\s+Trump|Donald\s+Trump|Trump|特
 
 
 def _highlight_trump_in_text(text: str) -> str:
-    """Highlight visible Trump mentions without touching HTML tags/attributes."""
+    """Highlight Trump mentions in plain visible text only."""
     if not text:
         return text
 
@@ -48,12 +48,52 @@ def _highlight_trump_in_text(text: str) -> str:
         label = match.group(0)
         return f'<span class="trump-highlight">{label}</span>'
 
-    parts = re.split(r"(<[^>]+>)", text)
+    return TRUMP_HIGHLIGHT_RE.sub(repl, text)
+
+
+def _highlight_trump_in_html(html: str) -> str:
+    """Highlight visible Trump mentions without mutating CSS, tags, attrs or URLs.
+
+    V16 highlighted the full HTML string and accidentally rewrote the CSS selector
+    `.trump-highlight`.  This helper only processes text nodes inside <body>,
+    and skips the content of <script>, <style>, <textarea>, and <code>.
+    """
+    if not html:
+        return html
+    m = re.search(r"(<body[^>]*>)", html, re.I)
+    if not m:
+        return html
+    head = html[: m.end()]
+    body = html[m.end():]
+    end = re.search(r"</body>", body, re.I)
+    if end:
+        body_inner = body[: end.start()]
+        tail = body[end.start():]
+    else:
+        body_inner = body
+        tail = ""
+
+    protected_blocks: list[str] = []
+
+    def protect(match: re.Match) -> str:
+        protected_blocks.append(match.group(0))
+        return f"@@TRUMP_PROTECTED_{len(protected_blocks)-1}@@"
+
+    protected = re.sub(
+        r"<(script|style|textarea|code)\b[^>]*>.*?</\1>",
+        protect,
+        body_inner,
+        flags=re.I | re.S,
+    )
+    parts = re.split(r"(<[^>]+>)", protected)
     for idx, part in enumerate(parts):
         if not part or part.startswith("<"):
             continue
-        parts[idx] = TRUMP_HIGHLIGHT_RE.sub(repl, part)
-    return "".join(parts)
+        parts[idx] = _highlight_trump_in_text(part)
+    highlighted = "".join(parts)
+    for idx, block in enumerate(protected_blocks):
+        highlighted = highlighted.replace(f"@@TRUMP_PROTECTED_{idx}@@", block)
+    return head + highlighted + tail
 
 def _safe_float(value) -> float:
     try:
@@ -905,7 +945,7 @@ th {{ background: #f9fafb; text-align: left; }}
 <p class="small">生成时间：{escape(now)}</p>
 <p class="notice">{escape(summary)}</p>
 <p><b>重要说明：</b>本报告是基于公开披露文件的研究筛选结果，不构成个性化投资建议。Form 4 和其他披露存在时间滞后、交易目的复杂、自动交易计划等限制。</p>
-<p class="note">V16 报告强化关联 SELL 审计、OGE 自动发现与 Trump 高亮：主动买入雷达只表示存在 P/BUY 主动买入，不再把全局净方向写成 SELL；若同一股票存在卖出，将在关联 SELL 审计中强制展示。Top Signals 是按 {escape(str(settings.lookback_days))} 天窗口聚合后的评分；明细表按“股票总金额优先、同股票内金额降序”展示。核心 BUY 只统计 P/BUY，核心 SELL 只统计 S/SELL；M/A/F/G/J 等非主动记录单独列入审计表。</p>
+<p class="note">V17 报告修复 Trump 高亮、OGE 日期/金额异常隔离、House 期权 PTR 解析与 Pelosi INTC/UBER 识别：主动买入雷达只表示存在 P/BUY 主动买入，不再把全局净方向写成 SELL；若同一股票存在卖出，将在关联 SELL 审计中强制展示。Top Signals 是按 {escape(str(settings.lookback_days))} 天窗口聚合后的评分；明细表按“股票总金额优先、同股票内金额降序”展示。核心 BUY 只统计 P/BUY，核心 SELL 只统计 S/SELL；M/A/F/G/J 等非主动记录单独列入审计表。</p>
 
 <h2>关键结论摘要</h2>
 <p class="note">本节综合全报告，优先列出明显买入与明显卖出的股票、对应交易总金额和主要巨鲸。金额使用共同报告人去重后的经济金额；图表用于快速比较 BUY/SELL 规模，详细审计见后续明细表。</p>
@@ -991,11 +1031,11 @@ th {{ background: #f9fafb; text-align: left; }}
 {noncore_table}
 
 <h2>评分口径</h2>
-<p>V16 同时识别 SEC Form 4 公司内部人交易、House 政界披露和 OGE 行政分支披露，并用 Alpha Vantage / Finnhub 免费接口补充行情、趋势、估值、基本面、新闻情绪与独立 insider 数据校验。机会分仍以公开披露交易为主；行情/基本面/情绪只做小幅透明调整。共同报告人同一经济交易会进行金额去重，但原始报告人仍保留在明细中供审计。本报告不构成个性化投资建议。</p>
+<p>V17 同时识别 SEC Form 4 公司内部人交易、House 政界披露和 OGE 行政分支披露，并用 Alpha Vantage / Finnhub 免费接口补充行情、趋势、估值、基本面、新闻情绪与独立 insider 数据校验。机会分仍以公开披露交易为主；行情/基本面/情绪只做小幅透明调整。共同报告人同一经济交易会进行金额去重，但原始报告人仍保留在明细中供审计。本报告不构成个性化投资建议。</p>
 </body>
 </html>
 """
-    return _highlight_trump_in_text(html)
+    return _highlight_trump_in_html(html)
 
 
 def save_report(html: str) -> Path:

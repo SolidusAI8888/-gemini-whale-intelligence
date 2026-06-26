@@ -153,16 +153,18 @@ def _extract_ticker(text: str, target_tickers: set[str]) -> str | None:
     return None
 
 
-def _normalize_action(text: str | None) -> tuple[str, str]:
+def _normalize_action(text: str | None) -> tuple[str, str | None]:
     raw = (text or "").strip()
     low = raw.lower()
+    if re.search(r"\b(contribution|donor[-\s]?advised fund|gift)\b", low):
+        return "OTHER_TRANSFER", "G"
+    if re.search(r"\bp\b", low) or re.search(r"\bpurchase(?:d)?\b", low) or "purchased" in low:
+        return "BUY", "P"
+    if re.search(r"\bs\s*partial\b", low) or re.search(r"\bs\b", low) or re.search(r"\b(sale|sold|sell)\b", low):
+        return "SELL", "S"
     for word, action in TRANSACTION_WORDS.items():
         if word in low:
             return action, "P" if action == "BUY" else "S" if action == "SELL" else None
-    if low in {"p", "buy"}:
-        return "BUY", "P"
-    if low in {"s", "sell"}:
-        return "SELL", "S"
     return "OTHER", None
 
 
@@ -304,6 +306,76 @@ def _download_house_pdf(doc_id: str, year: int, user_agent: str) -> tuple[bytes 
     return None, None
 
 
+
+def _all_dates(text: str) -> list[date]:
+    dates: list[date] = []
+    for m in re.finditer(r"(\d{1,2}/\d{1,2}/(?:20\d{2}|\d{2})|20\d{2}[-/]\d{1,2}[-/]\d{1,2})", text or ""):
+        dt = _parse_date(m.group(1))
+        if dt:
+            dates.append(dt)
+    return dates
+
+
+def _select_house_transaction_date(window: str, filing_date: str | None) -> str | None:
+    dates = _all_dates(window)
+    if not dates:
+        return filing_date
+    filing_dt = _parse_date(filing_date) or date.today()
+    # House PTR option descriptions include an expiration date after the transaction
+    # date.  Prefer the first date that is not after the filing date + 45 days; this
+    # keeps 05/29/2026 and rejects 03/19/2027 expiration dates.
+    max_trade_date = filing_dt + timedelta(days=45)
+    for dt in dates:
+        if dt <= max_trade_date:
+            return dt.isoformat()
+    return dates[0].isoformat()
+
+
+def _extract_house_option_metadata(window: str) -> dict[str, Any]:
+    raw = window or ""
+    low = raw.lower()
+    out: dict[str, Any] = {}
+    if "[op]" in low or "call option" in low or "put option" in low or "option" in low:
+        out["asset_type"] = "Option"
+    if "call option" in low:
+        out["option_type"] = "Call"
+    elif "put option" in low:
+        out["option_type"] = "Put"
+    m = re.search(r"(?:purchased|sold|sale of|purchase of)?\s*([0-9][0-9,]*)\s+(?:call|put)?\s*options?", raw, re.I)
+    if m:
+        try:
+            out["contracts"] = int(m.group(1).replace(",", ""))
+        except ValueError:
+            pass
+    m = re.search(r"strike(?:\s+price)?\s*(?:of|=|:)??\s*\$?\s*([0-9]+(?:\.[0-9]+)?)", raw, re.I)
+    if m:
+        try:
+            out["strike"] = float(m.group(1))
+        except ValueError:
+            pass
+    m = re.search(r"expiration(?:\s+date)?\s*(?:of|=|:)??\s*(\d{1,2}/\d{1,2}/(?:20\d{2}|\d{2}))", raw, re.I)
+    if m:
+        out["expiration_date"] = _date_str(m.group(1))
+    if re.search(r"donor[-\s]?advised fund|contribution", raw, re.I):
+        out["transfer_type"] = "Donor-Advised Fund / Contribution"
+    return out
+
+
+def _house_candidate_windows(lines: list[str]) -> list[tuple[int, str]]:
+    candidates: list[tuple[int, str]] = []
+    for idx, line in enumerate(lines):
+        low = line.lower()
+        has_ticker = bool(re.search(r"\([A-Z][A-Z0-9.\-]{0,5}\)\s*(?:\[[A-Z]{2}\])?", line))
+        has_action = any(word in low for word in ("purchase", "purchased", "sale", "sold", "exchange", "s partial", "donor-advised", "contribution")) or line.strip().upper() in {"P", "S", "S PARTIAL"}
+        if not (has_ticker or has_action):
+            continue
+        # Wide window so rows split across separate asset/ticker/action/date/amount lines
+        # are reconstructed.  This fixes Pelosi PTR rows such as INTC/UBER options.
+        start = max(0, idx - 2)
+        end = min(len(lines), idx + 9)
+        candidates.append((idx, " ".join(lines[start:end])))
+    return candidates
+
 def _parse_house_pdf_transactions(filing: HouseFiling, pdf_text: str, pdf_url: str, target_tickers: set[str]) -> list[dict]:
     trades: list[dict] = []
     if not pdf_text:
@@ -311,20 +383,26 @@ def _parse_house_pdf_transactions(filing: HouseFiling, pdf_text: str, pdf_url: s
     # Collapse page noise while keeping enough context per line.
     lines = [re.sub(r"\s+", " ", line).strip() for line in pdf_text.splitlines()]
     lines = [line for line in lines if line]
-    for idx, line in enumerate(lines):
-        low = line.lower()
-        if not any(word in low for word in ("purchase", "sale", "sold", "exchange")):
-            continue
-        window = " ".join(lines[max(0, idx - 1): min(len(lines), idx + 3)])
+    seen: set[tuple] = set()
+    for idx, window in _house_candidate_windows(lines):
         ticker = _extract_ticker(window, target_tickers)
         if not ticker:
             continue
         action, code = _normalize_action(window)
-        if action not in {"BUY", "SELL"}:
+        if action not in {"BUY", "SELL", "OTHER_TRANSFER"}:
             continue
-        tx_date = _date_str(window) or filing.filing_date
+        tx_date = _select_house_transaction_date(window, filing.filing_date) or filing.filing_date
         amount = _amount_midpoint(window)
-        source_id = f"HOUSE:{filing.doc_id}:{idx}:{ticker}:{action}:{tx_date}:{amount or 0}"
+        option_meta = _extract_house_option_metadata(window)
+        # Avoid turning the option expiration date into the trade date.
+        if option_meta.get("expiration_date") and tx_date == option_meta.get("expiration_date"):
+            tx_date = filing.filing_date
+        dedup_key = (filing.doc_id, ticker, action, tx_date, amount, option_meta.get("contracts"), option_meta.get("strike"), option_meta.get("expiration_date"))
+        if dedup_key in seen:
+            continue
+        seen.add(dedup_key)
+        source_id = f"HOUSE:{filing.doc_id}:{ticker}:{action}:{tx_date}:{amount or 0}:{option_meta.get('contracts','')}:{option_meta.get('expiration_date','')}"
+        raw = {"doc_id": filing.doc_id, "context": window, **option_meta}
         trades.append(
             _normalize_trade(
                 source_id=source_id,
@@ -337,7 +415,7 @@ def _parse_house_pdf_transactions(filing: HouseFiling, pdf_text: str, pdf_url: s
                 trade_date=tx_date,
                 filing_date=filing.filing_date,
                 filing_url=pdf_url,
-                raw={"doc_id": filing.doc_id, "line": line, "context": window},
+                raw=raw,
             )
         )
     return trades
