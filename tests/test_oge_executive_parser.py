@@ -55,3 +55,25 @@ def test_parse_oge_quarantines_malformed_single_amount_fragment():
         source_url="https://example.gov/trump-278t.pdf",
     )
     assert rows == []
+
+from app.collectors.oge_executive import parse_oge_asset_text_for_tests
+
+
+def test_parse_oge_278e_asset_disclosure_as_holding_not_trade():
+    text = """
+    Executive Branch Personnel Public Financial Disclosure Report (OGE Form 278e)
+    Acme Growth Fund, LLC Value $500,001 - $1,000,000 Income amount $15,001 - $50,000
+    Commercial real estate, Denver, CO $1,000,001 - $5,000,000
+    """
+    rows = parse_oge_asset_text_for_tests(
+        text=text,
+        filer_name="Chris Wright",
+        position="Secretary of Energy",
+        agency="Energy",
+        source_url="https://example.gov/wright-final278.pdf",
+        report_type="OGE_278e",
+    )
+    assert rows
+    assert all(r["action"] in {"HOLDING", "DISCLOSURE"} for r in rows)
+    assert rows[0]["source"] == "OGE_EXECUTIVE_ASSET"
+    assert "not a recent BUY/SELL trade" in rows[0]["raw_json"]

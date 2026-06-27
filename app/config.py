@@ -93,6 +93,12 @@ class Settings:
     oge_discovery_urls: str = os.getenv("OGE_DISCOVERY_URLS", "https://www.oge.gov/web/oge.nsf/Officials%20Individual%20Disclosures%20Search%20Collection?OpenForm")
     oge_discovery_watchlist: str = os.getenv("OGE_DISCOVERY_WATCHLIST", os.getenv("OGE_EXECUTIVE_WATCHLIST", "Donald J. Trump,JD Vance,Marco Rubio,Scott Bessent,Pete Hegseth,Pamela Bondi,Doug Burgum,Brooke Rollins,Howard Lutnick,Chris Wright,Doug Collins,Kristi Noem,Tulsi Gabbard,John Ratcliffe"))
     oge_discovery_max_links: int = _int("OGE_DISCOVERY_MAX_LINKS", 50)
+    # V19: optionally seed a small set of official OGE Cabinet/Cabinet-level
+    # disclosure URLs that are difficult to discover from the generic OGE search
+    # landing page.  Users can override/append with OGE_CABINET_REPORTS.
+    oge_seed_cabinet_reports_enabled: bool = _bool("OGE_SEED_CABINET_REPORTS_ENABLED", True)
+    oge_seed_cabinet_reports: str = os.getenv("OGE_SEED_CABINET_REPORTS", "")
+    enable_oge_asset_disclosures: bool = _bool("ENABLE_OGE_ASSET_DISCLOSURES", True)
 
 
     # Free market-data connectors. These do not replace political disclosures;

@@ -356,6 +356,7 @@ class ExecutiveReportSpec:
     position: str
     agency: str
     url: str
+    report_type: str = "OGE_278_T"
 
 
 def _split_urls(value: str) -> list[str]:
@@ -383,11 +384,93 @@ def _cabinet_specs(value: str) -> list[ExecutiveReportSpec]:
         if len(parts) >= 3:
             name, position, url = parts[0], parts[1], parts[2]
             agency = parts[3] if len(parts) >= 4 else position
-            specs.append(ExecutiveReportSpec(name=name, position=position, agency=agency, url=url))
+            report_type = parts[4] if len(parts) >= 5 else _infer_report_type_from_text(url, item)
+            specs.append(ExecutiveReportSpec(name=name, position=position, agency=agency, url=url, report_type=report_type))
         else:
             log.warning("Skipping malformed OGE_CABINET_REPORTS entry: %s", item)
     return specs
 
+
+SEEDED_CABINET_REPORTS = [
+    # Official OGE PDFs from extapps2.oge.gov. These are not secrets; they are
+    # public disclosure documents.  They give the Cabinet radar immediate coverage
+    # while the OGE search-page discovery remains best-effort.
+    ExecutiveReportSpec(
+        "Scott Bessent",
+        "Secretary of the Treasury",
+        "Treasury",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/BA716BA5B423A76685258CE6002C8303/%24FILE/Scott-Bessent-07.14.2025-278T.pdf",
+        "OGE_278_T",
+    ),
+    ExecutiveReportSpec(
+        "Howard Lutnick",
+        "Secretary of Commerce",
+        "Commerce",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/66A69EB879848CF885258CC9002C8582/%24FILE/Howard-Lutnick-06.17.2025-278T.pdf",
+        "OGE_278_T",
+    ),
+    ExecutiveReportSpec(
+        "Howard Lutnick",
+        "Secretary of Commerce",
+        "Commerce",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/8C12E5475578E84385258D5C00345940/%24FILE/Howard-Lutnick-11.05.2025-278T.pdf",
+        "OGE_278_T",
+    ),
+    ExecutiveReportSpec(
+        "Chris Wright",
+        "Secretary of Energy",
+        "Energy",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/5057175949E7195F85258C70002C8C7C/%24FILE/Christopher-A-Wright-03.19.2025-278T.pdf",
+        "OGE_278_T",
+    ),
+    ExecutiveReportSpec(
+        "Chris Wright",
+        "Secretary of Energy",
+        "Energy",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/22F95E0EAFBF6F1D85258DCC002DDF75/%24FILE/Christopher-A-Wright-01.13.2026-278T.pdf",
+        "OGE_278_T",
+    ),
+    ExecutiveReportSpec(
+        "Doug Burgum",
+        "Secretary of the Interior",
+        "Interior",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
+        "OGE_278e",
+    ),
+    ExecutiveReportSpec(
+        "Howard Lutnick",
+        "Secretary of Commerce",
+        "Commerce",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
+        "OGE_278e",
+    ),
+    ExecutiveReportSpec(
+        "Chris Wright",
+        "Secretary of Energy",
+        "Energy",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
+        "OGE_278e",
+    ),
+]
+
+
+def _seeded_cabinet_specs() -> list[ExecutiveReportSpec]:
+    specs = list(SEEDED_CABINET_REPORTS) if settings.oge_seed_cabinet_reports_enabled else []
+    specs.extend(_cabinet_specs(settings.oge_seed_cabinet_reports))
+    return specs
+
+
+def _infer_report_type_from_text(url: str, context: str = "") -> str:
+    text = unquote(" ".join([url or "", context or ""])).lower()
+    if re.search(r"278\s*[-_ ]?t|278t|transaction", text):
+        return "OGE_278_T"
+    if re.search(r"ethics agreement|finalea|\bea\b", text):
+        return "OGE_ETHICS_AGREEMENT"
+    if re.search(r"certificate of divestiture|divestiture|cd\b", text):
+        return "OGE_DIVESTITURE"
+    if re.search(r"278e|final278|public financial disclosure|financial disclosure", text):
+        return "OGE_278e"
+    return "OGE_278e"
 
 
 def _name_tokens(name: str) -> set[str]:
@@ -398,9 +481,10 @@ def _name_tokens(name: str) -> set[str]:
 
 def _infer_spec_from_url(url: str, context: str, default_position: str = "Executive Branch Watchlist") -> ExecutiveReportSpec | None:
     text = unquote(" ".join([url, context or ""]))
-    # Restrict auto-discovery to transaction reports; 278e asset disclosures need a
-    # different parser and should not be treated as new trades.
-    if not re.search(r"278\s*T|278T|Transaction", text, re.I):
+    report_type = _infer_report_type_from_text(url, context)
+    # V19 discovers both transaction reports and asset/ethics files.  Only
+    # 278-T rows enter trading charts; 278e/Ethics rows feed the Cabinet asset radar.
+    if report_type not in {"OGE_278_T", "OGE_278e", "OGE_ETHICS_AGREEMENT", "OGE_DIVESTITURE"}:
         return None
     watch_names = [x.strip() for x in re.split(r"[,;\n]+", settings.oge_discovery_watchlist or settings.oge_executive_watchlist or "") if x.strip()]
     lower = text.lower()
@@ -409,21 +493,19 @@ def _infer_spec_from_url(url: str, context: str, default_position: str = "Execut
         tokens = _name_tokens(name)
         if not tokens:
             continue
-        # Prefer exact full-name match, otherwise require the surname/last token.
         if name.lower() in lower or any(tok in lower for tok in sorted(tokens, key=len, reverse=True)[:1]):
             matched_name = name
             break
     if not matched_name:
-        # Try filename patterns like Scott-Bessent-07.14.2025-278T.pdf.
         tail = unquote(urlparse(url).path.rsplit("/", 1)[-1])
-        m = re.match(r"([A-Za-z]+)[,\-\s]+([A-Za-z.]+).*278\s*T", tail, re.I)
-        if m:
+        m = re.match(r"([A-Za-z]+)[,\-\s]+([A-Za-z.]+).*", tail, re.I)
+        if m and not re.search(r"^(final|report|ethics|certificate)$", m.group(1), re.I):
             matched_name = f"{m.group(1)} {m.group(2)}".replace("-", " ").strip()
     if not matched_name:
         return None
     position = "President" if "trump" in matched_name.lower() else default_position
     agency = "White House" if position == "President" else "Executive Branch"
-    return ExecutiveReportSpec(name=matched_name, position=position, agency=agency, url=url)
+    return ExecutiveReportSpec(name=matched_name, position=position, agency=agency, url=url, report_type=report_type)
 
 
 def _discover_oge_specs(user_agent: str) -> list[ExecutiveReportSpec]:
@@ -472,6 +554,180 @@ def _discover_oge_specs(user_agent: str) -> list[ExecutiveReportSpec]:
         log.info("OGE discovery candidate: %s / %s / %s", spec.name, spec.position, _mask_url(spec.url))
     return list(found.values())
 
+
+def _filing_date_from_text(text: str) -> str:
+    # Use the latest plausible signature/review date in the first pages as the
+    # disclosure date for non-transaction OGE documents.
+    dates = [_parse_date(m.group(1)) for m in DATE_RE.finditer(text or "")]
+    parsed = []
+    for d in dates:
+        if not d:
+            continue
+        try:
+            dt = datetime.strptime(d, "%Y-%m-%d").date()
+            if 2024 <= dt.year <= date.today().year + 1:
+                parsed.append(dt)
+        except ValueError:
+            continue
+    if parsed:
+        return max(parsed).isoformat()
+    return date.today().isoformat()
+
+
+def _asset_slug(asset: str) -> str:
+    ticker = _extract_ticker(asset or "")
+    if ticker:
+        return ticker
+    cleaned = re.sub(r"[^A-Za-z0-9]+", "-", asset or "OGE-ASSET").strip("-").upper()
+    if not cleaned:
+        return "OGE-ASSET"
+    return ("OGE-" + cleaned[:18]).strip("-")
+
+
+def _clean_asset_description(line: str) -> str:
+    line = re.sub(r"\$?([0-9][0-9,]*(?:\.\d+)?)\s*(?:-|to|–|—)\s*\$?([0-9][0-9,]*(?:\.\d+)?)", " ", line)
+    line = DATE_RE.sub(" ", line)
+    line = re.sub(r"\b(?:value|income|type|amount|assets? and income|description|name)\b", " ", line, flags=re.I)
+    line = re.sub(r"\s+", " ", line).strip(" -:;|\t")
+    return line[:180]
+
+
+def _looks_like_asset_line(line: str) -> bool:
+    if _looks_like_trade_block(line):
+        return False
+    if not (AMOUNT_RANGE_RE.search(line) or MONEY_RE.search(line)):
+        return False
+    lower = line.lower()
+    noise = [
+        "agency ethics", "office of government ethics", "signature", "electronically signed",
+        "page ", "filing status", "committee on", "comments of reviewing", "reporting status",
+    ]
+    if any(x in lower for x in noise):
+        return False
+    # Require some alphabetic content that looks like an asset/entity name.
+    return len(re.sub(r"[^a-zA-Z]", "", line)) >= 5
+
+
+def _parse_asset_disclosure_blocks(
+    *,
+    text: str,
+    filer_name: str,
+    position: str,
+    agency: str,
+    source_url: str,
+    report_type: str,
+    max_rows: int = 80,
+) -> list[dict]:
+    """Best-effort 278e/Ethics asset radar parser.
+
+    It does not treat 278e assets as trades.  Rows use action=HOLDING and feed
+    only the Cabinet asset radar, not BUY/SELL charts or scoring.
+    """
+    if not settings.enable_oge_asset_disclosures:
+        return []
+    filing_date = _filing_date_from_text(text)
+    lines = [re.sub(r"\s+", " ", ln).strip() for ln in (text or "").splitlines()]
+    candidates: list[str] = []
+    for idx, line in enumerate(lines):
+        if not line:
+            continue
+        windows = [line, " ".join(lines[idx: idx + 2]), " ".join(lines[idx: idx + 3])]
+        for w in windows:
+            if _looks_like_asset_line(w):
+                candidates.append(w)
+                break
+    rows = []
+    seen = set()
+    for block in candidates:
+        amount_low, amount_high, amount_mid, amount_label, amount_warning = _parse_amount_range(block)
+        if amount_mid is None:
+            continue
+        asset_name = _clean_asset_description(block)
+        if not asset_name or len(asset_name) < 3:
+            continue
+        key = (asset_name.lower(), amount_label)
+        if key in seen:
+            continue
+        seen.add(key)
+        ticker = _asset_slug(asset_name)
+        raw = {
+            "report_type": report_type,
+            "filer_name": filer_name,
+            "position": position,
+            "agency": agency,
+            "asset_name": asset_name,
+            "amount_low": amount_low,
+            "amount_high": amount_high,
+            "amount_mid": amount_mid,
+            "amount_range_label": amount_label,
+            "source_url": source_url,
+            "parser_block": block,
+            "parse_status": "asset_radar",
+            "amount_parse_warning": amount_warning,
+            "radar_note": "278e/Ethics asset disclosure; not a recent BUY/SELL trade",
+        }
+        source_id = "OGEASSET:" + hashlib.sha256(
+            f"{source_url}|{filer_name}|{ticker}|{filing_date}|{amount_label}|{asset_name}".encode("utf-8")
+        ).hexdigest()[:28]
+        rows.append({
+            "source_id": source_id,
+            "ticker": ticker,
+            "company_name": asset_name,
+            "cik": None,
+            "accession_number": None,
+            "filing_url": source_url,
+            "whale_name": filer_name,
+            "whale_category": "Executive:Cabinet",
+            "insider_role": position or agency or "Executive Branch",
+            "action": "HOLDING",
+            "transaction_code": "H",
+            "amount_usd": float(amount_mid),
+            "shares": None,
+            "price": None,
+            "trade_date": filing_date,
+            "filing_date": filing_date,
+            "source": "OGE_EXECUTIVE_ASSET",
+            "raw_json": json.dumps(raw, ensure_ascii=False),
+        })
+        if len(rows) >= max_rows:
+            break
+    if not rows:
+        # Preserve discovery status even when a 278e/Ethics PDF has no reliable
+        # asset rows in text extraction.
+        raw = {
+            "report_type": report_type,
+            "filer_name": filer_name,
+            "position": position,
+            "agency": agency,
+            "asset_name": f"{report_type} document discovered; no asset rows parsed",
+            "amount_range_label": "未解析",
+            "source_url": source_url,
+            "parse_status": "document_found_no_asset_rows",
+        }
+        source_id = "OGEDOC:" + hashlib.sha256(f"{source_url}|{filer_name}|{report_type}".encode("utf-8")).hexdigest()[:28]
+        rows.append({
+            "source_id": source_id,
+            "ticker": "OGE-DOC",
+            "company_name": raw["asset_name"],
+            "cik": None,
+            "accession_number": None,
+            "filing_url": source_url,
+            "whale_name": filer_name,
+            "whale_category": "Executive:Cabinet",
+            "insider_role": position or agency or "Executive Branch",
+            "action": "DISCLOSURE",
+            "transaction_code": "D",
+            "amount_usd": 0.0,
+            "shares": None,
+            "price": None,
+            "trade_date": filing_date,
+            "filing_date": filing_date,
+            "source": "OGE_EXECUTIVE_ASSET",
+            "raw_json": json.dumps(raw, ensure_ascii=False),
+        })
+    return rows
+
+
 def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[dict]:
     """Collect OGE executive branch 278-T transactions from configured PDF URLs.
 
@@ -485,13 +741,15 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
 
     trump_urls = _split_urls(settings.oge_trump_report_urls)
     cabinet_specs = _cabinet_specs(settings.oge_cabinet_reports)
+    seeded_specs = _seeded_cabinet_specs()
     discovered_specs = _discover_oge_specs(user_agent)
     log.info(
-        "OGE executive config: enabled=%s trump_url_present=%s trump_url_count=%s cabinet_spec_count=%s discovery_enabled=%s discovered_count=%s max_reports=%s",
+        "OGE executive config: enabled=%s trump_url_present=%s trump_url_count=%s cabinet_spec_count=%s seeded_spec_count=%s discovery_enabled=%s discovered_count=%s max_reports=%s",
         settings.enable_oge_executive_trades,
         bool(settings.oge_trump_report_urls),
         len(trump_urls),
         len(cabinet_specs),
+        len(seeded_specs),
         settings.enable_oge_auto_discovery,
         len(discovered_specs),
         settings.oge_max_reports,
@@ -507,9 +765,11 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
                 position="President",
                 agency="White House",
                 url=url,
+                report_type="OGE_278_T",
             )
         )
     specs.extend(cabinet_specs)
+    specs.extend(seeded_specs)
     # Auto-discovered reports are appended after explicitly configured URLs so
     # manual Trump/Cabinet PDFs remain deterministic and first in processing.
     seen_urls = {spec.url for spec in specs}
@@ -528,14 +788,26 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
             log.info("Fetching OGE executive report: %s / %s", spec.name, spec.url)
             text = _pdf_text_from_url(spec.url, user_agent)
             parser_blocks = _blocks_from_text(text)
-            log.info("OGE parser candidate blocks for %s: %s", spec.name, len(parser_blocks))
-            rows = _parse_trade_blocks(
-                text=text,
-                filer_name=spec.name,
-                position=spec.position,
-                agency=spec.agency,
-                source_url=spec.url,
-            )
+            log.info("OGE parser candidate blocks for %s: %s report_type=%s", spec.name, len(parser_blocks), spec.report_type)
+            rows = []
+            if spec.report_type == "OGE_278_T":
+                rows.extend(_parse_trade_blocks(
+                    text=text,
+                    filer_name=spec.name,
+                    position=spec.position,
+                    agency=spec.agency,
+                    source_url=spec.url,
+                    report_type=spec.report_type,
+                ))
+            else:
+                rows.extend(_parse_asset_disclosure_blocks(
+                    text=text,
+                    filer_name=spec.name,
+                    position=spec.position,
+                    agency=spec.agency,
+                    source_url=spec.url,
+                    report_type=spec.report_type,
+                ))
             filtered = []
             for row in rows:
                 try:
@@ -555,3 +827,4 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
 
 # Expose parser helpers for tests without network.
 parse_oge_text_for_tests = _parse_trade_blocks
+parse_oge_asset_text_for_tests = _parse_asset_disclosure_blocks
