@@ -44,16 +44,26 @@ class Settings:
     scan_start_date: str = os.getenv("SCAN_START_DATE", "2026-01-01")
     dry_run: bool = _bool("DRY_RUN", True)
     send_email: bool = _bool("SEND_EMAIL", False)
+    email_provider: str = os.getenv("EMAIL_PROVIDER", "sendgrid").strip().lower()
     enable_gemini: bool = _bool("ENABLE_GEMINI", True)
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
     sendgrid_api_key: str = os.getenv("SENDGRID_API_KEY", "")
     email_from: str = os.getenv("EMAIL_FROM", "")
     email_to: str = os.getenv("EMAIL_TO", "")
+    # SMTP / iCloud Mail support. For iCloud use smtp.mail.me.com:587 with
+    # an Apple app-specific password, not the Apple ID login password.
+    smtp_host: str = os.getenv("SMTP_HOST", "smtp.mail.me.com")
+    smtp_port: int = _int("SMTP_PORT", 587)
+    smtp_username: str = os.getenv("SMTP_USERNAME", "")
+    smtp_password: str = os.getenv("SMTP_PASSWORD", "")
+    smtp_starttls: bool = _bool("SMTP_STARTTLS", True)
+    smtp_timeout_seconds: int = _int("SMTP_TIMEOUT_SECONDS", 30)
+    smtp_from_name: str = os.getenv("SMTP_FROM_NAME", "Gemini Whale Intelligence")
 
     # Political whale module. Default provider "auto" uses the official House Clerk
     # ZIP archive and, when FMP_API_KEY is supplied, optional FMP House/Senate endpoints.
-    enable_political_trades: bool = _bool("ENABLE_POLITICAL_TRADES", True)
+    enable_political_trades: bool = _bool("ENABLE_POLITICAL_TRADES", _bool("ENABLE_POLITICAL", True))
     political_provider: str = os.getenv("POLITICAL_PROVIDER", "auto")  # auto|official_house|fmp
     political_max_filings: int = _int("POLITICAL_MAX_FILINGS", 300)
     fmp_api_key: str = os.getenv("FMP_API_KEY", "")
