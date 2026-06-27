@@ -17,15 +17,22 @@ env:
   MAX_COMPANIES: ${{ vars.MAX_COMPANIES || '0' }}
   MIN_OPPORTUNITY_SCORE: ${{ vars.MIN_OPPORTUNITY_SCORE || '55' }}
   SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
-  SEND_EMAIL: ${{ secrets.SEND_EMAIL || 'false' }}
-  DRY_RUN: ${{ secrets.DRY_RUN || 'true' }}
+  SEND_EMAIL: ${{ vars.SEND_EMAIL || secrets.SEND_EMAIL || 'false' }}
+  DRY_RUN: ${{ vars.DRY_RUN || secrets.DRY_RUN || 'true' }}
+  EMAIL_PROVIDER: ${{ vars.EMAIL_PROVIDER || secrets.EMAIL_PROVIDER || 'sendgrid' }}
   SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
   EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
   EMAIL_TO: ${{ secrets.EMAIL_TO }}
+  SMTP_HOST: ${{ vars.SMTP_HOST || 'smtp.mail.me.com' }}
+  SMTP_PORT: ${{ vars.SMTP_PORT || '587' }}
+  SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+  SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+  SMTP_STARTTLS: ${{ vars.SMTP_STARTTLS || 'true' }}
+  SMTP_FROM_NAME: ${{ vars.SMTP_FROM_NAME || 'Gemini Whale Intelligence' }}
   ENABLE_GEMINI: ${{ secrets.ENABLE_GEMINI || 'true' }}
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
   GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash-lite' }}
-  ENABLE_POLITICAL_TRADES: ${{ secrets.ENABLE_POLITICAL_TRADES || 'true' }}
+  ENABLE_POLITICAL_TRADES: ${{ vars.ENABLE_POLITICAL_TRADES || vars.ENABLE_POLITICAL || secrets.ENABLE_POLITICAL_TRADES || 'true' }}
   POLITICAL_PROVIDER: ${{ vars.POLITICAL_PROVIDER || 'auto' }}
   POLITICAL_UNIVERSE_SCOPE: ${{ vars.POLITICAL_UNIVERSE_SCOPE || 'all' }}
   FMP_HOUSE_ENDPOINTS: ${{ vars.FMP_HOUSE_ENDPOINTS || 'house-latest,house-trades' }}
@@ -54,6 +61,9 @@ env:
   OGE_DISCOVERY_URLS: ${{ vars.OGE_DISCOVERY_URLS || 'https://www.oge.gov/web/oge.nsf/Officials%20Individual%20Disclosures%20Search%20Collection?OpenForm' }}
   OGE_DISCOVERY_WATCHLIST: ${{ vars.OGE_DISCOVERY_WATCHLIST || vars.OGE_EXECUTIVE_WATCHLIST || 'Donald J. Trump,JD Vance,Marco Rubio,Scott Bessent,Pete Hegseth,Pamela Bondi,Doug Burgum,Brooke Rollins,Howard Lutnick,Chris Wright,Doug Collins,Kristi Noem,Tulsi Gabbard,John Ratcliffe' }}
   OGE_DISCOVERY_MAX_LINKS: ${{ vars.OGE_DISCOVERY_MAX_LINKS || '50' }}
+  OGE_SEED_CABINET_REPORTS_ENABLED: ${{ vars.OGE_SEED_CABINET_REPORTS_ENABLED || 'true' }}
+  ENABLE_OGE_ASSET_DISCLOSURES: ${{ vars.ENABLE_OGE_ASSET_DISCLOSURES || 'true' }}
+  OGE_SEED_CABINET_REPORTS: ${{ secrets.OGE_SEED_CABINET_REPORTS }}
 
 jobs:
   scan:
