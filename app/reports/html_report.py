@@ -97,6 +97,19 @@ def _trade_date_ok(t: Mapping) -> bool:
     return (not d) or d >= start
 
 
+def _is_new_trade(t: Mapping, new_since: str | None = None) -> bool:
+    """Return whether this DB row was inserted during the current scan.
+
+    V22 uses the persisted SQLite database restored by GitHub Actions cache.
+    A row whose created_at timestamp is newer than the current run start is a
+    true newly discovered disclosure, not merely a 2026-to-date historical row.
+    """
+    if not new_since:
+        return False
+    created_at = str(t.get("created_at") or "")[:19]
+    return bool(created_at and created_at >= str(new_since)[:19])
+
+
 def _dedup_key(row: Mapping) -> tuple[str, ...]:
     return (
         str(row.get("ticker") or "").upper(),
@@ -271,7 +284,7 @@ def _action_summary_table(trades: list[Mapping], price_by_ticker: dict[str, floa
     return _table(["股票", "BUY金额", "主要买入巨鲸", "买入日期", "SELL金额", "主要卖出巨鲸", "卖出日期", "净额"], rows)
 
 
-def _top_conclusion_rows(business: list[Mapping], political: list[Mapping], price_by_ticker: dict[str, float], limit: int = 8) -> list[list[str]]:
+def _top_conclusion_rows(business: list[Mapping], political: list[Mapping], price_by_ticker: dict[str, float], limit: int = 8, new_since: str | None = None) -> list[list[str]]:
     combined = []
     for source_label, trades in [("商界", business), ("政界", political)]:
         for item in _aggregate_by_ticker(trades, price_by_ticker):
@@ -281,11 +294,15 @@ def _top_conclusion_rows(business: list[Mapping], political: list[Mapping], pric
                 continue
             direction = "BUY" if buy >= sell else "SELL"
             rows = item[direction]
-            combined.append((max(buy, sell), source_label, item, direction, rows))
-    combined.sort(key=lambda x: x[0], reverse=True)
+            is_new = any(_is_new_trade(r, new_since) for r in (item["BUY"] + item["SELL"] + item["EXCHANGE"]))
+            combined.append((max(buy, sell), source_label, item, direction, rows, is_new))
+    # New/changed rows are promoted first, then by amount. This keeps the first
+    # screen focused on genuinely new daily discoveries.
+    combined.sort(key=lambda x: (1 if x[5] else 0, x[0]), reverse=True)
     out = []
-    for amount, source_label, item, direction, rows in combined[:limit]:
+    for amount, source_label, item, direction, rows, is_new in combined[:limit]:
         opposite = item["sell_amount"] if direction == "BUY" else item["buy_amount"]
+        change_html = '<span class="change-new">新增/变化</span>' if is_new else '<span class="change-existing">既有</span>'
         out.append([
             escape(source_label),
             f"<b>{escape(item['ticker'])}</b>",
@@ -294,7 +311,7 @@ def _top_conclusion_rows(business: list[Mapping], political: list[Mapping], pric
             _money(opposite),
             escape(_whales_for(rows, price_by_ticker, limit=3)),
             escape(_latest_dates(rows)),
-            escape("新增/变化"),
+            change_html,
         ])
     return out
 
@@ -389,6 +406,7 @@ def build_html_report(
     trump_oge_trades: list[Mapping] | None = None,
     oge_executive_trades: list[Mapping] | None = None,
     oge_summary: list[Mapping] | None = None,
+    new_since: str | None = None,
 ) -> str:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     price_by_ticker = _market_price_map(market_context)
@@ -409,10 +427,11 @@ def build_html_report(
 
     change_class = "big-change" if new_trade_count > 0 else "no-change"
     change_text = f"今日新增/变化披露记录：{new_trade_count} 条" if new_trade_count > 0 else "今日无新增重大变化"
+    change_note = "与上次成功运行保留的数据库快照对比" if new_since else "首次运行或未恢复历史快照；本次可能包含历史入库记录"
 
     top_conclusions = _table(
         ["类别", "股票", "方向", "金额", "反向金额", "主要巨鲸", "交易日期", "变化"],
-        _top_conclusion_rows(business_trades, political_trades, price_by_ticker, limit=10),
+        _top_conclusion_rows(business_trades, political_trades, price_by_ticker, limit=10, new_since=new_since),
         empty="暂无达到阈值的巨鲸行动。",
     )
     business_chart = _ticker_comparison_chart(business_trades, price_by_ticker, top_tickers=10)
@@ -460,6 +479,7 @@ th {{ background: #f9fafb; text-align: left; }}
 <h1>Gemini-美股聪明钱_政商巨鲸行动追踪</h1>
 <p class="small">生成时间：{escape(now)}；交易时间范围：{escape(settings.scan_start_date)} 至今；正式报告目标发送时间：柏林时间每日 08:00。</p>
 <div class="{change_class}">{escape(change_text)}</div>
+<p class="small">变化口径：{escape(change_note)}</p>
 <p class="notice"><b>报告定位：</b>快速了解近期商界/政界巨鲸在美股及公开投资标的上的真金白银 BUY/SELL 披露。金额来自公开披露，政治期权默认按披露金额区间排序，名义敞口只作备注；本报告不构成个性化投资建议。</p>
 
 <h2>一、今日结论总览</h2>

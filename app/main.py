@@ -74,6 +74,9 @@ def _finish_run(run_id: int, status: str, new_trade_count: int, report_path: str
 def run_scan() -> dict:
     init_db()
     run_id = _start_run()
+    # UTC timestamp used by the report to mark rows inserted in this run.
+    # With V22's persisted DB cache, this is a real day-over-day comparison.
+    run_started_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     report_path = None
     try:
         log.info("Gemini Whale scan started")
@@ -170,16 +173,18 @@ def run_scan() -> dict:
             trump_oge_trades=trump_oge_trades,
             oge_executive_trades=oge_executive_trades,
             oge_summary=oge_summary,
+            new_since=run_started_at,
         )
         path = save_report(html)
         report_path = str(path)
         log.info("Report saved: %s", report_path)
 
-        if new_count > 0 or not settings.dry_run:
-            subject = f"Gemini-美股聪明钱_政商巨鲸行动追踪 {datetime.now().strftime('%Y-%m-%d')}"
+        if settings.send_email:
+            daily_status = "新增" if new_count > 0 else "无新增"
+            subject = f"Gemini-美股聪明钱_政商巨鲸行动追踪 {datetime.now().strftime('%Y-%m-%d')}（{daily_status}）"
             send_report(subject, html)
         else:
-            log.info("No new trades and DRY_RUN=true; email not sent")
+            log.info("SEND_EMAIL=false; email not sent")
 
         _finish_run(run_id, "SUCCESS", new_count, report_path)
         return {"status": "SUCCESS", "new_trade_count": new_count, "report_path": report_path}
