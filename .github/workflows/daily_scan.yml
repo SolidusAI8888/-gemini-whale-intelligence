@@ -2,8 +2,10 @@ name: Daily Gemini Whale Scan
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # 08:00 Berlin during CEST
-    - cron: '0 7 * * *'  # 08:00 Berlin during CET
+    # Avoid GitHub Actions top-of-hour schedule congestion.
+    # CEST: 06:17 UTC = 08:17 Berlin. CET: 07:17 UTC = 08:17 Berlin.
+    - cron: '17 6 * * *'
+    - cron: '17 7 * * *'
   workflow_dispatch:
 
 permissions:
@@ -75,16 +77,29 @@ jobs:
       - name: Check Berlin 08:00 window
         id: berlin_window
         run: |
+          UTC_NOW=$(date -u '+%Y-%m-%d %H:%M:%S %Z')
+          BERLIN_NOW=$(TZ=Europe/Berlin date '+%Y-%m-%d %H:%M:%S %Z')
+          BERLIN_HOUR=$(TZ=Europe/Berlin date +%H)
+          BERLIN_MINUTE=$(TZ=Europe/Berlin date +%M)
+          echo "current_utc=$UTC_NOW"
+          echo "current_berlin=$BERLIN_NOW"
+          echo "berlin_hour=$BERLIN_HOUR berlin_minute=$BERLIN_MINUTE"
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run_daily_email=true reason=manual_dispatch"
             echo "run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          HOUR=$(TZ=Europe/Berlin date +%H)
-          if [ "$HOUR" = "08" ]; then
+
+          # Scheduled runs are intentionally fired at 06:17/07:17 UTC.
+          # Exactly one of them should land inside Berlin's 08:00 hour, depending on DST.
+          if [ "$BERLIN_HOUR" = "08" ]; then
+            echo "should_run_daily_email=true reason=berlin_08_hour"
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
+            echo "should_run_daily_email=false reason=not_berlin_08_hour"
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping because Berlin local hour is $HOUR, not 08."
+            echo "Skipping scheduled run because Berlin local time is $BERLIN_NOW, not during the 08:00 hour."
           fi
       - name: Set up Python
         if: steps.berlin_window.outputs.run == 'true'
