@@ -101,6 +101,24 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "Skipping scheduled run because Berlin local time is $BERLIN_NOW, not during the 08:00 hour."
           fi
+      - name: Restore persistent scan state
+        if: steps.berlin_window.outputs.run == 'true'
+        id: restore_state
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/whale.db
+          key: whale-state-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            whale-state-${{ runner.os }}-
+      - name: Show restored state
+        if: steps.berlin_window.outputs.run == 'true'
+        run: |
+          if [ -f data/whale.db ]; then
+            echo "Restored prior whale.db state: $(du -h data/whale.db | cut -f1)"
+          else
+            echo "No prior whale.db state restored; this run will be treated as initial baseline."
+          fi
       - name: Set up Python
         if: steps.berlin_window.outputs.run == 'true'
         uses: actions/setup-python@v5
@@ -125,3 +143,10 @@ jobs:
             data/reports/*.html
             data/whale.db
           if-no-files-found: ignore
+      - name: Save persistent scan state
+        if: always() && steps.berlin_window.outputs.run == 'true' && hashFiles('data/whale.db') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            data/whale.db
+          key: whale-state-${{ runner.os }}-${{ github.run_id }}
