@@ -407,6 +407,7 @@ def build_html_report(
     oge_executive_trades: list[Mapping] | None = None,
     oge_summary: list[Mapping] | None = None,
     new_since: str | None = None,
+    baseline_trade_count: int = 0,
 ) -> str:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     price_by_ticker = _market_price_map(market_context)
@@ -425,9 +426,18 @@ def build_html_report(
     if not business_trades:
         business_trades = [t for t in all_recent if not _is_political_or_oge(t) and str(t.get("action") or "").upper() in {"BUY", "SELL"}]
 
-    change_class = "big-change" if new_trade_count > 0 else "no-change"
-    change_text = f"今日新增/变化披露记录：{new_trade_count} 条" if new_trade_count > 0 else "今日无新增重大变化"
-    change_note = "与上次成功运行保留的数据库快照对比" if new_since else "首次运行或未恢复历史快照；本次可能包含历史入库记录"
+    if baseline_trade_count <= 0:
+        change_class = "big-change"
+        change_text = f"首次建立对比基线：本次入库 {new_trade_count} 条；明日开始仅显示真正新增/变化"
+        change_note = "未检测到上一轮持久化数据库快照；本次用于建立基线，不应解读为今日全部新增。"
+    elif new_trade_count > 0:
+        change_class = "big-change"
+        change_text = f"今日新增/变化披露记录：{new_trade_count} 条"
+        change_note = f"已恢复上一轮数据库快照（基线 {baseline_trade_count} 条），本数字为本次新插入披露记录。"
+    else:
+        change_class = "no-change"
+        change_text = "今日无新增重大变化"
+        change_note = f"已恢复上一轮数据库快照（基线 {baseline_trade_count} 条），本次未发现新披露记录。"
 
     top_conclusions = _table(
         ["类别", "股票", "方向", "金额", "反向金额", "主要巨鲸", "交易日期", "变化"],

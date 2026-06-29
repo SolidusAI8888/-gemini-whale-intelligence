@@ -71,8 +71,16 @@ def _finish_run(run_id: int, status: str, new_trade_count: int, report_path: str
         conn.commit()
 
 
+def _count_existing_trades_before_run() -> int:
+    with get_conn() as conn:
+        row = conn.execute("SELECT COUNT(*) AS n FROM trades").fetchone()
+        return int(row["n"] if row else 0)
+
+
 def run_scan() -> dict:
     init_db()
+    baseline_trade_count = _count_existing_trades_before_run()
+    log.info("Existing trades before collection: %s", baseline_trade_count)
     run_id = _start_run()
     # UTC timestamp used by the report to mark rows inserted in this run.
     # With V22's persisted DB cache, this is a real day-over-day comparison.
@@ -173,7 +181,8 @@ def run_scan() -> dict:
             trump_oge_trades=trump_oge_trades,
             oge_executive_trades=oge_executive_trades,
             oge_summary=oge_summary,
-            new_since=run_started_at,
+            new_since=run_started_at if baseline_trade_count > 0 else None,
+            baseline_trade_count=baseline_trade_count,
         )
         path = save_report(html)
         report_path = str(path)
