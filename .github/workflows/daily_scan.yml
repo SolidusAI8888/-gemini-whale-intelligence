@@ -74,79 +74,119 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check Berlin 08:00 window
-        id: berlin_window
-        run: |
-          UTC_NOW=$(date -u '+%Y-%m-%d %H:%M:%S %Z')
-          BERLIN_NOW=$(TZ=Europe/Berlin date '+%Y-%m-%d %H:%M:%S %Z')
-          BERLIN_HOUR=$(TZ=Europe/Berlin date +%H)
-          BERLIN_MINUTE=$(TZ=Europe/Berlin date +%M)
-          echo "current_utc=$UTC_NOW"
-          echo "current_berlin=$BERLIN_NOW"
-          echo "berlin_hour=$BERLIN_HOUR berlin_minute=$BERLIN_MINUTE"
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "should_run_daily_email=true reason=manual_dispatch"
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # Scheduled runs are intentionally fired at 06:17/07:17 UTC.
-          # Exactly one of them should land inside Berlin's 08:00 hour, depending on DST.
-          if [ "$BERLIN_HOUR" = "08" ]; then
-            echo "should_run_daily_email=true reason=berlin_08_hour"
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run_daily_email=false reason=not_berlin_08_hour"
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping scheduled run because Berlin local time is $BERLIN_NOW, not during the 08:00 hour."
-          fi
       - name: Restore persistent scan state
-        if: steps.berlin_window.outputs.run == 'true'
         id: restore_state
         uses: actions/cache/restore@v4
         with:
           path: |
             data/whale.db
+            data/last_email_date.txt
           key: whale-state-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             whale-state-${{ runner.os }}-
+
+      - name: Check Berlin daily send gate
+        id: berlin_gate
+        run: |
+          mkdir -p data
+          UTC_NOW=$(date -u '+%Y-%m-%d %H:%M:%S %Z')
+          BERLIN_NOW=$(TZ=Europe/Berlin date '+%Y-%m-%d %H:%M:%S %Z')
+          BERLIN_DATE=$(TZ=Europe/Berlin date '+%Y-%m-%d')
+          BERLIN_HOUR=$(TZ=Europe/Berlin date +%H)
+          BERLIN_MINUTE=$(TZ=Europe/Berlin date +%M)
+          LAST_EMAIL_DATE=""
+          if [ -f data/last_email_date.txt ]; then
+            LAST_EMAIL_DATE=$(cat data/last_email_date.txt | tr -d '[:space:]')
+          fi
+          echo "current_utc=$UTC_NOW"
+          echo "current_berlin=$BERLIN_NOW"
+          echo "berlin_date=$BERLIN_DATE berlin_hour=$BERLIN_HOUR berlin_minute=$BERLIN_MINUTE"
+          echo "last_email_date=${LAST_EMAIL_DATE:-none}"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run_daily_email=true reason=manual_dispatch"
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "scheduled_daily=false" >> "$GITHUB_OUTPUT"
+            echo "berlin_date=$BERLIN_DATE" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Scheduled runs fire at 06:17 and 07:17 UTC. Depending on DST, the
+          # first eligible run should be Berlin 08:17. If GitHub drops or delays
+          # that run, a later scheduled run may still send once for the same
+          # Berlin date. This avoids the old fragile exact-hour window.
+          if [ "$BERLIN_HOUR" -lt 8 ]; then
+            echo "should_run_daily_email=false reason=before_berlin_08"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "scheduled_daily=true" >> "$GITHUB_OUTPUT"
+            echo "berlin_date=$BERLIN_DATE" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$LAST_EMAIL_DATE" = "$BERLIN_DATE" ]; then
+            echo "should_run_daily_email=false reason=already_sent_for_berlin_date"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "scheduled_daily=true" >> "$GITHUB_OUTPUT"
+            echo "berlin_date=$BERLIN_DATE" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "should_run_daily_email=true reason=first_eligible_scheduled_run_for_berlin_date"
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "scheduled_daily=true" >> "$GITHUB_OUTPUT"
+          echo "berlin_date=$BERLIN_DATE" >> "$GITHUB_OUTPUT"
+
       - name: Show restored state
-        if: steps.berlin_window.outputs.run == 'true'
+        if: steps.berlin_gate.outputs.run == 'true'
         run: |
           if [ -f data/whale.db ]; then
             echo "Restored prior whale.db state: $(du -h data/whale.db | cut -f1)"
           else
             echo "No prior whale.db state restored; this run will be treated as initial baseline."
           fi
+          if [ -f data/last_email_date.txt ]; then
+            echo "Last successful scheduled email date: $(cat data/last_email_date.txt)"
+          else
+            echo "No prior scheduled email marker restored."
+          fi
+
       - name: Set up Python
-        if: steps.berlin_window.outputs.run == 'true'
+        if: steps.berlin_gate.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
       - name: Install dependencies
-        if: steps.berlin_window.outputs.run == 'true'
+        if: steps.berlin_gate.outputs.run == 'true'
         run: pip install -r requirements.txt
       - name: Run tests
-        if: steps.berlin_window.outputs.run == 'true'
+        if: steps.berlin_gate.outputs.run == 'true'
         run: pytest -q
       - name: Run daily scan
-        if: steps.berlin_window.outputs.run == 'true'
+        if: steps.berlin_gate.outputs.run == 'true'
         run: python -m app.main
+      - name: Mark Berlin daily email sent
+        if: success() && steps.berlin_gate.outputs.run == 'true' && steps.berlin_gate.outputs.scheduled_daily == 'true'
+        run: |
+          mkdir -p data
+          echo "${{ steps.berlin_gate.outputs.berlin_date }}" > data/last_email_date.txt
+          echo "Marked scheduled email sent for Berlin date ${{ steps.berlin_gate.outputs.berlin_date }}"
       - name: Upload report artifact
-        if: always() && steps.berlin_window.outputs.run == 'true'
+        if: always() && steps.berlin_gate.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: gemini-whale-report
           path: |
             data/reports/*.html
             data/whale.db
+            data/last_email_date.txt
           if-no-files-found: ignore
       - name: Save persistent scan state
-        if: always() && steps.berlin_window.outputs.run == 'true' && hashFiles('data/whale.db') != ''
+        if: always() && steps.berlin_gate.outputs.run == 'true' && hashFiles('data/whale.db') != ''
         uses: actions/cache/save@v4
         with:
           path: |
             data/whale.db
+            data/last_email_date.txt
           key: whale-state-${{ runner.os }}-${{ github.run_id }}
