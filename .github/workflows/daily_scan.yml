@@ -2,10 +2,13 @@ name: Daily Gemini Whale Scan
 
 on:
   schedule:
-    # Avoid GitHub Actions top-of-hour schedule congestion.
-    # CEST: 06:17 UTC = 08:17 Berlin. CET: 07:17 UTC = 08:17 Berlin.
-    - cron: '17 6 * * *'
-    - cron: '17 7 * * *'
+    # Fail-safe daily window. GitHub scheduled workflows can be delayed or dropped,
+    # especially around common times. Run repeated lightweight attempts after the
+    # Berlin 08:00 target; the daily gate below sends at most one email per
+    # Berlin date.
+    # Summer: first eligible attempt is 06:17 UTC = 08:17 Berlin.
+    # Winter: 06:17 UTC is before 08:00 and skips; 07:17 UTC = 08:17 Berlin sends.
+    - cron: '17 5-18 * * *'
   workflow_dispatch:
 
 permissions:
@@ -112,10 +115,10 @@ jobs:
             exit 0
           fi
 
-          # Scheduled runs fire at 06:17 and 07:17 UTC. Depending on DST, the
-          # first eligible run should be Berlin 08:17. If GitHub drops or delays
-          # that run, a later scheduled run may still send once for the same
-          # Berlin date. This avoids the old fragile exact-hour window.
+          # Scheduled runs fire hourly in a broad fail-safe window. The first
+          # attempt after Berlin 08:00 sends; later attempts skip after seeing
+          # data/last_email_date.txt for the same Berlin date. This avoids both
+          # GitHub cron delays/drops and DST edge cases.
           if [ "$BERLIN_HOUR" -lt 8 ]; then
             echo "should_run_daily_email=false reason=before_berlin_08"
             echo "run=false" >> "$GITHUB_OUTPUT"
@@ -163,8 +166,28 @@ jobs:
       - name: Run tests
         if: steps.berlin_gate.outputs.run == 'true'
         run: pytest -q
-      - name: Run daily scan
+      - name: Show effective email gate
         if: steps.berlin_gate.outputs.run == 'true'
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          echo "berlin_gate_run=${{ steps.berlin_gate.outputs.run }}"
+          echo "scheduled_daily=${{ steps.berlin_gate.outputs.scheduled_daily }}"
+          echo "berlin_date=${{ steps.berlin_gate.outputs.berlin_date }}"
+          echo "SEND_EMAIL_CONFIGURED=${SEND_EMAIL}"
+          echo "FORCE_SEND_EMAIL=true"
+          echo "EMAIL_PROVIDER=${EMAIL_PROVIDER}"
+          echo "SMTP_HOST=${SMTP_HOST}"
+          echo "SMTP_PORT=${SMTP_PORT}"
+          if [ -n "${EMAIL_TO}" ]; then echo "EMAIL_TO_SET=true"; else echo "EMAIL_TO_SET=false"; fi
+          if [ -n "${SMTP_USERNAME}" ]; then echo "SMTP_USERNAME_SET=true"; else echo "SMTP_USERNAME_SET=false"; fi
+      - name: Run daily scan and force email for eligible runs
+        if: steps.berlin_gate.outputs.run == 'true'
+        env:
+          # Once the daily gate chooses to run, this job must send a report even
+          # when there are zero new disclosures. This is the single source of
+          # truth for scheduled and manual runs.
+          FORCE_SEND_EMAIL: 'true'
+          SEND_EMAIL: 'true'
         run: python -m app.main
       - name: Mark Berlin daily email sent
         if: success() && steps.berlin_gate.outputs.run == 'true' && steps.berlin_gate.outputs.scheduled_daily == 'true'
