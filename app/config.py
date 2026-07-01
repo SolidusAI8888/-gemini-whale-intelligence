@@ -43,7 +43,13 @@ class Settings:
     # so older 2025 records do not dominate the daily brief.
     scan_start_date: str = os.getenv("SCAN_START_DATE", "2026-01-01")
     dry_run: bool = _bool("DRY_RUN", True)
-    send_email: bool = _bool("SEND_EMAIL", False)
+    # FORCE_SEND_EMAIL is set by the scheduled/manual workflow gate after it
+    # has decided that this run should deliver a report. This removes ambiguity
+    # between workflow_dispatch and schedule runs and prevents scheduled runs
+    # from completing a full scan without emailing because SEND_EMAIL was not
+    # resolved as expected.
+    force_send_email: bool = _bool("FORCE_SEND_EMAIL", False)
+    send_email: bool = _bool("FORCE_SEND_EMAIL", False) or _bool("SEND_EMAIL", False)
     email_provider: str = os.getenv("EMAIL_PROVIDER", "sendgrid").strip().lower()
     enable_gemini: bool = _bool("ENABLE_GEMINI", True)
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
