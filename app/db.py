@@ -361,3 +361,25 @@ def fetch_trades_since(start_date: str = "2026-01-01", limit: int = 50000) -> li
             """,
             (start_date, int(limit)),
         ).fetchall()
+
+
+
+def fetch_institutional_13f_holdings(start_date: str = "2026-01-01", limit: int = 500) -> list[sqlite3.Row]:
+    """Fetch SEC 13F quarterly holdings for institutional whale radar.
+
+    13F rows are stored in the generic trades table so they can share the
+    existing persistence/de-duplication machinery, but they are NOT BUY/SELL
+    trades.  They should be shown in their own report section using report
+    period and filing date.
+    """
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM trades
+            WHERE source = 'INSTITUTIONAL_13F'
+              AND COALESCE(trade_date, filing_date, '') >= ?
+            ORDER BY filing_date DESC, COALESCE(amount_usd, 0) DESC, id DESC
+            LIMIT ?
+            """,
+            (start_date, int(limit)),
+        ).fetchall()

@@ -38,12 +38,21 @@ def _safe_float(value) -> float:
         return 0.0
 
 
-def _table(headers: list[str], rows: Iterable[list[str]], empty: str = "暂无数据。") -> str:
+def _table(headers: list[str], rows: Iterable[list[str] | tuple[str, list[str]]], empty: str = "暂无数据。") -> str:
     rows = list(rows)
     if not rows:
         return f"<p>{escape(empty)}</p>"
     head = "".join(f"<th>{escape(h)}</th>" for h in headers)
-    body = "".join("<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in rows)
+    body_parts = []
+    for row in rows:
+        row_class = ""
+        cells = row
+        if isinstance(row, tuple) and len(row) == 2 and isinstance(row[0], str):
+            row_class = row[0]
+            cells = row[1]
+        cls = f' class="{escape(row_class)}"' if row_class else ""
+        body_parts.append(f"<tr{cls}>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr>")
+    body = "".join(body_parts)
     return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
 
 
@@ -87,14 +96,41 @@ def _is_oge_trade(t: Mapping) -> bool:
     return source.startswith("OGE_EXECUTIVE") or category.startswith("Executive:")
 
 
+def _is_oge_asset(t: Mapping) -> bool:
+    source = str(t.get("source") or "")
+    action = str(t.get("action") or "").upper()
+    raw = _raw_json_obj(t)
+    doc = str(raw.get("report_type") or "")
+    return source == "OGE_EXECUTIVE_ASSET" or action in {"HOLDING", "DISCLOSURE"} or doc.upper() in {"OGE_278E", "278E", "ETHICS", "DIVESTITURE"}
+
+
+def _is_institutional_13f(t: Mapping) -> bool:
+    return str(t.get("source") or "") == "INSTITUTIONAL_13F" or str(t.get("action") or "").upper() == "HOLDING_13F"
+
+
 def _is_political_or_oge(t: Mapping) -> bool:
-    return _is_political_trade(t) or _is_oge_trade(t)
+    return (_is_political_trade(t) or _is_oge_trade(t)) and not _is_institutional_13f(t)
+
+
+def _valid_date_string(value: str) -> bool:
+    try:
+        d = datetime.fromisoformat(value[:10]).date()
+    except Exception:  # noqa: BLE001
+        return False
+    today = datetime.now().date()
+    start = datetime.fromisoformat(str(getattr(settings, "scan_start_date", "2026-01-01") or "2026-01-01")[:10]).date()
+    return start <= d <= today
 
 
 def _trade_date_ok(t: Mapping) -> bool:
-    start = str(getattr(settings, "scan_start_date", "2026-01-01") or "2026-01-01")
+    # OGE 278e/HOLDING and 13F rows are not real transaction rows; their date
+    # fields represent report periods or disclosure dates and are handled in
+    # separate sections.
+    if _is_oge_asset(t) or _is_institutional_13f(t):
+        d = str(t.get("filing_date") or t.get("trade_date") or "")[:10]
+        return (not d) or d >= str(getattr(settings, "scan_start_date", "2026-01-01") or "2026-01-01")
     d = str(t.get("trade_date") or t.get("filing_date") or "")[:10]
-    return (not d) or d >= start
+    return (not d) or _valid_date_string(d)
 
 
 def _is_new_trade(t: Mapping, new_since: str | None = None) -> bool:
@@ -211,8 +247,22 @@ def _source_link(t: Mapping) -> str:
 
 
 def _latest_dates(rows: list[Mapping]) -> str:
-    dates = sorted({str(r.get("trade_date") or "")[:10] for r in rows if r.get("trade_date")}, reverse=True)
+    dates = sorted({str(r.get("trade_date") or "")[:10] for r in rows if r.get("trade_date") and _trade_date_ok(r)}, reverse=True)
     return ", ".join(dates[:3]) if dates else "-"
+
+
+def _display_trade_date(t: Mapping) -> str:
+    if _is_oge_asset(t):
+        return "不适用"
+    d = str(t.get("trade_date") or "")[:10]
+    if d and _valid_date_string(d):
+        return d
+    return "日期待复核"
+
+
+def _display_report_date(t: Mapping) -> str:
+    obj = _raw_json_obj(t)
+    return str(obj.get("report_period") or t.get("filing_date") or t.get("trade_date") or "")[:10] or "-"
 
 
 def _whales_for(rows: list[Mapping], price_by_ticker: dict[str, float], limit: int = 3) -> str:
@@ -303,7 +353,7 @@ def _top_conclusion_rows(business: list[Mapping], political: list[Mapping], pric
     for amount, source_label, item, direction, rows, is_new in combined[:limit]:
         opposite = item["sell_amount"] if direction == "BUY" else item["buy_amount"]
         change_html = '<span class="change-new">新增/变化</span>' if is_new else '<span class="change-existing">既有</span>'
-        out.append([
+        cells = [
             escape(source_label),
             f"<b>{escape(item['ticker'])}</b>",
             escape(direction),
@@ -312,18 +362,23 @@ def _top_conclusion_rows(business: list[Mapping], political: list[Mapping], pric
             escape(_whales_for(rows, price_by_ticker, limit=3)),
             escape(_latest_dates(rows)),
             change_html,
-        ])
+        ]
+        out.append(("row-new", cells) if is_new else cells)
     return out
 
 
-def _detail_rows(trades: list[Mapping], price_by_ticker: dict[str, float], limit: int = 80) -> list[list[str]]:
-    ordered = sorted(_dedup_economic_trades([x for x in trades if _trade_date_ok(x)]), key=lambda t: (_trade_amount_for_display(t, price_by_ticker)[0], str(t.get("trade_date") or "")), reverse=True)
+def _detail_rows(trades: list[Mapping], price_by_ticker: dict[str, float], limit: int = 80, new_since: str | None = None) -> list[list[str] | tuple[str, list[str]]]:
+    ordered = sorted(
+        _dedup_economic_trades([x for x in trades if _trade_date_ok(x) and not _is_oge_asset(x) and not _is_institutional_13f(x)]),
+        key=lambda t: (_trade_amount_for_display(t, price_by_ticker)[0], str(t.get("trade_date") or "")),
+        reverse=True,
+    )
     rows = []
     for t in ordered[:limit]:
         obj = _raw_json_obj(t)
         desc = str(obj.get("asset_name") or obj.get("description") or t.get("company_name") or "")
-        rows.append([
-            escape(str(t.get("trade_date") or "")),
+        cells = [
+            escape(_display_trade_date(t)),
             f"<b>{escape(str(t.get('ticker') or ''))}</b>",
             escape(str(t.get("action") or "")),
             escape(str(t.get("transaction_code") or "")),
@@ -332,28 +387,118 @@ def _detail_rows(trades: list[Mapping], price_by_ticker: dict[str, float], limit
             _format_amount_cell(t, price_by_ticker),
             escape(desc[:120]),
             _source_link(t),
-        ])
+        ]
+        rows.append(("row-new", cells) if _is_new_trade(t, new_since) else cells)
     return rows
 
 
-def _executive_asset_rows(oge_trades: list[Mapping], price_by_ticker: dict[str, float], limit: int = 30) -> list[list[str]]:
+def _executive_asset_rows(oge_trades: list[Mapping], price_by_ticker: dict[str, float], limit: int = 30, new_since: str | None = None) -> list[list[str] | tuple[str, list[str]]]:
     rows = []
-    ordered = sorted(_dedup_economic_trades([x for x in oge_trades if _trade_date_ok(x)]), key=lambda t: (_trade_amount_for_display(t, price_by_ticker)[0], str(t.get("trade_date") or "")), reverse=True)
+    asset_rows = [x for x in oge_trades if _is_oge_asset(x) and _trade_date_ok(x)]
+    ordered = sorted(_dedup_economic_trades(asset_rows), key=lambda t: (_is_new_trade(t, new_since), str(t.get("filing_date") or t.get("trade_date") or ""), _trade_amount_for_display(t, price_by_ticker)[0]), reverse=True)
     for t in ordered[:limit]:
         obj = _raw_json_obj(t)
-        asset = str(obj.get("asset_name") or t.get("company_name") or t.get("ticker") or "")
-        doc_type = str(obj.get("report_type") or "278-T")
-        rows.append([
+        asset = str(obj.get("asset_name") or obj.get("description") or t.get("company_name") or t.get("ticker") or "")
+        doc_type = str(obj.get("report_type") or "OGE_278e/HOLDING")
+        cells = [
             escape(str(t.get("whale_name") or "")),
             escape(str(t.get("insider_role") or "")),
             escape(doc_type),
             escape(asset[:140]),
             escape(str(t.get("action") or "")),
             _format_amount_cell(t, price_by_ticker),
-            escape(str(t.get("trade_date") or "")),
+            escape(_display_report_date(t)),
             _source_link(t),
-        ])
+        ]
+        rows.append(("row-new", cells) if _is_new_trade(t, new_since) else cells)
     return rows
+
+
+def _institutional_13f_rows(holdings: list[Mapping], limit: int = 40, new_since: str | None = None) -> list[list[str] | tuple[str, list[str]]]:
+    ordered = sorted([h for h in holdings if _is_institutional_13f(h)], key=lambda h: (_is_new_trade(h, new_since), _safe_float(h.get("amount_usd")), str(h.get("filing_date") or "")), reverse=True)
+    rows = []
+    for h in ordered[:limit]:
+        obj = _raw_json_obj(h)
+        issuer = str(obj.get("nameOfIssuer") or h.get("company_name") or h.get("ticker") or "")
+        manager = str(obj.get("manager") or h.get("insider_role") or "")
+        lead = str(obj.get("lead_investor") or h.get("whale_name") or "")
+        cells = [
+            escape(manager),
+            escape(lead),
+            f"<b>{escape(str(h.get('ticker') or ''))}</b>",
+            escape(issuer[:100]),
+            _money(h.get("amount_usd")),
+            escape(f"{_safe_float(h.get('shares')):,.0f}" if _safe_float(h.get("shares")) else "-"),
+            escape(str(obj.get("report_period") or h.get("trade_date") or "")[:10]),
+            escape(str(h.get("filing_date") or "")[:10]),
+            _source_link(h),
+        ]
+        rows.append(("row-new", cells) if _is_new_trade(h, new_since) else cells)
+    return rows
+
+
+def _new_items_summary_rows(
+    business: list[Mapping],
+    political: list[Mapping],
+    oge_assets: list[Mapping],
+    institutional_13f: list[Mapping],
+    price_by_ticker: dict[str, float],
+    new_since: str | None,
+    limit: int = 18,
+) -> list[list[str]]:
+    items = []
+    for label, trades in [("商界交易", business), ("政界交易", political)]:
+        for t in _dedup_economic_trades([x for x in trades if _is_new_trade(x, new_since) and not _is_oge_asset(x) and not _is_institutional_13f(x)]):
+            obj = _raw_json_obj(t)
+            items.append({
+                "class": "row-new",
+                "sort": _trade_amount_for_display(t, price_by_ticker)[0],
+                "cells": [
+                    escape(label),
+                    f"<b>{escape(str(t.get('ticker') or ''))}</b>",
+                    escape(str(t.get("action") or "")),
+                    escape(str(t.get("whale_name") or "")),
+                    _format_amount_cell(t, price_by_ticker),
+                    escape(_display_trade_date(t)),
+                    escape(str(obj.get("asset_name") or obj.get("description") or t.get("company_name") or "")[:100]),
+                    _source_link(t),
+                ],
+            })
+    for t in _dedup_economic_trades([x for x in oge_assets if _is_new_trade(x, new_since) and _is_oge_asset(x)]):
+        obj = _raw_json_obj(t)
+        asset = str(obj.get("asset_name") or obj.get("description") or t.get("company_name") or t.get("ticker") or "")
+        items.append({
+            "class": "row-new",
+            "sort": _trade_amount_for_display(t, price_by_ticker)[0],
+            "cells": [
+                escape("行政分支OGE资产/持仓"),
+                f"<b>{escape(str(t.get('ticker') or '非ticker资产'))}</b>",
+                escape(str(t.get("action") or "HOLDING")),
+                escape(str(t.get("whale_name") or "")),
+                _format_amount_cell(t, price_by_ticker),
+                escape(_display_report_date(t)),
+                escape(asset[:100]),
+                _source_link(t),
+            ],
+        })
+    for h in [x for x in institutional_13f if _is_new_trade(x, new_since)]:
+        obj = _raw_json_obj(h)
+        items.append({
+            "class": "row-new",
+            "sort": _safe_float(h.get("amount_usd")),
+            "cells": [
+                escape("机构13F持仓"),
+                f"<b>{escape(str(h.get('ticker') or ''))}</b>",
+                escape("HOLDING_13F"),
+                escape(str(obj.get("manager") or h.get("insider_role") or h.get("whale_name") or "")),
+                _money(h.get("amount_usd")),
+                escape(str(obj.get("report_period") or h.get("trade_date") or "")[:10]),
+                escape(str(obj.get("nameOfIssuer") or h.get("company_name") or "")[:100]),
+                _source_link(h),
+            ],
+        })
+    items.sort(key=lambda x: x["sort"], reverse=True)
+    return [(item["class"], item["cells"]) for item in items[:limit]]
 
 
 def _highlight_names_in_text(text: str) -> str:
@@ -406,6 +551,7 @@ def build_html_report(
     trump_oge_trades: list[Mapping] | None = None,
     oge_executive_trades: list[Mapping] | None = None,
     oge_summary: list[Mapping] | None = None,
+    institutional_13f_holdings: list[Mapping] | None = None,
     new_since: str | None = None,
     baseline_trade_count: int = 0,
 ) -> str:
@@ -416,15 +562,20 @@ def build_html_report(
     core_buy_trades = core_buy_trades or []
     core_sell_trades = core_sell_trades or []
     oge_executive_trades = oge_executive_trades or []
+    institutional_13f_holdings = institutional_13f_holdings or []
 
-    all_recent = [t for t in recent_trades if _trade_date_ok(t)]
-    political_trades = [t for t in all_recent if _is_political_or_oge(t)] + [t for t in oge_executive_trades if _trade_date_ok(t)]
+    all_recent = [t for t in recent_trades if _trade_date_ok(t) and not _is_institutional_13f(t)]
+    # Political trading details must include only real BUY/SELL/EXCHANGE records.
+    # OGE 278e / HOLDING assets are shown in the separate executive asset radar.
+    political_trades = [t for t in all_recent if _is_political_or_oge(t) and not _is_oge_asset(t) and str(t.get("action") or "").upper() in {"BUY", "SELL", "EXCHANGE"}]
+    political_trades += [t for t in oge_executive_trades if _trade_date_ok(t) and not _is_oge_asset(t) and str(t.get("action") or "").upper() in {"BUY", "SELL", "EXCHANGE"}]
+    executive_asset_trades = [t for t in oge_executive_trades if _is_oge_asset(t) and _trade_date_ok(t)]
     # Trump is now handled as a normal political/executive whale, not a separate chapter.
-    business_trades = [t for t in (core_buy_trades + core_sell_trades + buy_evidence + sell_evidence) if _trade_date_ok(t) and not _is_political_or_oge(t)]
+    business_trades = [t for t in (core_buy_trades + core_sell_trades + buy_evidence + sell_evidence) if _trade_date_ok(t) and not _is_political_or_oge(t) and not _is_institutional_13f(t)]
 
     # If caller did not provide evidence tables, fall back to recent non-political records.
     if not business_trades:
-        business_trades = [t for t in all_recent if not _is_political_or_oge(t) and str(t.get("action") or "").upper() in {"BUY", "SELL"}]
+        business_trades = [t for t in all_recent if not _is_political_or_oge(t) and not _is_institutional_13f(t) and str(t.get("action") or "").upper() in {"BUY", "SELL"}]
 
     if baseline_trade_count <= 0:
         change_class = "big-change"
@@ -439,6 +590,12 @@ def build_html_report(
         change_text = "今日无新增重大变化"
         change_note = f"已恢复上一轮数据库快照（基线 {baseline_trade_count} 条），本次未发现新披露记录。"
 
+    new_items_overview = _table(
+        ["类别", "标的", "动作/口径", "巨鲸/机构", "金额/区间", "交易/报告日", "说明", "来源"],
+        _new_items_summary_rows(business_trades, political_trades, executive_asset_trades, institutional_13f_holdings, price_by_ticker, new_since, limit=18),
+        empty="今日未发现新的重点披露；可继续查看下方既有核心榜单。",
+    )
+
     top_conclusions = _table(
         ["类别", "股票", "方向", "金额", "反向金额", "主要巨鲸", "交易日期", "变化"],
         _top_conclusion_rows(business_trades, political_trades, price_by_ticker, limit=10, new_since=new_since),
@@ -448,9 +605,10 @@ def build_html_report(
     political_chart = _ticker_comparison_chart(political_trades, price_by_ticker, top_tickers=12)
     business_summary = _action_summary_table(business_trades, price_by_ticker, limit=15)
     political_summary_table = _action_summary_table(political_trades, price_by_ticker, limit=18)
-    business_details = _table(["交易日", "股票", "方向", "代码", "巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(business_trades, price_by_ticker, limit=60))
-    political_details = _table(["交易日", "股票/标的", "方向", "代码", "政界巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(political_trades, price_by_ticker, limit=80))
-    executive_assets = _table(["人物", "职位", "披露类型", "投资标的/描述", "动作", "金额/估值区间", "交易/披露日期", "来源"], _executive_asset_rows(oge_executive_trades, price_by_ticker, limit=40))
+    business_details = _table(["交易日", "股票", "方向", "代码", "巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(business_trades, price_by_ticker, limit=60, new_since=new_since))
+    political_details = _table(["交易日", "股票/标的", "方向", "代码", "政界巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(political_trades, price_by_ticker, limit=80, new_since=new_since))
+    executive_assets = _table(["人物", "职位", "披露类型", "投资标的/描述", "动作", "金额/估值区间", "披露/报告日期", "来源"], _executive_asset_rows(executive_asset_trades, price_by_ticker, limit=40, new_since=new_since))
+    institutional_13f_table = _table(["机构", "代表人物", "标的", "发行人", "13F市值", "股数", "报告期", "披露日", "来源"], _institutional_13f_rows(institutional_13f_holdings, limit=50, new_since=new_since), empty="暂无机构巨鲸 13F 持仓披露。")
 
     html = f"""
 <!doctype html>
@@ -483,6 +641,9 @@ th {{ background: #f9fafb; text-align: left; }}
 .bar-value {{ text-align: right; color: #374151; }}
 .trump-highlight {{ background: #fef08a; color: #78350f; font-weight: 700; padding: 0 2px; border-radius: 3px; }}
 .pelosi-highlight {{ background: #fde68a; color: #7c2d12; font-weight: 700; padding: 0 2px; border-radius: 3px; }}
+.change-new {{ background: #fed7aa; color: #9a3412; font-weight: 800; padding: 2px 6px; border-radius: 6px; }}
+.change-existing {{ color: #6b7280; }}
+tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bottom: 2px solid #fdba74; }}
 </style>
 </head>
 <body>
@@ -494,6 +655,8 @@ th {{ background: #f9fafb; text-align: left; }}
 
 <h2>一、今日结论总览</h2>
 <p class="note">本部分集中展示所有核心图示。图示以股票/标的为纲，同一股票的 BUY 与 SELL 放在同一图组中对比，旁边列出主要巨鲸和交易日期。</p>
+<h3>今日新增内容总览（相对上一轮成功运行）</h3>
+{new_items_overview}
 <h3>关键行动 Top 摘要</h3>
 {top_conclusions}
 <h3>商界巨鲸 BUY/SELL 对比图（股票 × 巨鲸）</h3>
@@ -518,11 +681,16 @@ th {{ background: #f9fafb; text-align: left; }}
 <p class="small">该表基于当前已配置/已发现并可解析的 OGE 资料。278-T 表示交易型披露；278e/伦理协议等资产型披露如后续接入，应显示为持仓/资产而非近期交易。</p>
 {executive_assets}
 
-<h2>四、口径说明</h2>
+<h2>四、机构巨鲸 13F 持仓雷达</h2>
+<p class="note">13F 是机构投资经理的季度持仓披露，不代表实时买入/卖出交易。表中的“报告期”是季度末持仓日，“披露日”是 13F 文件提交日。</p>
+{institutional_13f_table}
+
+<h2>五、口径说明</h2>
 <ul>
 <li>扫描交易日期从 {escape(settings.scan_start_date)} 起，2025 年及以前交易不进入正式正文。</li>
 <li>政治期权交易同时保留“披露金额区间”和“期权名义敞口”说明；排名默认使用披露金额区间，避免把期权名义金额与现金成交金额混排。</li>
 <li>已删除正文中的关联 SELL 审计、行情/基本面/新闻情绪、非主动/税务/授予审计和超长 BUY/SELL 明细；如后续需要，可单独生成附件。</li>
+<li>13F 机构巨鲸模块反映季度末持仓和披露变化，不应解读为当日交易；新增/变化表示相对上一轮数据库新出现的 13F 披露记录。</li>
 <li>公开披露存在滞后、OCR/解析误差、共同报告人、10b5-1、信托/基金会、委托账户等因素，关键交易仍建议点击原始披露复核。</li>
 </ul>
 </body>

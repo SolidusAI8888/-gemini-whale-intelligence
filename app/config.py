@@ -130,5 +130,15 @@ class Settings:
     finnhub_news_enabled: bool = _bool("FINNHUB_NEWS_ENABLED", True)
     finnhub_insider_enabled: bool = _bool("FINNHUB_INSIDER_ENABLED", True)
 
+    # SEC 13F institutional whale radar. This watches influential active
+    # managers whose quarterly holdings are commonly followed by market
+    # participants. It deliberately treats 13F as a quarterly holding signal,
+    # not a same-day trade.
+    enable_institutional_13f: bool = _bool("ENABLE_INSTITUTIONAL_13F", True)
+    institutional_13f_watchlist: str = os.getenv("INSTITUTIONAL_13F_WATCHLIST", "")
+    institutional_13f_max_managers: int = _int("INSTITUTIONAL_13F_MAX_MANAGERS", 20)
+    institutional_13f_filings_per_manager: int = _int("INSTITUTIONAL_13F_FILINGS_PER_MANAGER", 1)
+    institutional_13f_max_holdings_per_filing: int = _int("INSTITUTIONAL_13F_MAX_HOLDINGS_PER_FILING", 25)
+
 
 settings = Settings()

@@ -11,6 +11,7 @@ from app.collectors.congress import collect_congress_trades
 from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
 from app.collectors.market_data import apply_market_context_to_scores, collect_market_snapshots
+from app.collectors.sec_13f import collect_institutional_13f_holdings
 from app.collectors.oge_executive import collect_oge_executive_trades
 from app.collectors.universe import build_company_universe, tickers_from_companies
 from app.config import settings
@@ -23,6 +24,7 @@ from app.db import (
     fetch_market_snapshots,
     fetch_oge_action_summary,
     fetch_oge_executive_trades,
+    fetch_institutional_13f_holdings,
     fetch_trump_oge_trades,
     fetch_core_trades_by_action,
     fetch_noncore_recent_trades,
@@ -102,7 +104,9 @@ def run_scan() -> dict:
         log.info("Collected political trades: %s", len(congress_trades))
         oge_trades = collect_oge_executive_trades(settings.sec_user_agent, settings.lookback_days)
         log.info("Collected OGE executive trades: %s", len(oge_trades))
-        trades = sec_trades + congress_trades + oge_trades
+        institutional_13f_rows = collect_institutional_13f_holdings(settings.sec_user_agent, settings.lookback_days)
+        log.info("Collected institutional 13F holdings: %s", len(institutional_13f_rows))
+        trades = sec_trades + congress_trades + oge_trades + institutional_13f_rows
         log.info("Collected normalized trades: %s", len(trades))
 
         new_count = upsert_trades(trades)
@@ -137,6 +141,7 @@ def run_scan() -> dict:
         trump_oge_trades = [_row_to_dict(r) for r in fetch_trump_oge_trades(limit=500)]
         oge_executive_trades = [_row_to_dict(r) for r in fetch_oge_executive_trades(limit=800)]
         oge_summary = [_row_to_dict(r) for r in fetch_oge_action_summary()]
+        institutional_13f_holdings = [_row_to_dict(r) for r in fetch_institutional_13f_holdings(settings.scan_start_date, limit=500)]
 
         buy_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if float(r.get("buy_amount") or 0) > 0]
         # Include BUY-radar tickers in SELL evidence so related SELL rows (for
@@ -181,6 +186,7 @@ def run_scan() -> dict:
             trump_oge_trades=trump_oge_trades,
             oge_executive_trades=oge_executive_trades,
             oge_summary=oge_summary,
+            institutional_13f_holdings=institutional_13f_holdings,
             new_since=run_started_at if baseline_trade_count > 0 else None,
             baseline_trade_count=baseline_trade_count,
         )
