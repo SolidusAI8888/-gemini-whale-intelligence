@@ -194,6 +194,68 @@ jobs:
           FORCE_SEND_EMAIL: 'true'
           SEND_EMAIL: 'true'
         run: python -m app.main
+      - name: Backup scheduled SMTP delivery if app did not mark email sent
+        if: success() && steps.berlin_gate.outputs.run == 'true' && steps.berlin_gate.outputs.scheduled_daily == 'true'
+        env:
+          SMTP_HOST: ${{ vars.SMTP_HOST || 'smtp.mail.me.com' }}
+          SMTP_PORT: ${{ vars.SMTP_PORT || '587' }}
+          SMTP_STARTTLS: ${{ vars.SMTP_STARTTLS || 'true' }}
+          SMTP_FROM_NAME: ${{ vars.SMTP_FROM_NAME || 'Gemini Whale Intelligence' }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          if [ -f data/email_sent.flag ]; then
+            echo "Application already marked email sent; backup SMTP delivery skipped."
+            exit 0
+          fi
+          echo "No data/email_sent.flag found after scan; running backup scheduled SMTP delivery."
+          python - <<'PY'
+          from __future__ import annotations
+          import os, smtplib, glob
+          from datetime import datetime
+          from email.mime.multipart import MIMEMultipart
+          from email.mime.text import MIMEText
+          from email.utils import formataddr
+          from pathlib import Path
+
+          reports = sorted(glob.glob('data/reports/*.html'), key=os.path.getmtime)
+          if not reports:
+              raise RuntimeError('No HTML report found for backup scheduled email delivery')
+          report_path = reports[-1]
+          html = Path(report_path).read_text(encoding='utf-8')
+          email_from = os.environ.get('EMAIL_FROM', '').strip()
+          email_to = os.environ.get('EMAIL_TO', '').strip()
+          username = os.environ.get('SMTP_USERNAME', '').strip()
+          password = os.environ.get('SMTP_PASSWORD', '')
+          if not (email_from and email_to and username and password):
+              raise RuntimeError('Backup SMTP missing EMAIL_FROM/EMAIL_TO/SMTP_USERNAME/SMTP_PASSWORD')
+          host = os.environ.get('SMTP_HOST', 'smtp.mail.me.com').strip()
+          port = int(os.environ.get('SMTP_PORT', '587'))
+          starttls = os.environ.get('SMTP_STARTTLS', 'true').strip().lower() in {'1','true','yes','on'}
+          from_name = os.environ.get('SMTP_FROM_NAME', 'Gemini Whale Intelligence')
+          recipients = [x.strip() for x in email_to.replace(';', ',').split(',') if x.strip()]
+          subject = f"Gemini-美股聪明钱_政商巨鲸行动追踪 {datetime.now().strftime('%Y-%m-%d')}（自动补发）"
+
+          msg = MIMEMultipart('alternative')
+          msg['Subject'] = subject
+          msg['From'] = formataddr((from_name, email_from)) if from_name else email_from
+          msg['To'] = email_to
+          msg.attach(MIMEText('请使用支持 HTML 的邮件客户端查看本日报。', 'plain', 'utf-8'))
+          msg.attach(MIMEText(html, 'html', 'utf-8'))
+
+          print(f'Backup SMTP sending host={host} port={port} recipients={len(recipients)} report={report_path}')
+          with smtplib.SMTP(host, port, timeout=45) as server:
+              server.ehlo()
+              if starttls:
+                  server.starttls()
+                  server.ehlo()
+              server.login(username, password)
+              server.sendmail(email_from, recipients, msg.as_string())
+          Path('data/email_sent.flag').write_text(datetime.utcnow().isoformat(timespec='seconds'), encoding='utf-8')
+          print('Backup scheduled SMTP email sent and marker written.')
+          PY
       - name: Mark Berlin daily email sent
         if: success() && steps.berlin_gate.outputs.run == 'true' && steps.berlin_gate.outputs.scheduled_daily == 'true'
         run: |
