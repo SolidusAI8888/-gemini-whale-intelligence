@@ -197,7 +197,14 @@ def run_scan() -> dict:
         if settings.send_email:
             daily_status = "新增" if new_count > 0 else "无新增"
             subject = f"Gemini-美股聪明钱_政商巨鲸行动追踪 {datetime.now().strftime('%Y-%m-%d')}（{daily_status}）"
-            send_report(subject, html)
+            sent = send_report(subject, html)
+            if sent:
+                marker = settings.report_dir.parent / "email_sent.flag"
+                marker.parent.mkdir(parents=True, exist_ok=True)
+                marker.write_text(datetime.utcnow().isoformat(timespec="seconds"), encoding="utf-8")
+                log.info("Email sent marker written: %s", marker)
+            else:
+                log.warning("send_report returned False; scheduled workflow backup delivery may try SMTP if configured")
         else:
             log.info("SEND_EMAIL=false; email not sent")
 

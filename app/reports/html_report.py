@@ -414,28 +414,49 @@ def _executive_asset_rows(oge_trades: list[Mapping], price_by_ticker: dict[str, 
     return rows
 
 
-def _institutional_13f_rows(holdings: list[Mapping], limit: int = 40, new_since: str | None = None) -> list[list[str] | tuple[str, list[str]]]:
-    ordered = sorted([h for h in holdings if _is_institutional_13f(h)], key=lambda h: (_is_new_trade(h, new_since), _safe_float(h.get("amount_usd")), str(h.get("filing_date") or "")), reverse=True)
-    rows = []
-    for h in ordered[:limit]:
+def _institutional_13f_rows(holdings: list[Mapping], limit: int = 60, new_since: str | None = None) -> list[list[str] | tuple[str, list[str]]]:
+    # Keep each institution's holdings together.  Institutions are ordered by
+    # their largest visible holding value; holdings inside each institution are
+    # sorted by holding market value descending.
+    groups: dict[str, list[Mapping]] = defaultdict(list)
+    for h in holdings:
+        if not _is_institutional_13f(h):
+            continue
         obj = _raw_json_obj(h)
-        issuer = str(obj.get("nameOfIssuer") or h.get("company_name") or h.get("ticker") or "")
-        manager = str(obj.get("manager") or h.get("insider_role") or "")
-        lead = str(obj.get("lead_investor") or h.get("whale_name") or "")
-        cells = [
-            escape(manager),
-            escape(lead),
-            f"<b>{escape(str(h.get('ticker') or ''))}</b>",
-            escape(issuer[:100]),
-            _money(h.get("amount_usd")),
-            escape(f"{_safe_float(h.get('shares')):,.0f}" if _safe_float(h.get("shares")) else "-"),
-            escape(str(obj.get("report_period") or h.get("trade_date") or "")[:10]),
-            escape(str(h.get("filing_date") or "")[:10]),
-            _source_link(h),
-        ]
-        rows.append(("row-new", cells) if _is_new_trade(h, new_since) else cells)
-    return rows
+        manager = str(obj.get("manager") or h.get("insider_role") or h.get("whale_name") or "Unknown manager")
+        groups[manager].append(h)
 
+    ordered_groups = sorted(
+        groups.items(),
+        key=lambda kv: max((_safe_float(x.get("amount_usd")) for x in kv[1]), default=0.0),
+        reverse=True,
+    )
+    rows = []
+    used = 0
+    for manager, group_rows in ordered_groups:
+        group_rows = sorted(group_rows, key=lambda h: _safe_float(h.get("amount_usd")), reverse=True)
+        first = True
+        for h in group_rows:
+            if used >= limit:
+                return rows
+            obj = _raw_json_obj(h)
+            issuer = str(obj.get("nameOfIssuer") or h.get("company_name") or h.get("ticker") or "")
+            lead = str(obj.get("lead_investor") or h.get("whale_name") or "")
+            cells = [
+                escape(manager if first else ""),
+                escape(lead if first else ""),
+                f"<b>{escape(str(h.get('ticker') or ''))}</b>",
+                escape(issuer[:100]),
+                _money(h.get("amount_usd")),
+                escape(f"{_safe_float(h.get('shares')):,.0f}" if _safe_float(h.get("shares")) else "-"),
+                escape(str(obj.get("report_period") or h.get("trade_date") or "")[:10]),
+                escape(str(h.get("filing_date") or "")[:10]),
+                _source_link(h),
+            ]
+            rows.append(("row-new", cells) if _is_new_trade(h, new_since) else cells)
+            first = False
+            used += 1
+    return rows
 
 def _new_items_summary_rows(
     business: list[Mapping],
@@ -446,60 +467,100 @@ def _new_items_summary_rows(
     new_since: str | None,
     limit: int = 18,
 ) -> list[list[str]]:
-    items = []
+    # Daily-new overview is grouped by category + ticker/asset so the same
+    # underlying target appears once, with whales/managers listed side by side.
+    grouped: dict[tuple[str, str], dict] = {}
+
+    def add_item(category: str, target: str, action: str, name: str, amount: float, date_text: str, desc: str, source_html: str) -> None:
+        key = (category, target or "UNKNOWN")
+        item = grouped.setdefault(key, {
+            "class": "row-new",
+            "sort": 0.0,
+            "names": [],
+            "actions": [],
+            "dates": [],
+            "descs": [],
+            "sources": [],
+            "amount": 0.0,
+            "category": category,
+            "target": target or "UNKNOWN",
+        })
+        if action and action not in item["actions"]:
+            item["actions"].append(action)
+        item["sort"] += max(float(amount or 0), 0.0)
+        item["amount"] += max(float(amount or 0), 0.0)
+        if name and name not in item["names"]:
+            item["names"].append(name)
+        if date_text and date_text not in item["dates"]:
+            item["dates"].append(date_text)
+        if desc and desc not in item["descs"]:
+            item["descs"].append(desc)
+        if source_html and source_html not in item["sources"]:
+            item["sources"].append(source_html)
+
     for label, trades in [("商界交易", business), ("政界交易", political)]:
-        for t in _dedup_economic_trades([x for x in trades if _is_new_trade(x, new_since) and not _is_oge_asset(x) and not _is_institutional_13f(x)]):
+        new_trades = [x for x in trades if _is_new_trade(x, new_since) and not _is_oge_asset(x) and not _is_institutional_13f(x)]
+        for t in _dedup_economic_trades(new_trades):
             obj = _raw_json_obj(t)
-            items.append({
-                "class": "row-new",
-                "sort": _trade_amount_for_display(t, price_by_ticker)[0],
-                "cells": [
-                    escape(label),
-                    f"<b>{escape(str(t.get('ticker') or ''))}</b>",
-                    escape(str(t.get("action") or "")),
-                    escape(str(t.get("whale_name") or "")),
-                    _format_amount_cell(t, price_by_ticker),
-                    escape(_display_trade_date(t)),
-                    escape(str(obj.get("asset_name") or obj.get("description") or t.get("company_name") or "")[:100]),
-                    _source_link(t),
-                ],
-            })
-    for t in _dedup_economic_trades([x for x in oge_assets if _is_new_trade(x, new_since) and _is_oge_asset(x)]):
+            amount = _trade_amount_for_display(t, price_by_ticker)[0]
+            add_item(
+                label,
+                str(t.get("ticker") or ""),
+                str(t.get("action") or ""),
+                str(t.get("whale_name") or ""),
+                amount,
+                _display_trade_date(t),
+                str(obj.get("asset_name") or obj.get("description") or t.get("company_name") or "")[:100],
+                _source_link(t),
+            )
+
+    asset_new = [x for x in oge_assets if _is_new_trade(x, new_since) and _is_oge_asset(x)]
+    for t in _dedup_economic_trades(asset_new):
         obj = _raw_json_obj(t)
         asset = str(obj.get("asset_name") or obj.get("description") or t.get("company_name") or t.get("ticker") or "")
-        items.append({
-            "class": "row-new",
-            "sort": _trade_amount_for_display(t, price_by_ticker)[0],
-            "cells": [
-                escape("行政分支OGE资产/持仓"),
-                f"<b>{escape(str(t.get('ticker') or '非ticker资产'))}</b>",
-                escape(str(t.get("action") or "HOLDING")),
-                escape(str(t.get("whale_name") or "")),
-                _format_amount_cell(t, price_by_ticker),
-                escape(_display_report_date(t)),
-                escape(asset[:100]),
-                _source_link(t),
-            ],
-        })
+        amount = _trade_amount_for_display(t, price_by_ticker)[0]
+        add_item(
+            "行政分支OGE资产/持仓",
+            str(t.get("ticker") or asset[:40] or "非ticker资产"),
+            str(t.get("action") or "HOLDING"),
+            str(t.get("whale_name") or ""),
+            amount,
+            _display_report_date(t),
+            asset[:100],
+            _source_link(t),
+        )
+
     for h in [x for x in institutional_13f if _is_new_trade(x, new_since)]:
         obj = _raw_json_obj(h)
-        items.append({
-            "class": "row-new",
-            "sort": _safe_float(h.get("amount_usd")),
-            "cells": [
-                escape("机构13F持仓"),
-                f"<b>{escape(str(h.get('ticker') or ''))}</b>",
-                escape("HOLDING_13F"),
-                escape(str(obj.get("manager") or h.get("insider_role") or h.get("whale_name") or "")),
-                _money(h.get("amount_usd")),
-                escape(str(obj.get("report_period") or h.get("trade_date") or "")[:10]),
-                escape(str(obj.get("nameOfIssuer") or h.get("company_name") or "")[:100]),
-                _source_link(h),
-            ],
-        })
-    items.sort(key=lambda x: x["sort"], reverse=True)
-    return [(item["class"], item["cells"]) for item in items[:limit]]
+        manager = str(obj.get("manager") or h.get("insider_role") or h.get("whale_name") or "")
+        lead = str(obj.get("lead_investor") or "")
+        name = f"{manager} / {lead}" if lead and lead not in manager else manager
+        add_item(
+            "机构13F持仓",
+            str(h.get("ticker") or ""),
+            "HOLDING_13F",
+            name,
+            _safe_float(h.get("amount_usd")),
+            str(obj.get("report_period") or h.get("trade_date") or "")[:10],
+            str(obj.get("nameOfIssuer") or h.get("company_name") or "")[:100],
+            _source_link(h),
+        )
 
+    items = sorted(grouped.values(), key=lambda x: x["sort"], reverse=True)
+    rows = []
+    for item in items[:limit]:
+        cells = [
+            escape(item["category"]),
+            f"<b>{escape(item['target'])}</b>",
+            escape(" / ".join(item["actions"][:4]) or "-"),
+            escape("；".join(item["names"][:6]) or "-"),
+            _money(item["amount"]),
+            escape("；".join(item["dates"][:5]) or "-"),
+            escape("；".join(item["descs"][:3]) or "-"),
+            "；".join(item["sources"][:3]),
+        ]
+        rows.append(("row-new", cells))
+    return rows
 
 def _highlight_names_in_text(text: str) -> str:
     if not text:

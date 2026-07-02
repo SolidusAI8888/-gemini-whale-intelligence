@@ -199,7 +199,17 @@ def _parse_info_table(xml_bytes: bytes, whale: InstitutionalWhale, filing: dict,
             shares = float((_txt(table, "sshPrnamt") or "0").replace(",", ""))
         except Exception:  # noqa: BLE001
             pass
+        # SEC 13F "value" is normally reported in thousands of USD.
+        # Some modern/third-party normalized XMLs may already expose a dollar
+        # value.  A blind *1000 then creates impossible trillion-dollar single
+        # positions for active managers such as Pershing/Tiger.  Normalize with
+        # a conservative sanity check: if the converted single position exceeds
+        # $500B, treat the source value as already dollars.
         amount = value_thousands * 1000
+        value_unit = "thousands_usd"
+        if amount > 500_000_000_000:
+            amount = value_thousands
+            value_unit = "usd_normalized"
         if amount <= 0 and shares <= 0:
             continue
         report_date = str(filing.get("report_date") or "")[:10]
@@ -214,7 +224,9 @@ def _parse_info_table(xml_bytes: bytes, whale: InstitutionalWhale, filing: dict,
             "cusip": cusip,
             "titleOfClass": _txt(table, "titleOfClass"),
             "putCall": _txt(table, "putCall"),
-            "value_thousands_usd": value_thousands,
+            "value_reported": value_thousands,
+            "value_unit": value_unit,
+            "value_thousands_usd": value_thousands if value_unit == "thousands_usd" else None,
             "share_amount": shares,
             "report_period": report_date,
             "filing_date": filing_date,
