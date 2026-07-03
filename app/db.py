@@ -48,6 +48,30 @@ def upsert_trades(trades: Iterable[Mapping[str, Any]]) -> int:
         return conn.total_changes - before
 
 
+def normalize_institutional_13f_amounts() -> int:
+    """Repair persisted 13F rows that were inserted with an extra *1000 multiplier.
+
+    SEC 13F information-table value is usually reported in thousands of USD.
+    V27 initially multiplied all rows by 1000.  Some SEC XML rows from the
+    watched managers already behaved like dollar values in our parsed feed, so
+    older persisted rows can show impossible single positions in the hundreds
+    of billions or trillions.  Since INSERT OR IGNORE preserves old rows across
+    the persistent GitHub cache, repair those rows in-place before reporting.
+    """
+    with get_conn() as conn:
+        before = conn.total_changes
+        conn.execute(
+            """
+            UPDATE trades
+            SET amount_usd = amount_usd / 1000.0
+            WHERE source = 'INSTITUTIONAL_13F'
+              AND COALESCE(amount_usd, 0) > 500000000000
+            """
+        )
+        conn.commit()
+        return conn.total_changes - before
+
+
 def insert_scores(scores: Iterable[Mapping[str, Any]]) -> int:
     rows = list(scores)
     if not rows:

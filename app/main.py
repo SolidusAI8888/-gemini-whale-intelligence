@@ -34,6 +34,7 @@ from app.db import (
     insert_scores,
     upsert_market_snapshots,
     upsert_trades,
+    normalize_institutional_13f_amounts,
 )
 from app.llm.gemini_analyzer import analyze_with_gemini
 from app.reports.html_report import build_html_report, save_report
@@ -111,6 +112,9 @@ def run_scan() -> dict:
 
         new_count = upsert_trades(trades)
         log.info("Inserted new trades: %s", new_count)
+        repaired_13f_count = normalize_institutional_13f_amounts()
+        if repaired_13f_count:
+            log.info("Repaired persisted institutional 13F amount rows: %s", repaired_13f_count)
 
         # V18 formal report/scoring window starts at SCAN_START_DATE (default 2026-01-01).
         # Use the DB window after inserting fresh rows, so daily reports reflect the
