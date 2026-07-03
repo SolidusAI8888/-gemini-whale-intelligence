@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 from typing import Iterable, Mapping, Any
@@ -49,27 +50,68 @@ def upsert_trades(trades: Iterable[Mapping[str, Any]]) -> int:
 
 
 def normalize_institutional_13f_amounts() -> int:
-    """Repair persisted 13F rows that were inserted with an extra *1000 multiplier.
+    """Repair persisted SEC 13F rows that were cached with a 1000x error.
 
-    SEC 13F information-table value is usually reported in thousands of USD.
-    V27 initially multiplied all rows by 1000.  Some SEC XML rows from the
-    watched managers already behaved like dollar values in our parsed feed, so
-    older persisted rows can show impossible single positions in the hundreds
-    of billions or trillions.  Since INSERT OR IGNORE preserves old rows across
-    the persistent GitHub cache, repair those rows in-place before reporting.
+    SEC 13F information-table ``value`` is reported in thousands of dollars.
+    Correct display value is therefore ``value_reported * 1000`` exactly once.
+
+    V27/V28/V29 runs may have inserted rows into the persistent GitHub cache
+    where ``amount_usd`` is 1000x too large.  Because trades are de-duplicated
+    by ``source_id`` using INSERT OR IGNORE, a later fixed collector will not
+    overwrite those old rows.  This repair recalculates existing 13F rows from
+    ``raw_json.value_reported`` when available and falls back to a conservative
+    heuristic for legacy rows without raw values.
     """
+    repaired = 0
     with get_conn() as conn:
-        before = conn.total_changes
-        conn.execute(
+        rows = conn.execute(
             """
-            UPDATE trades
-            SET amount_usd = amount_usd / 1000.0
+            SELECT id, amount_usd, raw_json
+            FROM trades
             WHERE source = 'INSTITUTIONAL_13F'
-              AND COALESCE(amount_usd, 0) > 500000000000
             """
-        )
+        ).fetchall()
+        for row in rows:
+            current = float(row["amount_usd"] or 0)
+            if current <= 0:
+                continue
+
+            expected: float | None = None
+            raw_text = row["raw_json"] or ""
+            if raw_text:
+                try:
+                    raw = json.loads(raw_text)
+                    reported = raw.get("value_reported")
+                    if reported is None:
+                        reported = raw.get("value_thousands_usd")
+                    if reported is not None:
+                        reported_value = float(str(reported).replace(",", ""))
+                        unit = str(raw.get("value_unit") or "thousands_usd").lower()
+                        if unit in {"usd", "usd_normalized", "dollars"}:
+                            expected = reported_value
+                        else:
+                            expected = reported_value * 1000.0
+                except Exception:  # noqa: BLE001 - repair should never abort the scan
+                    expected = None
+
+            # Legacy fallback: active-manager single 13F positions above $100B
+            # are almost always the known 1000x bug in this project.  This also
+            # catches rows below the old $500B threshold such as $497.04B that
+            # should be $497.04M.
+            if expected is None and current > 100_000_000_000:
+                expected = current / 1000.0
+
+            if expected is None or expected <= 0:
+                continue
+            # Avoid churn from tiny float differences.
+            if abs(current - expected) > max(1.0, expected * 0.000001):
+                conn.execute(
+                    "UPDATE trades SET amount_usd = ? WHERE id = ?",
+                    (expected, row["id"]),
+                )
+                repaired += 1
         conn.commit()
-        return conn.total_changes - before
+    return repaired
 
 
 def insert_scores(scores: Iterable[Mapping[str, Any]]) -> int:
