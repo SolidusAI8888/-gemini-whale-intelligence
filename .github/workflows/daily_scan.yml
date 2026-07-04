@@ -2,22 +2,25 @@ name: Daily Gemini Whale Scan
 
 on:
   schedule:
-    # Fail-safe daily window. GitHub scheduled workflows can be delayed or dropped,
-    # especially around common times. Run repeated lightweight attempts after the
-    # Berlin 08:00 target; the daily gate below sends at most one email per
-    # Berlin date.
-    # Summer: first eligible attempt is 06:17 UTC = 08:17 Berlin.
-    # Winter: 06:17 UTC is before 08:00 and skips; 07:17 UTC = 08:17 Berlin sends.
-    # Dense morning attempts improve delivery around the Berlin 08:00 target.
-    # Summer CEST: 06:07/22/37/52 UTC = 08:07/22/37/52 Berlin.
-    # Winter CET: 07:07/22/37/52 UTC = 08:07/22/37/52 Berlin.
-    - cron: '7,22,37,52 5-10 * * *'
-    # Lower-frequency backup attempts later in the day.
-    - cron: '17 11-18 * * *'
+    # V31: pre-arm before Berlin 08:00, then wait inside the runner until exactly
+    # the target window. GitHub scheduled workflows are best-effort; starting the
+    # job earlier avoids relying on a cron trigger being created exactly at 08:00.
+    # Multiple attempts are queued by job-level concurrency; the first successful
+    # run sends, later queued runs skip after seeing data/last_email_date.txt.
+    # UTC times cover both CEST and CET mornings.
+    - cron: '13,43 3-7 * * *'
+    # Last-resort same-day fallback. It should normally skip because the morning
+    # pre-armed job has already sent the report; if all morning triggers were
+    # dropped, this sends late rather than missing the day entirely.
+    - cron: '13 10 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: gemini-whale-daily-morning-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   DATABASE_PATH: data/whale.db
@@ -83,7 +86,7 @@ env:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 360
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,6 +101,29 @@ jobs:
           key: whale-state-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             whale-state-${{ runner.os }}-
+
+      - name: Pre-arm wait until Berlin 08:00
+        if: github.event_name == 'schedule'
+        run: |
+          NOW_EPOCH=$(date +%s)
+          TARGET_EPOCH=$(TZ=Europe/Berlin date -d "$(TZ=Europe/Berlin date +%Y-%m-%d) 08:00:00" +%s)
+          BERLIN_NOW=$(TZ=Europe/Berlin date '+%Y-%m-%d %H:%M:%S %Z')
+          echo "pre_arm_berlin_now=$BERLIN_NOW"
+          if [ "$NOW_EPOCH" -lt "$TARGET_EPOCH" ]; then
+            WAIT_SECONDS=$((TARGET_EPOCH - NOW_EPOCH))
+            # Safety cap: our earliest cron is under 5 hours before Berlin 08:00.
+            # If the system clock or TZ logic ever returns something impossible,
+            # do not burn a full runner day.
+            if [ "$WAIT_SECONDS" -gt 18000 ]; then
+              echo "Computed wait_seconds=$WAIT_SECONDS is too large; capping at 18000."
+              WAIT_SECONDS=18000
+            fi
+            echo "Sleeping $WAIT_SECONDS seconds so the scan starts at/after Berlin 08:00."
+            sleep "$WAIT_SECONDS"
+          else
+            echo "Already at/after Berlin 08:00; no pre-arm sleep needed."
+          fi
+          echo "post_wait_berlin_now=$(TZ=Europe/Berlin date '+%Y-%m-%d %H:%M:%S %Z')"
 
       - name: Check Berlin daily send gate
         id: berlin_gate
