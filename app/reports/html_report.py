@@ -108,6 +108,50 @@ def _is_institutional_13f(t: Mapping) -> bool:
     return str(t.get("source") or "") == "INSTITUTIONAL_13F" or str(t.get("action") or "").upper() == "HOLDING_13F"
 
 
+def _institutional_13f_amount_usd(t: Mapping) -> float:
+    """Return a display-safe 13F market value in dollars.
+
+    SEC 13F information-table ``value`` is reported in thousands of dollars.
+    Older cached rows in this project may already have amount_usd inflated by
+    another 1000x.  The report layer must therefore prefer the raw SEC value
+    and normalize defensively, so a stale DB cache can never show trillion-scale
+    active-manager single positions again.
+    """
+    current = _safe_float(t.get("amount_usd"))
+    if not _is_institutional_13f(t):
+        return current
+
+    obj = _raw_json_obj(t)
+    reported = obj.get("value_reported")
+    if reported is None:
+        reported = obj.get("value_thousands_usd")
+    if reported is not None:
+        try:
+            reported_value = float(str(reported).replace(",", ""))
+            unit = str(obj.get("value_unit") or "thousands_usd").lower()
+            if unit in {"usd", "usd_normalized", "dollars"}:
+                normalized = reported_value
+            else:
+                # SEC 13F XML <value> is normally in thousands of dollars, but
+                # legacy cached rows may have written an already-normalized USD
+                # value back into value_reported while still labeling it
+                # thousands_usd. Convert once, then apply a strict display guard.
+                normalized = reported_value * 1000.0
+            while normalized > 100_000_000_000:
+                normalized /= 1000.0
+            return normalized
+        except Exception:  # noqa: BLE001
+            pass
+
+    # Final presentation guard for legacy rows without raw_json.  A single
+    # active-manager 13F line above $100B in this project has consistently been
+    # the known 1000x bug, not a real holding.
+    normalized = current
+    while normalized > 100_000_000_000:
+        normalized /= 1000.0
+    return normalized
+
+
 def _is_political_or_oge(t: Mapping) -> bool:
     return (_is_political_trade(t) or _is_oge_trade(t)) and not _is_institutional_13f(t)
 
@@ -173,6 +217,12 @@ def _dedup_economic_trades(trades: list[Mapping]) -> list[dict]:
             name = str(t.get("whale_name") or "")
             if name and name not in seen[key]["_joint_reporters"]:
                 seen[key]["_joint_reporters"].append(name)
+            # Preserve the newest created_at among economically duplicate rows so
+            # a daily-new duplicate is still highlighted in detail tables.
+            existing_created = str(seen[key].get("created_at") or "")
+            incoming_created = str(t.get("created_at") or "")
+            if incoming_created and incoming_created > existing_created:
+                seen[key]["created_at"] = incoming_created
     for row in seen.values():
         names = [n for n in row.get("_joint_reporters", []) if n]
         row["_display_whale_name"] = ", ".join(names[:3]) + (f" 等{len(names)}方" if len(names) > 3 else "") if names else str(row.get("whale_name") or "")
@@ -370,6 +420,8 @@ def _top_conclusion_rows(business: list[Mapping], political: list[Mapping], pric
 def _detail_rows(trades: list[Mapping], price_by_ticker: dict[str, float], limit: int = 80, new_since: str | None = None) -> list[list[str] | tuple[str, list[str]]]:
     ordered = sorted(
         _dedup_economic_trades([x for x in trades if _trade_date_ok(x) and not _is_oge_asset(x) and not _is_institutional_13f(x)]),
+        # Keep the necessary-detail table sorted by economic importance.
+        # Daily-new rows are highlighted in place; they are not promoted to the top.
         key=lambda t: (_trade_amount_for_display(t, price_by_ticker)[0], str(t.get("trade_date") or "")),
         reverse=True,
     )
@@ -428,13 +480,13 @@ def _institutional_13f_rows(holdings: list[Mapping], limit: int = 60, new_since:
 
     ordered_groups = sorted(
         groups.items(),
-        key=lambda kv: max((_safe_float(x.get("amount_usd")) for x in kv[1]), default=0.0),
+        key=lambda kv: max((_institutional_13f_amount_usd(x) for x in kv[1]), default=0.0),
         reverse=True,
     )
     rows = []
     used = 0
     for manager, group_rows in ordered_groups:
-        group_rows = sorted(group_rows, key=lambda h: _safe_float(h.get("amount_usd")), reverse=True)
+        group_rows = sorted(group_rows, key=lambda h: _institutional_13f_amount_usd(h), reverse=True)
         first = True
         for h in group_rows:
             if used >= limit:
@@ -447,7 +499,7 @@ def _institutional_13f_rows(holdings: list[Mapping], limit: int = 60, new_since:
                 escape(lead if first else ""),
                 f"<b>{escape(str(h.get('ticker') or ''))}</b>",
                 escape(issuer[:100]),
-                _money(h.get("amount_usd")),
+                _money(_institutional_13f_amount_usd(h)),
                 escape(f"{_safe_float(h.get('shares')):,.0f}" if _safe_float(h.get("shares")) else "-"),
                 escape(str(obj.get("report_period") or h.get("trade_date") or "")[:10]),
                 escape(str(h.get("filing_date") or "")[:10]),
@@ -457,6 +509,140 @@ def _institutional_13f_rows(holdings: list[Mapping], limit: int = 60, new_since:
             first = False
             used += 1
     return rows
+
+
+
+def _institutional_13f_consensus_rows(holdings: list[Mapping], limit: int = 20) -> list[list[str]]:
+    """Compare each watched manager's latest 13F with its prior 13F.
+
+    The output is a consensus-style table: which issuers were increased by
+    multiple top-20 institutional whales, and which were reduced or exited.
+    It is a quarter-over-quarter 13F analysis, not a same-day trading signal.
+    """
+    by_manager_period: dict[str, dict[str, dict[str, Mapping]]] = defaultdict(lambda: defaultdict(dict))
+    manager_lead: dict[str, str] = {}
+    for h in holdings:
+        if not _is_institutional_13f(h):
+            continue
+        obj = _raw_json_obj(h)
+        manager = str(obj.get("manager") or h.get("insider_role") or h.get("whale_name") or "Unknown manager")
+        lead = str(obj.get("lead_investor") or h.get("whale_name") or "")
+        if lead:
+            manager_lead[manager] = lead
+        period = str(obj.get("report_period") or h.get("trade_date") or "")[:10]
+        ticker = str(h.get("ticker") or "").upper().strip()
+        if not period or not ticker:
+            continue
+        existing = by_manager_period[manager][period].get(ticker)
+        if existing is None or _institutional_13f_amount_usd(h) > _institutional_13f_amount_usd(existing):
+            by_manager_period[manager][period][ticker] = h
+
+    consensus: dict[str, dict] = {}
+    comparable_managers = 0
+    for manager, periods in by_manager_period.items():
+        ordered_periods = sorted(periods.keys(), reverse=True)
+        if len(ordered_periods) < 2:
+            continue
+        comparable_managers += 1
+        latest_p, prev_p = ordered_periods[0], ordered_periods[1]
+        latest = periods[latest_p]
+        prev = periods[prev_p]
+        tickers = set(latest) | set(prev)
+        display_manager = f"{manager} / {manager_lead.get(manager, '')}" if manager_lead.get(manager) and manager_lead.get(manager) not in manager else manager
+        for ticker in tickers:
+            latest_amt = _institutional_13f_amount_usd(latest.get(ticker, {})) if ticker in latest else 0.0
+            prev_amt = _institutional_13f_amount_usd(prev.get(ticker, {})) if ticker in prev else 0.0
+            delta = latest_amt - prev_amt
+            if abs(delta) < 1000:
+                continue
+            item = consensus.setdefault(ticker, {
+                "ticker": ticker,
+                "issuer": "",
+                "latest_total": 0.0,
+                "prev_total": 0.0,
+                "delta_total": 0.0,
+                "increased": [],
+                "reduced": [],
+                "new": [],
+                "exited": [],
+                "periods": set(),
+            })
+            source_row = latest.get(ticker) or prev.get(ticker) or {}
+            obj = _raw_json_obj(source_row)
+            if not item["issuer"]:
+                item["issuer"] = str(obj.get("nameOfIssuer") or source_row.get("company_name") or "")
+            item["latest_total"] += latest_amt
+            item["prev_total"] += prev_amt
+            item["delta_total"] += delta
+            item["periods"].add(f"{prev_p}→{latest_p}")
+            if prev_amt <= 0 and latest_amt > 0:
+                item["new"].append((display_manager, delta))
+                item["increased"].append((display_manager, delta))
+            elif latest_amt <= 0 and prev_amt > 0:
+                item["exited"].append((display_manager, abs(delta)))
+                item["reduced"].append((display_manager, abs(delta)))
+            elif delta > 0:
+                item["increased"].append((display_manager, delta))
+            elif delta < 0:
+                item["reduced"].append((display_manager, abs(delta)))
+
+    scored = []
+    for item in consensus.values():
+        inc = len(item["increased"])
+        dec = len(item["reduced"])
+        if inc < 2 and dec < 2:
+            continue
+        if inc >= 2 and dec == 0:
+            signal = "一致增持"
+            score = (3, inc, abs(item["delta_total"]))
+        elif dec >= 2 and inc == 0:
+            signal = "一致减持/退出"
+            score = (3, dec, abs(item["delta_total"]))
+        elif inc > dec:
+            signal = "多数增持"
+            score = (2, inc - dec, abs(item["delta_total"]))
+        elif dec > inc:
+            signal = "多数减持"
+            score = (2, dec - inc, abs(item["delta_total"]))
+        else:
+            signal = "分歧"
+            score = (1, inc + dec, abs(item["delta_total"]))
+        item["signal"] = signal
+        scored.append((score, item))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    rows = []
+    for _, item in scored[:limit]:
+        inc_names = [name for name, _ in sorted(item["increased"], key=lambda kv: kv[1], reverse=True)[:6]]
+        dec_names = [name for name, _ in sorted(item["reduced"], key=lambda kv: kv[1], reverse=True)[:6]]
+        notes = []
+        if item["new"]:
+            notes.append(f"新建仓{len(item['new'])}家")
+        if item["exited"]:
+            notes.append(f"清仓/退出{len(item['exited'])}家")
+        cells = [
+            f"<b>{escape(item['ticker'])}</b>",
+            escape(item["issuer"][:80] or "-"),
+            escape(item["signal"]),
+            escape(str(len(item["increased"]))),
+            escape("；".join(inc_names) or "-"),
+            escape(str(len(item["reduced"]))),
+            escape("；".join(dec_names) or "-"),
+            _money(item["delta_total"]),
+            f"{_money(item['prev_total'])} → {_money(item['latest_total'])}",
+            escape("；".join(sorted(item["periods"]))),
+            escape("；".join(notes) or f"可比机构数：{comparable_managers}"),
+        ]
+        rows.append(cells)
+    return rows
+
+def _institutional_13f_consensus_table(holdings: list[Mapping], limit: int = 20) -> str:
+    rows = _institutional_13f_consensus_rows(holdings, limit=limit)
+    return _table(
+        ["标的", "发行人", "共识信号", "增持家数", "增持机构", "减持家数", "减持机构", "合计变化", "上期→最新合计市值", "比较区间", "备注"],
+        rows,
+        empty="暂无足够的相邻两期 13F 数据。请将 INSTITUTIONAL_13F_FILINGS_PER_MANAGER 设为 2，并连续运行一次以采集最近两期 13F 后再查看共识增减持分析。",
+    )
 
 def _new_items_summary_rows(
     business: list[Mapping],
@@ -540,7 +726,7 @@ def _new_items_summary_rows(
             str(h.get("ticker") or ""),
             "HOLDING_13F",
             name,
-            _safe_float(h.get("amount_usd")),
+            _institutional_13f_amount_usd(h),
             str(obj.get("report_period") or h.get("trade_date") or "")[:10],
             str(obj.get("nameOfIssuer") or h.get("company_name") or "")[:100],
             _source_link(h),
@@ -669,6 +855,7 @@ def build_html_report(
     business_details = _table(["交易日", "股票", "方向", "代码", "巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(business_trades, price_by_ticker, limit=60, new_since=new_since))
     political_details = _table(["交易日", "股票/标的", "方向", "代码", "政界巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(political_trades, price_by_ticker, limit=80, new_since=new_since))
     executive_assets = _table(["人物", "职位", "披露类型", "投资标的/描述", "动作", "金额/估值区间", "披露/报告日期", "来源"], _executive_asset_rows(executive_asset_trades, price_by_ticker, limit=40, new_since=new_since))
+    institutional_13f_consensus_table = _institutional_13f_consensus_table(institutional_13f_holdings, limit=20)
     institutional_13f_table = _table(["机构", "代表人物", "标的", "发行人", "13F市值", "股数", "报告期", "披露日", "来源"], _institutional_13f_rows(institutional_13f_holdings, limit=50, new_since=new_since), empty="暂无机构巨鲸 13F 持仓披露。")
 
     html = f"""
@@ -744,6 +931,10 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 
 <h2>四、机构巨鲸 13F 持仓雷达</h2>
 <p class="note">13F 是机构投资经理的季度持仓披露，不代表实时买入/卖出交易。表中的“报告期”是季度末持仓日，“披露日”是 13F 文件提交日。</p>
+<h3>13F 共识增减持分析（最近相邻两期/约三个月）</h3>
+<p class="small">口径：仅比较已采集到最近两期 13F 的 Top 20 机构巨鲸；“一致/多数增持或减持”代表季度末持仓变化方向，不代表同一天交易。</p>
+{institutional_13f_consensus_table}
+<h3>机构巨鲸 13F 持仓明细</h3>
 {institutional_13f_table}
 
 <h2>五、口径说明</h2>

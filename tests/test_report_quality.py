@@ -78,3 +78,34 @@ def test_institutional_13f_report_section_uses_report_period_not_trade_language(
     assert "Pershing Square Capital Management" in html
     assert "UBER" in html
     assert "季度持仓披露" in html or "季度持仓" in html
+
+
+def test_detail_new_rows_are_highlighted_without_promoting_over_larger_rows():
+    html = build_html_report(
+        top_scores=[],
+        recent_trades=[
+            {"ticker":"BIG","action":"SELL","transaction_code":"S","whale_name":"Large Old","source":"SEC_FORM4","trade_date":"2026-07-01","amount_usd":100_000_000,"created_at":"2026-07-01 00:00:00"},
+            {"ticker":"NEW","action":"SELL","transaction_code":"S","whale_name":"Small New","source":"SEC_FORM4","trade_date":"2026-07-02","amount_usd":1_000_000,"created_at":"2026-07-07 08:00:01"},
+        ],
+        new_trade_count=1,
+        new_since="2026-07-07 08:00:00",
+        baseline_trade_count=10,
+    )
+    detail_idx = html.index("商界巨鲸必要明细")
+    assert html.index("BIG", detail_idx) < html.index("NEW", detail_idx)
+    new_idx = html.index("NEW", detail_idx)
+    assert 'class="row-new"' in html[detail_idx:new_idx]
+
+
+def test_institutional_13f_consensus_analysis_detects_multi_manager_increases():
+    holdings = [
+        {"ticker":"UBER","action":"HOLDING_13F","whale_name":"Bill Ackman","insider_role":"Pershing Square Capital Management","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":2_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Pershing Square Capital Management\",\"lead_investor\":\"Bill Ackman\",\"nameOfIssuer\":\"UBER TECHNOLOGIES INC\",\"report_period\":\"2026-03-31\",\"value_reported\":2000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"UBER","action":"HOLDING_13F","whale_name":"Bill Ackman","insider_role":"Pershing Square Capital Management","source":"INSTITUTIONAL_13F","trade_date":"2025-12-31","filing_date":"2026-02-15","amount_usd":1_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Pershing Square Capital Management\",\"lead_investor\":\"Bill Ackman\",\"nameOfIssuer\":\"UBER TECHNOLOGIES INC\",\"report_period\":\"2025-12-31\",\"value_reported\":1000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"UBER","action":"HOLDING_13F","whale_name":"David Tepper","insider_role":"Appaloosa LP","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":500_000_000,"shares":10,"raw_json":"{\"manager\":\"Appaloosa LP\",\"lead_investor\":\"David Tepper\",\"nameOfIssuer\":\"UBER TECHNOLOGIES INC\",\"report_period\":\"2026-03-31\",\"value_reported\":500000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"UBER","action":"HOLDING_13F","whale_name":"David Tepper","insider_role":"Appaloosa LP","source":"INSTITUTIONAL_13F","trade_date":"2025-12-31","filing_date":"2026-02-15","amount_usd":300_000_000,"shares":10,"raw_json":"{\"manager\":\"Appaloosa LP\",\"lead_investor\":\"David Tepper\",\"nameOfIssuer\":\"UBER TECHNOLOGIES INC\",\"report_period\":\"2025-12-31\",\"value_reported\":300000,\"value_unit\":\"thousands_usd\"}"},
+    ]
+    html = build_html_report(top_scores=[], recent_trades=[], institutional_13f_holdings=holdings, baseline_trade_count=10)
+    assert "13F 共识增减持分析" in html
+    assert "一致增持" in html
+    assert "Pershing Square Capital Management" in html
+    assert "Appaloosa LP" in html

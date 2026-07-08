@@ -430,7 +430,7 @@ def fetch_trades_since(start_date: str = "2026-01-01", limit: int = 50000) -> li
 
 
 
-def fetch_institutional_13f_holdings(start_date: str = "2026-01-01", limit: int = 500) -> list[sqlite3.Row]:
+def fetch_institutional_13f_holdings(start_date: str = "2026-01-01", limit: int = 1200) -> list[sqlite3.Row]:
     """Fetch SEC 13F quarterly holdings for institutional whale radar.
 
     13F rows are stored in the generic trades table so they can share the

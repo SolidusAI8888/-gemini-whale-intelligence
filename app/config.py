@@ -137,7 +137,7 @@ class Settings:
     enable_institutional_13f: bool = _bool("ENABLE_INSTITUTIONAL_13F", True)
     institutional_13f_watchlist: str = os.getenv("INSTITUTIONAL_13F_WATCHLIST", "")
     institutional_13f_max_managers: int = _int("INSTITUTIONAL_13F_MAX_MANAGERS", 20)
-    institutional_13f_filings_per_manager: int = _int("INSTITUTIONAL_13F_FILINGS_PER_MANAGER", 1)
+    institutional_13f_filings_per_manager: int = _int("INSTITUTIONAL_13F_FILINGS_PER_MANAGER", 2)
     institutional_13f_max_holdings_per_filing: int = _int("INSTITUTIONAL_13F_MAX_HOLDINGS_PER_FILING", 25)
 
 
