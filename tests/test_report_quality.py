@@ -105,7 +105,23 @@ def test_institutional_13f_consensus_analysis_detects_multi_manager_increases():
         {"ticker":"UBER","action":"HOLDING_13F","whale_name":"David Tepper","insider_role":"Appaloosa LP","source":"INSTITUTIONAL_13F","trade_date":"2025-12-31","filing_date":"2026-02-15","amount_usd":300_000_000,"shares":10,"raw_json":"{\"manager\":\"Appaloosa LP\",\"lead_investor\":\"David Tepper\",\"nameOfIssuer\":\"UBER TECHNOLOGIES INC\",\"report_period\":\"2025-12-31\",\"value_reported\":300000,\"value_unit\":\"thousands_usd\"}"},
     ]
     html = build_html_report(top_scores=[], recent_trades=[], institutional_13f_holdings=holdings, baseline_trade_count=10)
-    assert "13F 共识增减持分析" in html
-    assert "一致增持" in html
+    assert "13F 加仓 / 新建仓集中度 Top 5" in html
+    assert "$1.20B" in html
     assert "Pershing Square Capital Management" in html
     assert "Appaloosa LP" in html
+
+
+def test_institutional_13f_three_top5_tables_show_current_increase_decrease():
+    holdings = [
+        {"ticker":"AAA","action":"HOLDING_13F","whale_name":"Lead A","insider_role":"Manager A","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":5_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager A\",\"lead_investor\":\"Lead A\",\"nameOfIssuer\":\"AAA INC\",\"report_period\":\"2026-03-31\",\"value_reported\":5000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"AAA","action":"HOLDING_13F","whale_name":"Lead A","insider_role":"Manager A","source":"INSTITUTIONAL_13F","trade_date":"2025-12-31","filing_date":"2026-02-15","amount_usd":2_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager A\",\"lead_investor\":\"Lead A\",\"nameOfIssuer\":\"AAA INC\",\"report_period\":\"2025-12-31\",\"value_reported\":2000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"BBB","action":"HOLDING_13F","whale_name":"Lead A","insider_role":"Manager A","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":1_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager A\",\"lead_investor\":\"Lead A\",\"nameOfIssuer\":\"BBB INC\",\"report_period\":\"2026-03-31\",\"value_reported\":1000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"BBB","action":"HOLDING_13F","whale_name":"Lead A","insider_role":"Manager A","source":"INSTITUTIONAL_13F","trade_date":"2025-12-31","filing_date":"2026-02-15","amount_usd":3_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager A\",\"lead_investor\":\"Lead A\",\"nameOfIssuer\":\"BBB INC\",\"report_period\":\"2025-12-31\",\"value_reported\":3000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"CCC","action":"HOLDING_13F","whale_name":"Lead B","insider_role":"Manager B","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":4_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager B\",\"lead_investor\":\"Lead B\",\"nameOfIssuer\":\"CCC INC\",\"report_period\":\"2026-03-31\",\"value_reported\":4000000,\"value_unit\":\"thousands_usd\"}"},
+    ]
+    html = build_html_report(top_scores=[], recent_trades=[], institutional_13f_holdings=holdings, baseline_trade_count=10)
+    assert "13F 最新持仓集中度 Top 5" in html
+    assert "13F 加仓 / 新建仓集中度 Top 5" in html
+    assert "13F 减仓 / 清仓集中度 Top 5" in html
+    assert "AAA" in html and "BBB" in html and "CCC" in html
+    assert "新建仓" in html

@@ -644,6 +644,182 @@ def _institutional_13f_consensus_table(holdings: list[Mapping], limit: int = 20)
         empty="暂无足够的相邻两期 13F 数据。请将 INSTITUTIONAL_13F_FILINGS_PER_MANAGER 设为 2，并连续运行一次以采集最近两期 13F 后再查看共识增减持分析。",
     )
 
+
+
+def _institutional_13f_manager_periods(holdings: list[Mapping]) -> tuple[dict[str, dict[str, dict[str, Mapping]]], dict[str, str]]:
+    """Return manager -> report_period -> ticker -> holding rows for 13F analysis."""
+    by_manager_period: dict[str, dict[str, dict[str, Mapping]]] = defaultdict(lambda: defaultdict(dict))
+    manager_lead: dict[str, str] = {}
+    for h in holdings:
+        if not _is_institutional_13f(h):
+            continue
+        obj = _raw_json_obj(h)
+        manager = str(obj.get("manager") or h.get("insider_role") or h.get("whale_name") or "Unknown manager")
+        lead = str(obj.get("lead_investor") or h.get("whale_name") or "")
+        if lead:
+            manager_lead[manager] = lead
+        period = str(obj.get("report_period") or h.get("trade_date") or "")[:10]
+        ticker = str(h.get("ticker") or "").upper().strip()
+        if not period or not ticker:
+            continue
+        existing = by_manager_period[manager][period].get(ticker)
+        if existing is None or _institutional_13f_amount_usd(h) > _institutional_13f_amount_usd(existing):
+            by_manager_period[manager][period][ticker] = h
+    return by_manager_period, manager_lead
+
+
+def _display_manager_name(manager: str, manager_lead: dict[str, str]) -> str:
+    lead = manager_lead.get(manager, "")
+    return f"{manager} / {lead}" if lead and lead not in manager else manager
+
+
+def _issuer_from_13f_row(row: Mapping) -> str:
+    obj = _raw_json_obj(row)
+    return str(obj.get("nameOfIssuer") or row.get("company_name") or row.get("ticker") or "")
+
+
+def _institutional_13f_current_concentration_rows(holdings: list[Mapping], limit: int = 5) -> list[list[str]]:
+    """Top current holdings across the latest report for each top-20 manager."""
+    by_manager_period, manager_lead = _institutional_13f_manager_periods(holdings)
+    aggregate: dict[str, dict] = {}
+    latest_total = 0.0
+    comparable_managers = 0
+    for manager, periods in by_manager_period.items():
+        ordered_periods = sorted(periods.keys(), reverse=True)
+        if not ordered_periods:
+            continue
+        comparable_managers += 1
+        latest_p = ordered_periods[0]
+        for ticker, h in periods[latest_p].items():
+            amount = _institutional_13f_amount_usd(h)
+            if amount <= 0:
+                continue
+            latest_total += amount
+            item = aggregate.setdefault(ticker, {
+                "ticker": ticker,
+                "issuer": _issuer_from_13f_row(h),
+                "amount": 0.0,
+                "holders": [],
+                "periods": set(),
+            })
+            if not item["issuer"]:
+                item["issuer"] = _issuer_from_13f_row(h)
+            item["amount"] += amount
+            item["holders"].append((_display_manager_name(manager, manager_lead), amount))
+            item["periods"].add(latest_p)
+    rows = []
+    for item in sorted(aggregate.values(), key=lambda x: x["amount"], reverse=True)[:limit]:
+        holders = [name for name, _ in sorted(item["holders"], key=lambda kv: kv[1], reverse=True)[:6]]
+        pct = f"{(item['amount'] / latest_total * 100):.1f}%" if latest_total > 0 else "-"
+        rows.append([
+            f"<b>{escape(item['ticker'])}</b>",
+            escape(item["issuer"][:80] or "-"),
+            _money(item["amount"]),
+            escape(pct),
+            escape(str(len(item["holders"]))),
+            escape("；".join(holders) or "-"),
+            escape("；".join(sorted(item["periods"])) or "-"),
+            escape(f"基于{comparable_managers}家已采集最新期13F"),
+        ])
+    return rows
+
+
+def _institutional_13f_delta_concentration_rows(holdings: list[Mapping], direction: str, limit: int = 5) -> list[list[str]]:
+    """Top aggregate increases/new positions or reductions/exits between the latest two 13F periods."""
+    by_manager_period, manager_lead = _institutional_13f_manager_periods(holdings)
+    aggregate: dict[str, dict] = {}
+    comparable_managers = 0
+    for manager, periods in by_manager_period.items():
+        ordered_periods = sorted(periods.keys(), reverse=True)
+        if len(ordered_periods) < 2:
+            continue
+        comparable_managers += 1
+        latest_p, prev_p = ordered_periods[0], ordered_periods[1]
+        latest = periods[latest_p]
+        prev = periods[prev_p]
+        for ticker in set(latest) | set(prev):
+            latest_row = latest.get(ticker)
+            prev_row = prev.get(ticker)
+            latest_amt = _institutional_13f_amount_usd(latest_row or {}) if latest_row else 0.0
+            prev_amt = _institutional_13f_amount_usd(prev_row or {}) if prev_row else 0.0
+            delta = latest_amt - prev_amt
+            if abs(delta) < 1000:
+                continue
+            if direction == "increase" and delta <= 0:
+                continue
+            if direction == "decrease" and delta >= 0:
+                continue
+            source_row = latest_row or prev_row or {}
+            item = aggregate.setdefault(ticker, {
+                "ticker": ticker,
+                "issuer": _issuer_from_13f_row(source_row),
+                "delta_abs": 0.0,
+                "latest_total": 0.0,
+                "prev_total": 0.0,
+                "managers": [],
+                "new_count": 0,
+                "exit_count": 0,
+                "periods": set(),
+            })
+            if not item["issuer"]:
+                item["issuer"] = _issuer_from_13f_row(source_row)
+            item["delta_abs"] += abs(delta)
+            item["latest_total"] += latest_amt
+            item["prev_total"] += prev_amt
+            if direction == "increase" and prev_amt <= 0 and latest_amt > 0:
+                item["new_count"] += 1
+            if direction == "decrease" and latest_amt <= 0 and prev_amt > 0:
+                item["exit_count"] += 1
+            item["managers"].append((_display_manager_name(manager, manager_lead), abs(delta)))
+            item["periods"].add(f"{prev_p}→{latest_p}")
+    total_abs = sum(item["delta_abs"] for item in aggregate.values())
+    rows = []
+    for item in sorted(aggregate.values(), key=lambda x: x["delta_abs"], reverse=True)[:limit]:
+        managers = [name for name, _ in sorted(item["managers"], key=lambda kv: kv[1], reverse=True)[:6]]
+        pct = f"{(item['delta_abs'] / total_abs * 100):.1f}%" if total_abs > 0 else "-"
+        notes = []
+        if direction == "increase" and item["new_count"]:
+            notes.append(f"新建仓{item['new_count']}家")
+        if direction == "decrease" and item["exit_count"]:
+            notes.append(f"清仓/退出{item['exit_count']}家")
+        notes.append(f"可比机构数：{comparable_managers}")
+        rows.append([
+            f"<b>{escape(item['ticker'])}</b>",
+            escape(item["issuer"][:80] or "-"),
+            _money(item["delta_abs"]),
+            escape(pct),
+            escape(str(len(item["managers"]))),
+            escape("；".join(managers) or "-"),
+            f"{_money(item['prev_total'])} → {_money(item['latest_total'])}",
+            escape("；".join(sorted(item["periods"])) or "-"),
+            escape("；".join(notes)),
+        ])
+    return rows
+
+
+def _institutional_13f_current_concentration_table(holdings: list[Mapping], limit: int = 5) -> str:
+    return _table(
+        ["标的", "发行人", "合计13F市值", "占最新持仓样本", "持有机构数", "主要持有机构", "报告期", "备注"],
+        _institutional_13f_current_concentration_rows(holdings, limit=limit),
+        empty="暂无可用于计算当前13F集中度的机构持仓数据。",
+    )
+
+
+def _institutional_13f_increase_concentration_table(holdings: list[Mapping], limit: int = 5) -> str:
+    return _table(
+        ["标的", "发行人", "合计加仓/新建仓", "占加仓样本", "加仓机构数", "主要加仓/新建仓机构", "上期→最新合计市值", "比较区间", "备注"],
+        _institutional_13f_delta_concentration_rows(holdings, direction="increase", limit=limit),
+        empty="暂无足够的相邻两期 13F 数据或未检测到可比加仓/新建仓。请确保 INSTITUTIONAL_13F_FILINGS_PER_MANAGER=2 并成功采集最近两期13F。",
+    )
+
+
+def _institutional_13f_decrease_concentration_table(holdings: list[Mapping], limit: int = 5) -> str:
+    return _table(
+        ["标的", "发行人", "合计减仓/清仓", "占减仓样本", "减仓机构数", "主要减仓/清仓机构", "上期→最新合计市值", "比较区间", "备注"],
+        _institutional_13f_delta_concentration_rows(holdings, direction="decrease", limit=limit),
+        empty="暂无足够的相邻两期 13F 数据或未检测到可比减仓/清仓。请确保 INSTITUTIONAL_13F_FILINGS_PER_MANAGER=2 并成功采集最近两期13F。",
+    )
+
 def _new_items_summary_rows(
     business: list[Mapping],
     political: list[Mapping],
@@ -855,7 +1031,9 @@ def build_html_report(
     business_details = _table(["交易日", "股票", "方向", "代码", "巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(business_trades, price_by_ticker, limit=60, new_since=new_since))
     political_details = _table(["交易日", "股票/标的", "方向", "代码", "政界巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(political_trades, price_by_ticker, limit=80, new_since=new_since))
     executive_assets = _table(["人物", "职位", "披露类型", "投资标的/描述", "动作", "金额/估值区间", "披露/报告日期", "来源"], _executive_asset_rows(executive_asset_trades, price_by_ticker, limit=40, new_since=new_since))
-    institutional_13f_consensus_table = _institutional_13f_consensus_table(institutional_13f_holdings, limit=20)
+    institutional_13f_current_concentration_table = _institutional_13f_current_concentration_table(institutional_13f_holdings, limit=5)
+    institutional_13f_increase_concentration_table = _institutional_13f_increase_concentration_table(institutional_13f_holdings, limit=5)
+    institutional_13f_decrease_concentration_table = _institutional_13f_decrease_concentration_table(institutional_13f_holdings, limit=5)
     institutional_13f_table = _table(["机构", "代表人物", "标的", "发行人", "13F市值", "股数", "报告期", "披露日", "来源"], _institutional_13f_rows(institutional_13f_holdings, limit=50, new_since=new_since), empty="暂无机构巨鲸 13F 持仓披露。")
 
     html = f"""
@@ -931,9 +1109,15 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 
 <h2>四、机构巨鲸 13F 持仓雷达</h2>
 <p class="note">13F 是机构投资经理的季度持仓披露，不代表实时买入/卖出交易。表中的“报告期”是季度末持仓日，“披露日”是 13F 文件提交日。</p>
-<h3>13F 共识增减持分析（最近相邻两期/约三个月）</h3>
-<p class="small">口径：仅比较已采集到最近两期 13F 的 Top 20 机构巨鲸；“一致/多数增持或减持”代表季度末持仓变化方向，不代表同一天交易。</p>
-{institutional_13f_consensus_table}
+<h3>13F 最新持仓集中度 Top 5</h3>
+<p class="small">口径：汇总 Top20 机构巨鲸最新一期 13F 已采集持仓，按同一股票在这些机构中的合计13F市值排序；13F 为季度末持仓，不代表实时交易。</p>
+{institutional_13f_current_concentration_table}
+<h3>13F 加仓 / 新建仓集中度 Top 5（最近两期）</h3>
+<p class="small">口径：比较同一机构最近两期13F，汇总各机构对同一股票的正向变化；“新建仓”表示上一期未持有、本期持有。</p>
+{institutional_13f_increase_concentration_table}
+<h3>13F 减仓 / 清仓集中度 Top 5（最近两期）</h3>
+<p class="small">口径：比较同一机构最近两期13F，汇总各机构对同一股票的负向变化绝对值；“清仓/退出”表示上一期持有、本期未持有。</p>
+{institutional_13f_decrease_concentration_table}
 <h3>机构巨鲸 13F 持仓明细</h3>
 {institutional_13f_table}
 

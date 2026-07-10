@@ -145,7 +145,7 @@ def run_scan() -> dict:
         trump_oge_trades = [_row_to_dict(r) for r in fetch_trump_oge_trades(limit=500)]
         oge_executive_trades = [_row_to_dict(r) for r in fetch_oge_executive_trades(limit=800)]
         oge_summary = [_row_to_dict(r) for r in fetch_oge_action_summary()]
-        institutional_13f_holdings = [_row_to_dict(r) for r in fetch_institutional_13f_holdings(settings.scan_start_date, limit=1200)]
+        institutional_13f_holdings = [_row_to_dict(r) for r in fetch_institutional_13f_holdings("1900-01-01", limit=5000)]
 
         buy_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if float(r.get("buy_amount") or 0) > 0]
         # Include BUY-radar tickers in SELL evidence so related SELL rows (for
