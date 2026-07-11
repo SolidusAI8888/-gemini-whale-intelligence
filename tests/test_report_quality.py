@@ -125,3 +125,29 @@ def test_institutional_13f_three_top5_tables_show_current_increase_decrease():
     assert "13F 减仓 / 清仓集中度 Top 5" in html
     assert "AAA" in html and "BBB" in html and "CCC" in html
     assert "新建仓" in html
+
+
+def test_institutional_13f_top20_coverage_table_marks_incomplete_sample():
+    html = build_html_report(
+        top_scores=[],
+        recent_trades=[],
+        institutional_13f_holdings=[
+            {"ticker":"AAPL","action":"HOLDING_13F","whale_name":"Warren Buffett","insider_role":"Berkshire Hathaway","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":10_000_000_000,"shares":1000000,"raw_json":"{\"manager\":\"Berkshire Hathaway\",\"lead_investor\":\"Warren Buffett\",\"nameOfIssuer\":\"APPLE INC\",\"report_period\":\"2026-03-31\",\"value_reported\":10000000,\"value_unit\":\"thousands_usd\"}"},
+        ],
+        institutional_13f_status=[{"rank": 1, "manager": "Berkshire Hathaway", "lead_investor": "Warren Buffett", "cik": "1067983", "status": "OK_LATEST_ONLY", "message": "已采集最新期"}],
+        baseline_trade_count=10,
+    )
+    assert "13F Top20 机构采集覆盖率" in html
+    assert "目标Top20" in html
+    assert "不完整样本" in html
+    assert "Berkshire Hathaway" in html
+    assert "Pershing Square Capital Management" in html
+
+
+def test_institutional_13f_amount_guard_repairs_implied_price_1000x_rows():
+    holdings = [
+        {"ticker":"GOOGL","action":"HOLDING_13F","whale_name":"David Tepper","insider_role":"Appaloosa LP","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":497_040_000_000,"shares":1_732_700,"raw_json":"{\"manager\":\"Appaloosa LP\",\"lead_investor\":\"David Tepper\",\"nameOfIssuer\":\"ALPHABET INC\",\"report_period\":\"2026-03-31\",\"value_reported\":497040000,\"value_unit\":\"thousands_usd\"}"},
+    ]
+    html = build_html_report(top_scores=[], recent_trades=[], institutional_13f_holdings=holdings, baseline_trade_count=10)
+    assert "$497.04M" in html
+    assert "$497.04B" not in html

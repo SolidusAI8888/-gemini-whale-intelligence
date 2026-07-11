@@ -11,7 +11,7 @@ from app.collectors.congress import collect_congress_trades
 from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
 from app.collectors.market_data import apply_market_context_to_scores, collect_market_snapshots
-from app.collectors.sec_13f import collect_institutional_13f_holdings
+from app.collectors.sec_13f import collect_institutional_13f_holdings, get_institutional_13f_status
 from app.collectors.oge_executive import collect_oge_executive_trades
 from app.collectors.universe import build_company_universe, tickers_from_companies
 from app.config import settings
@@ -146,6 +146,7 @@ def run_scan() -> dict:
         oge_executive_trades = [_row_to_dict(r) for r in fetch_oge_executive_trades(limit=800)]
         oge_summary = [_row_to_dict(r) for r in fetch_oge_action_summary()]
         institutional_13f_holdings = [_row_to_dict(r) for r in fetch_institutional_13f_holdings("1900-01-01", limit=5000)]
+        institutional_13f_status = get_institutional_13f_status()
 
         buy_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if float(r.get("buy_amount") or 0) > 0]
         # Include BUY-radar tickers in SELL evidence so related SELL rows (for
@@ -191,6 +192,7 @@ def run_scan() -> dict:
             oge_executive_trades=oge_executive_trades,
             oge_summary=oge_summary,
             institutional_13f_holdings=institutional_13f_holdings,
+            institutional_13f_status=institutional_13f_status,
             new_since=run_started_at if baseline_trade_count > 0 else None,
             baseline_trade_count=baseline_trade_count,
         )

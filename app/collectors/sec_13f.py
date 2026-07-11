@@ -50,6 +50,15 @@ DEFAULT_INSTITUTIONAL_WHALES: tuple[InstitutionalWhale, ...] = (
     InstitutionalWhale("Trian Fund Management", "1345471", "Nelson Peltz", "Activist"),
 )
 
+
+
+LAST_INSTITUTIONAL_13F_STATUS: list[dict] = []
+
+
+def get_institutional_13f_status() -> list[dict]:
+    """Return per-manager diagnostics from the latest 13F collection run."""
+    return list(LAST_INSTITUTIONAL_13F_STATUS)
+
 # Minimal issuer-name map to make the most important high-interest rows readable
 # even when the 13F information table omits ticker tags and only provides issuer
 # names/CUSIP. The raw issuer/CUSIP remains in raw_json for verification.
@@ -253,33 +262,98 @@ def _parse_info_table(xml_bytes: bytes, whale: InstitutionalWhale, filing: dict,
 
 
 def collect_institutional_13f_holdings(user_agent: str, lookback_days: int = 370) -> list[dict]:
+    global LAST_INSTITUTIONAL_13F_STATUS
+    LAST_INSTITUTIONAL_13F_STATUS = []
     if not settings.enable_institutional_13f:
         return []
     cutoff = date.today() - timedelta(days=max(int(lookback_days or 370), 1))
     rows: list[dict] = []
-    whales = _parse_watchlist()[: settings.institutional_13f_max_managers]
-    for whale in whales:
-        filings = _recent_13f_filings(whale.cik, user_agent, max_filings=settings.institutional_13f_filings_per_manager)
-        for filing in filings:
-            try:
-                fd = date.fromisoformat(str(filing.get("filing_date") or "1900-01-01")[:10])
-            except Exception:  # noqa: BLE001
-                fd = date(1900, 1, 1)
-            if fd < cutoff:
+    # User requirement: this module is a Top20 institutional-whale radar, not
+    # "up to whatever number the current variable happens to allow".  Therefore
+    # process at least the default Top20 unless a custom watchlist itself has
+    # fewer than 20 entries.
+    watchlist = _parse_watchlist()
+    target_count = min(len(watchlist), max(20, int(settings.institutional_13f_max_managers or 20)))
+    whales = watchlist[:target_count]
+    for idx, whale in enumerate(whales, start=1):
+        status = {
+            "rank": idx,
+            "manager": whale.manager,
+            "lead_investor": whale.lead_investor,
+            "cik": whale.cik,
+            "status": "PENDING",
+            "latest_period": "",
+            "period_count": 0,
+            "latest_rows": 0,
+            "total_rows": 0,
+            "message": "",
+        }
+        manager_total_rows = 0
+        manager_periods: set[str] = set()
+        try:
+            filings = _recent_13f_filings(whale.cik, user_agent, max_filings=settings.institutional_13f_filings_per_manager)
+            if not filings:
+                status["status"] = "NO_13F_FILINGS"
+                status["message"] = "SEC submissions 中未找到最近 13F-HR/13F-HR/A"
+                LAST_INSTITUTIONAL_13F_STATUS.append(status)
+                log.warning("13F manager status manager=%s status=%s message=%s", whale.manager, status["status"], status["message"])
                 continue
-            files = _filing_files(whale.cik, str(filing.get("accession") or ""), user_agent)
-            info_url = _pick_info_table(files)
-            if not info_url:
-                continue
-            try:
-                xml_bytes = _http_get(info_url, user_agent)
-            except Exception as exc:  # noqa: BLE001
-                log.warning("13F info table fetch failed manager=%s url=%s error=%s", whale.manager, info_url, exc)
-                continue
-            parsed = _parse_info_table(xml_bytes, whale, filing, info_url, max_rows=settings.institutional_13f_max_holdings_per_filing)
-            rows.extend(parsed)
-            log.info("13F parsed manager=%s accession=%s rows=%s", whale.manager, filing.get("accession"), len(parsed))
-    log.info("13F institutional holdings collected: %s", len(rows))
+            latest_period = str(filings[0].get("report_date") or "")[:10]
+            status["latest_period"] = latest_period
+            for filing_idx, filing in enumerate(filings):
+                try:
+                    fd = date.fromisoformat(str(filing.get("filing_date") or "1900-01-01")[:10])
+                except Exception:  # noqa: BLE001
+                    fd = date(1900, 1, 1)
+                if fd < cutoff:
+                    log.info("13F filing skipped by lookback manager=%s accession=%s filing_date=%s cutoff=%s", whale.manager, filing.get("accession"), fd, cutoff)
+                    continue
+                files = _filing_files(whale.cik, str(filing.get("accession") or ""), user_agent)
+                if not files:
+                    status["status"] = "INDEX_FETCH_EMPTY"
+                    status["message"] = f"{filing.get('accession')} 文件索引为空或读取失败"
+                    continue
+                info_url = _pick_info_table(files)
+                if not info_url:
+                    status["status"] = "NO_INFOTABLE"
+                    status["message"] = f"{filing.get('accession')} 未找到 information table XML/TXT"
+                    continue
+                try:
+                    xml_bytes = _http_get(info_url, user_agent)
+                except Exception as exc:  # noqa: BLE001
+                    status["status"] = "INFOTABLE_FETCH_FAILED"
+                    status["message"] = f"information table 读取失败：{exc}"
+                    log.warning("13F info table fetch failed manager=%s url=%s error=%s", whale.manager, info_url, exc)
+                    continue
+                parsed = _parse_info_table(xml_bytes, whale, filing, info_url, max_rows=settings.institutional_13f_max_holdings_per_filing)
+                rows.extend(parsed)
+                manager_total_rows += len(parsed)
+                period = str(filing.get("report_date") or "")[:10]
+                if parsed and period:
+                    manager_periods.add(period)
+                if filing_idx == 0:
+                    status["latest_rows"] = len(parsed)
+                log.info("13F parsed manager=%s accession=%s rows=%s", whale.manager, filing.get("accession"), len(parsed))
+            status["period_count"] = len(manager_periods)
+            status["total_rows"] = manager_total_rows
+            if manager_total_rows <= 0:
+                status["status"] = status["status"] if status["status"] != "PENDING" else "PARSED_ZERO_ROWS"
+                status["message"] = status["message"] or "最近 13F 文件读取后未解析出有效持仓行"
+            elif len(manager_periods) >= 2:
+                status["status"] = "OK_COMPARABLE"
+                status["message"] = "已采集最近两期，可用于加/减仓比较"
+            else:
+                status["status"] = "OK_LATEST_ONLY"
+                status["message"] = "已采集最新期，但缺少上一期可比数据"
+        except Exception as exc:  # noqa: BLE001
+            status["status"] = "MANAGER_FAILED"
+            status["message"] = str(exc)[:240]
+            log.warning("13F manager collection failed manager=%s error=%s", whale.manager, exc)
+        LAST_INSTITUTIONAL_13F_STATUS.append(status)
+        log.info("13F manager status rank=%s manager=%s status=%s latest_period=%s period_count=%s rows=%s message=%s", status["rank"], whale.manager, status["status"], status["latest_period"], status["period_count"], status["total_rows"], status["message"])
+    ok = sum(1 for s in LAST_INSTITUTIONAL_13F_STATUS if str(s.get("status", "")).startswith("OK"))
+    comparable = sum(1 for s in LAST_INSTITUTIONAL_13F_STATUS if s.get("status") == "OK_COMPARABLE")
+    log.info("13F institutional holdings collected: rows=%s target_managers=%s ok_latest=%s ok_comparable=%s", len(rows), len(whales), ok, comparable)
     return rows
 
 

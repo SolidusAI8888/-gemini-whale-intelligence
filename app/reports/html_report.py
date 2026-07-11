@@ -9,6 +9,7 @@ import re
 from typing import Iterable, Mapping
 
 from app.config import settings
+from app.collectors.sec_13f import DEFAULT_INSTITUTIONAL_WHALES
 
 
 TRUMP_HIGHLIGHT_RE = re.compile(r"(Donald\s+J\.\s+Trump|Donald\s+Trump|Trump|特朗普)", re.I)
@@ -112,10 +113,9 @@ def _institutional_13f_amount_usd(t: Mapping) -> float:
     """Return a display-safe 13F market value in dollars.
 
     SEC 13F information-table ``value`` is reported in thousands of dollars.
-    Older cached rows in this project may already have amount_usd inflated by
-    another 1000x.  The report layer must therefore prefer the raw SEC value
-    and normalize defensively, so a stale DB cache can never show trillion-scale
-    active-manager single positions again.
+    The display layer prefers the raw SEC value and also guards legacy cached
+    rows where both ``amount_usd`` and/or ``value_reported`` were accidentally
+    inflated 1000x.
     """
     current = _safe_float(t.get("amount_usd"))
     if not _is_institutional_13f(t):
@@ -125,30 +125,32 @@ def _institutional_13f_amount_usd(t: Mapping) -> float:
     reported = obj.get("value_reported")
     if reported is None:
         reported = obj.get("value_thousands_usd")
+    normalized = current
     if reported is not None:
         try:
             reported_value = float(str(reported).replace(",", ""))
             unit = str(obj.get("value_unit") or "thousands_usd").lower()
-            if unit in {"usd", "usd_normalized", "dollars"}:
-                normalized = reported_value
-            else:
-                # SEC 13F XML <value> is normally in thousands of dollars, but
-                # legacy cached rows may have written an already-normalized USD
-                # value back into value_reported while still labeling it
-                # thousands_usd. Convert once, then apply a strict display guard.
-                normalized = reported_value * 1000.0
-            while normalized > 100_000_000_000:
-                normalized /= 1000.0
-            return normalized
+            normalized = reported_value if unit in {"usd", "usd_normalized", "dollars"} else reported_value * 1000.0
         except Exception:  # noqa: BLE001
-            pass
+            normalized = current
 
-    # Final presentation guard for legacy rows without raw_json.  A single
-    # active-manager 13F line above $100B in this project has consistently been
-    # the known 1000x bug, not a real holding.
-    normalized = current
-    while normalized > 100_000_000_000:
+    # Heuristic guard.  For normal common stocks/ETFs, implied 13F value per
+    # share above $10,000 is almost always the known 1000x bug.  Avoid applying
+    # this to BRK.A-like ultra-high-price securities.
+    ticker = str(t.get("ticker") or "").upper().replace("/", ".")
+    shares = _safe_float(t.get("shares") or obj.get("share_amount"))
+    exempt_ultra_price = ticker in {"BRK.A", "BRK-A", "NVR"}
+    while shares >= 1000 and not exempt_ultra_price and normalized / shares > 10_000 and normalized > 1_000_000:
         normalized /= 1000.0
+
+    # Final project-level guard for active-manager single rows without usable
+    # share data.  Berkshire's AAPL can be very large, so exempt that specific
+    # well-known combination; other >$100B single active-manager lines have been
+    # stale-cache scale errors in this scanner.
+    manager = str(obj.get("manager") or t.get("insider_role") or "")
+    if not ("Berkshire" in manager and ticker == "AAPL"):
+        while normalized > 100_000_000_000:
+            normalized /= 1000.0
     return normalized
 
 
@@ -539,6 +541,7 @@ def _institutional_13f_consensus_rows(holdings: list[Mapping], limit: int = 20) 
 
     consensus: dict[str, dict] = {}
     comparable_managers = 0
+    target_count = len(_target_13f_manager_rows())
     for manager, periods in by_manager_period.items():
         ordered_periods = sorted(periods.keys(), reverse=True)
         if len(ordered_periods) < 2:
@@ -672,6 +675,94 @@ def _display_manager_name(manager: str, manager_lead: dict[str, str]) -> str:
     lead = manager_lead.get(manager, "")
     return f"{manager} / {lead}" if lead and lead not in manager else manager
 
+def _target_13f_manager_rows() -> list[dict]:
+    return [
+        {"rank": i, "manager": w.manager, "lead_investor": w.lead_investor, "cik": w.cik}
+        for i, w in enumerate(DEFAULT_INSTITUTIONAL_WHALES[:20], start=1)
+    ]
+
+
+def _institutional_13f_coverage(holdings: list[Mapping], status_rows: list[Mapping] | None = None) -> tuple[list[dict], dict]:
+    by_manager_period, _ = _institutional_13f_manager_periods(holdings)
+    live_status = {str(s.get("manager") or ""): dict(s) for s in (status_rows or [])}
+    rows: list[dict] = []
+    target = _target_13f_manager_rows()
+    ok_latest = 0
+    ok_comparable = 0
+    for t in target:
+        manager = t["manager"]
+        periods = by_manager_period.get(manager, {})
+        ordered = sorted(periods.keys(), reverse=True)
+        latest_rows = len(periods[ordered[0]]) if ordered else 0
+        db_status = "OK_COMPARABLE" if len(ordered) >= 2 else ("OK_LATEST_ONLY" if ordered else "MISSING_IN_DB")
+        st = live_status.get(manager, {})
+        status = str(st.get("status") or db_status)
+        message = str(st.get("message") or "")
+        if status == "MISSING_IN_DB" and not message:
+            message = "数据库中未找到该机构最新13F持仓；需查看 Actions 日志中的该机构采集状态"
+        if ordered:
+            ok_latest += 1
+        if len(ordered) >= 2:
+            ok_comparable += 1
+        rows.append({
+            "rank": t["rank"],
+            "manager": manager,
+            "lead_investor": t["lead_investor"],
+            "cik": t["cik"],
+            "status": status,
+            "latest_period": ordered[0] if ordered else str(st.get("latest_period") or ""),
+            "period_count": len(ordered) if ordered else int(st.get("period_count") or 0),
+            "latest_rows": latest_rows if ordered else int(st.get("latest_rows") or 0),
+            "message": message,
+        })
+    summary = {"target": len(target), "ok_latest": ok_latest, "ok_comparable": ok_comparable, "missing": len(target) - ok_latest}
+    return rows, summary
+
+
+def _status_label_13f(status: str) -> str:
+    mapping = {
+        "OK_COMPARABLE": "成功：两期可比",
+        "OK_LATEST_ONLY": "仅最新期",
+        "MISSING_IN_DB": "未入库",
+        "NO_13F_FILINGS": "无13F",
+        "NO_INFOTABLE": "未找到InfoTable",
+        "INDEX_FETCH_EMPTY": "索引读取失败/为空",
+        "INFOTABLE_FETCH_FAILED": "InfoTable读取失败",
+        "PARSED_ZERO_ROWS": "解析0行",
+        "MANAGER_FAILED": "采集失败",
+    }
+    return mapping.get(status, status or "未知")
+
+
+def _institutional_13f_coverage_table(holdings: list[Mapping], status_rows: list[Mapping] | None = None) -> str:
+    rows, summary = _institutional_13f_coverage(holdings, status_rows)
+    html_rows = []
+    for r in rows:
+        row_class = "" if str(r["status"]).startswith("OK") else "row-new"
+        cells = [
+            escape(str(r["rank"])),
+            escape(r["manager"]),
+            escape(r["lead_investor"]),
+            escape(r["cik"]),
+            escape(_status_label_13f(str(r["status"]))),
+            escape(str(r["latest_period"] or "-")),
+            escape(str(r["period_count"] or 0)),
+            escape(str(r["latest_rows"] or 0)),
+            escape(str(r["message"] or "-")[:180]),
+        ]
+        html_rows.append((row_class, cells) if row_class else cells)
+    coverage_note = (
+        f"目标Top20；最新期成功 {summary['ok_latest']}/{summary['target']}；"
+        f"最近两期可比 {summary['ok_comparable']}/{summary['target']}；"
+        f"缺失 {summary['missing']} 家。"
+    )
+    table = _table(
+        ["序号", "机构", "代表人物", "CIK", "状态", "最新报告期", "已入库期数", "最新期行数", "诊断"],
+        html_rows,
+        empty="暂无13F采集覆盖率数据。",
+    )
+    return f'<p class="small"><b>覆盖率：</b>{escape(coverage_note)}</p>{table}'
+
 
 def _issuer_from_13f_row(row: Mapping) -> str:
     obj = _raw_json_obj(row)
@@ -684,6 +775,7 @@ def _institutional_13f_current_concentration_rows(holdings: list[Mapping], limit
     aggregate: dict[str, dict] = {}
     latest_total = 0.0
     comparable_managers = 0
+    target_count = len(_target_13f_manager_rows())
     for manager, periods in by_manager_period.items():
         ordered_periods = sorted(periods.keys(), reverse=True)
         if not ordered_periods:
@@ -719,7 +811,7 @@ def _institutional_13f_current_concentration_rows(holdings: list[Mapping], limit
             escape(str(len(item["holders"]))),
             escape("；".join(holders) or "-"),
             escape("；".join(sorted(item["periods"])) or "-"),
-            escape(f"基于{comparable_managers}家已采集最新期13F"),
+            escape(("完整Top20样本" if comparable_managers >= target_count else f"不完整样本：{comparable_managers}/{target_count}家已采集最新期13F")),
         ])
     return rows
 
@@ -729,6 +821,7 @@ def _institutional_13f_delta_concentration_rows(holdings: list[Mapping], directi
     by_manager_period, manager_lead = _institutional_13f_manager_periods(holdings)
     aggregate: dict[str, dict] = {}
     comparable_managers = 0
+    target_count = len(_target_13f_manager_rows())
     for manager, periods in by_manager_period.items():
         ordered_periods = sorted(periods.keys(), reverse=True)
         if len(ordered_periods) < 2:
@@ -782,7 +875,7 @@ def _institutional_13f_delta_concentration_rows(holdings: list[Mapping], directi
             notes.append(f"新建仓{item['new_count']}家")
         if direction == "decrease" and item["exit_count"]:
             notes.append(f"清仓/退出{item['exit_count']}家")
-        notes.append(f"可比机构数：{comparable_managers}")
+        notes.append("完整Top20可比样本" if comparable_managers >= target_count else f"不完整可比样本：{comparable_managers}/{target_count}家")
         rows.append([
             f"<b>{escape(item['ticker'])}</b>",
             escape(item["issuer"][:80] or "-"),
@@ -975,6 +1068,7 @@ def build_html_report(
     oge_executive_trades: list[Mapping] | None = None,
     oge_summary: list[Mapping] | None = None,
     institutional_13f_holdings: list[Mapping] | None = None,
+    institutional_13f_status: list[Mapping] | None = None,
     new_since: str | None = None,
     baseline_trade_count: int = 0,
 ) -> str:
@@ -986,6 +1080,7 @@ def build_html_report(
     core_sell_trades = core_sell_trades or []
     oge_executive_trades = oge_executive_trades or []
     institutional_13f_holdings = institutional_13f_holdings or []
+    institutional_13f_status = institutional_13f_status or []
 
     all_recent = [t for t in recent_trades if _trade_date_ok(t) and not _is_institutional_13f(t)]
     # Political trading details must include only real BUY/SELL/EXCHANGE records.
@@ -1034,6 +1129,7 @@ def build_html_report(
     institutional_13f_current_concentration_table = _institutional_13f_current_concentration_table(institutional_13f_holdings, limit=5)
     institutional_13f_increase_concentration_table = _institutional_13f_increase_concentration_table(institutional_13f_holdings, limit=5)
     institutional_13f_decrease_concentration_table = _institutional_13f_decrease_concentration_table(institutional_13f_holdings, limit=5)
+    institutional_13f_coverage_table = _institutional_13f_coverage_table(institutional_13f_holdings, institutional_13f_status)
     institutional_13f_table = _table(["机构", "代表人物", "标的", "发行人", "13F市值", "股数", "报告期", "披露日", "来源"], _institutional_13f_rows(institutional_13f_holdings, limit=50, new_since=new_since), empty="暂无机构巨鲸 13F 持仓披露。")
 
     html = f"""
@@ -1109,8 +1205,11 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 
 <h2>四、机构巨鲸 13F 持仓雷达</h2>
 <p class="note">13F 是机构投资经理的季度持仓披露，不代表实时买入/卖出交易。表中的“报告期”是季度末持仓日，“披露日”是 13F 文件提交日。</p>
+<h3>13F Top20 机构采集覆盖率</h3>
+<p class="small">口径：固定目标为默认Top20机构巨鲸；少于20家时，下面所有13F Top5分析都属于“不完整样本”，不能解读为完整Top20结论。</p>
+{institutional_13f_coverage_table}
 <h3>13F 最新持仓集中度 Top 5</h3>
-<p class="small">口径：汇总 Top20 机构巨鲸最新一期 13F 已采集持仓，按同一股票在这些机构中的合计13F市值排序；13F 为季度末持仓，不代表实时交易。</p>
+<p class="small">口径：汇总 Top20 机构巨鲸最新一期 13F 持仓，按同一股票在这些机构中的合计13F市值排序；若覆盖率不足20家，表格备注会明确标记为不完整样本。</p>
 {institutional_13f_current_concentration_table}
 <h3>13F 加仓 / 新建仓集中度 Top 5（最近两期）</h3>
 <p class="small">口径：比较同一机构最近两期13F，汇总各机构对同一股票的正向变化；“新建仓”表示上一期未持有、本期持有。</p>
