@@ -468,34 +468,40 @@ def _executive_asset_rows(oge_trades: list[Mapping], price_by_ticker: dict[str, 
     return rows
 
 
-def _institutional_13f_rows(holdings: list[Mapping], limit: int = 60, new_since: str | None = None) -> list[list[str] | tuple[str, list[str]]]:
-    # Keep each institution's holdings together.  Institutions are ordered by
-    # their largest visible holding value; holdings inside each institution are
-    # sorted by holding market value descending.
-    groups: dict[str, list[Mapping]] = defaultdict(list)
-    for h in holdings:
-        if not _is_institutional_13f(h):
-            continue
-        obj = _raw_json_obj(h)
-        manager = str(obj.get("manager") or h.get("insider_role") or h.get("whale_name") or "Unknown manager")
-        groups[manager].append(h)
+def _institutional_13f_rows(
+    holdings: list[Mapping],
+    limit: int = 100,
+    new_since: str | None = None,
+    per_manager_limit: int = 5,
+) -> list[list[str] | tuple[str, list[str]]]:
+    """Show latest-period Top N holdings for every collected target manager.
 
-    ordered_groups = sorted(
-        groups.items(),
-        key=lambda kv: max((_institutional_13f_amount_usd(x) for x in kv[1]), default=0.0),
-        reverse=True,
+    Earlier versions globally sorted all 13F rows by amount and then truncated,
+    which allowed one or two large managers to occupy the whole details table.
+    This table is a coverage/detail view, so it must be balanced by manager.
+    """
+    by_manager_period, manager_lead = _institutional_13f_manager_periods(holdings)
+    target_order = {r["manager"]: int(r["rank"]) for r in _target_13f_manager_rows()}
+    managers = sorted(
+        by_manager_period.keys(),
+        key=lambda m: (target_order.get(m, 999), m),
     )
     rows = []
     used = 0
-    for manager, group_rows in ordered_groups:
-        group_rows = sorted(group_rows, key=lambda h: _institutional_13f_amount_usd(h), reverse=True)
+    for manager in managers:
+        periods = by_manager_period.get(manager, {})
+        ordered_periods = sorted(periods.keys(), reverse=True)
+        if not ordered_periods:
+            continue
+        latest_p = ordered_periods[0]
+        group_rows = sorted(periods[latest_p].values(), key=lambda h: _institutional_13f_amount_usd(h), reverse=True)[:per_manager_limit]
         first = True
         for h in group_rows:
             if used >= limit:
                 return rows
             obj = _raw_json_obj(h)
             issuer = str(obj.get("nameOfIssuer") or h.get("company_name") or h.get("ticker") or "")
-            lead = str(obj.get("lead_investor") or h.get("whale_name") or "")
+            lead = str(obj.get("lead_investor") or manager_lead.get(manager) or h.get("whale_name") or "")
             cells = [
                 escape(manager if first else ""),
                 escape(lead if first else ""),
@@ -769,8 +775,8 @@ def _issuer_from_13f_row(row: Mapping) -> str:
     return str(obj.get("nameOfIssuer") or row.get("company_name") or row.get("ticker") or "")
 
 
-def _institutional_13f_current_concentration_rows(holdings: list[Mapping], limit: int = 5) -> list[list[str]]:
-    """Top current holdings across the latest report for each top-20 manager."""
+def _institutional_13f_current_concentration_items(holdings: list[Mapping], limit: int = 5) -> list[dict]:
+    """Top current 13F holdings by institution-count concentration, not dollars."""
     by_manager_period, manager_lead = _institutional_13f_manager_periods(holdings)
     aggregate: dict[str, dict] = {}
     latest_total = 0.0
@@ -793,31 +799,46 @@ def _institutional_13f_current_concentration_rows(holdings: list[Mapping], limit
                 "amount": 0.0,
                 "holders": [],
                 "periods": set(),
+                "sample_note": "",
             })
             if not item["issuer"]:
                 item["issuer"] = _issuer_from_13f_row(h)
             item["amount"] += amount
             item["holders"].append((_display_manager_name(manager, manager_lead), amount))
             item["periods"].add(latest_p)
+    items = []
+    for item in aggregate.values():
+        # Concentration means multiple institutions taking the same position.
+        if len(item["holders"]) < 2:
+            continue
+        item["share_pct"] = (item["amount"] / latest_total * 100) if latest_total > 0 else None
+        item["manager_count"] = len(item["holders"])
+        item["sample_note"] = "完整Top20样本" if comparable_managers >= target_count else f"不完整样本：{comparable_managers}/{target_count}家已采集最新期13F"
+        items.append(item)
+    items.sort(key=lambda x: (x["manager_count"], x["amount"]), reverse=True)
+    return items[:limit]
+
+
+def _institutional_13f_current_concentration_rows(holdings: list[Mapping], limit: int = 5) -> list[list[str]]:
     rows = []
-    for item in sorted(aggregate.values(), key=lambda x: x["amount"], reverse=True)[:limit]:
+    for item in _institutional_13f_current_concentration_items(holdings, limit=limit):
         holders = [name for name, _ in sorted(item["holders"], key=lambda kv: kv[1], reverse=True)[:6]]
-        pct = f"{(item['amount'] / latest_total * 100):.1f}%" if latest_total > 0 else "-"
+        pct = f"{item['share_pct']:.1f}%" if item.get("share_pct") is not None else "-"
         rows.append([
             f"<b>{escape(item['ticker'])}</b>",
             escape(item["issuer"][:80] or "-"),
             _money(item["amount"]),
             escape(pct),
-            escape(str(len(item["holders"]))),
+            escape(str(item["manager_count"])),
             escape("；".join(holders) or "-"),
             escape("；".join(sorted(item["periods"])) or "-"),
-            escape(("完整Top20样本" if comparable_managers >= target_count else f"不完整样本：{comparable_managers}/{target_count}家已采集最新期13F")),
+            escape(item["sample_note"]),
         ])
     return rows
 
 
-def _institutional_13f_delta_concentration_rows(holdings: list[Mapping], direction: str, limit: int = 5) -> list[list[str]]:
-    """Top aggregate increases/new positions or reductions/exits between the latest two 13F periods."""
+def _institutional_13f_delta_concentration_items(holdings: list[Mapping], direction: str, limit: int = 5) -> list[dict]:
+    """Top 13F increases/decreases by number of institutions making the same move."""
     by_manager_period, manager_lead = _institutional_13f_manager_periods(holdings)
     aggregate: dict[str, dict] = {}
     comparable_managers = 0
@@ -853,6 +874,7 @@ def _institutional_13f_delta_concentration_rows(holdings: list[Mapping], directi
                 "new_count": 0,
                 "exit_count": 0,
                 "periods": set(),
+                "sample_note": "",
             })
             if not item["issuer"]:
                 item["issuer"] = _issuer_from_13f_row(source_row)
@@ -866,22 +888,36 @@ def _institutional_13f_delta_concentration_rows(holdings: list[Mapping], directi
             item["managers"].append((_display_manager_name(manager, manager_lead), abs(delta)))
             item["periods"].add(f"{prev_p}→{latest_p}")
     total_abs = sum(item["delta_abs"] for item in aggregate.values())
+    items = []
+    for item in aggregate.values():
+        # Concentration means at least two institutions made the same directional move.
+        if len(item["managers"]) < 2:
+            continue
+        item["share_pct"] = (item["delta_abs"] / total_abs * 100) if total_abs > 0 else None
+        item["manager_count"] = len(item["managers"])
+        item["sample_note"] = "完整Top20可比样本" if comparable_managers >= target_count else f"不完整可比样本：{comparable_managers}/{target_count}家"
+        items.append(item)
+    items.sort(key=lambda x: (x["manager_count"], x["delta_abs"]), reverse=True)
+    return items[:limit]
+
+
+def _institutional_13f_delta_concentration_rows(holdings: list[Mapping], direction: str, limit: int = 5) -> list[list[str]]:
     rows = []
-    for item in sorted(aggregate.values(), key=lambda x: x["delta_abs"], reverse=True)[:limit]:
+    for item in _institutional_13f_delta_concentration_items(holdings, direction=direction, limit=limit):
         managers = [name for name, _ in sorted(item["managers"], key=lambda kv: kv[1], reverse=True)[:6]]
-        pct = f"{(item['delta_abs'] / total_abs * 100):.1f}%" if total_abs > 0 else "-"
+        pct = f"{item['share_pct']:.1f}%" if item.get("share_pct") is not None else "-"
         notes = []
         if direction == "increase" and item["new_count"]:
             notes.append(f"新建仓{item['new_count']}家")
         if direction == "decrease" and item["exit_count"]:
             notes.append(f"清仓/退出{item['exit_count']}家")
-        notes.append("完整Top20可比样本" if comparable_managers >= target_count else f"不完整可比样本：{comparable_managers}/{target_count}家")
+        notes.append(item["sample_note"])
         rows.append([
             f"<b>{escape(item['ticker'])}</b>",
             escape(item["issuer"][:80] or "-"),
             _money(item["delta_abs"]),
             escape(pct),
-            escape(str(len(item["managers"]))),
+            escape(str(item["manager_count"])),
             escape("；".join(managers) or "-"),
             f"{_money(item['prev_total'])} → {_money(item['latest_total'])}",
             escape("；".join(sorted(item["periods"])) or "-"),
@@ -890,11 +926,55 @@ def _institutional_13f_delta_concentration_rows(holdings: list[Mapping], directi
     return rows
 
 
+def _institutional_13f_count_chart(items: list[dict], empty: str = "暂无至少2家机构共同集中的13F结论。", amount_key: str = "amount") -> str:
+    if not items:
+        return f"<p>{escape(empty)}</p>"
+    max_count = max([int(x.get("manager_count") or 0) for x in items] + [1])
+    html = ['<div class="chart">']
+    for item in items:
+        count = int(item.get("manager_count") or 0)
+        width = max(2, min(100, count / max_count * 100))
+        amount = _safe_float(item.get(amount_key))
+        ticker = str(item.get("ticker") or "")
+        issuer = str(item.get("issuer") or "")
+        html.append('<div class="bar-row">')
+        html.append(f'<div class="bar-label"><b>{escape(ticker)}</b> · {escape(issuer[:46])}</div>')
+        html.append(f'<div class="bar-track"><div class="bar other" style="width:{width:.1f}%"></div></div>')
+        html.append(f'<div class="bar-value">{escape(str(count))}家 · {escape(_money(amount))}</div>')
+        html.append('</div>')
+    html.append('</div>')
+    return "".join(html)
+
+
+def _institutional_13f_current_concentration_chart(holdings: list[Mapping], limit: int = 5) -> str:
+    return _institutional_13f_count_chart(
+        _institutional_13f_current_concentration_items(holdings, limit=limit),
+        empty="暂无至少2家机构共同持有的13F集中度结论。",
+        amount_key="amount",
+    )
+
+
+def _institutional_13f_increase_concentration_chart(holdings: list[Mapping], limit: int = 5) -> str:
+    return _institutional_13f_count_chart(
+        _institutional_13f_delta_concentration_items(holdings, direction="increase", limit=limit),
+        empty="暂无至少2家机构共同加仓/新建仓的13F集中度结论。",
+        amount_key="delta_abs",
+    )
+
+
+def _institutional_13f_decrease_concentration_chart(holdings: list[Mapping], limit: int = 5) -> str:
+    return _institutional_13f_count_chart(
+        _institutional_13f_delta_concentration_items(holdings, direction="decrease", limit=limit),
+        empty="暂无至少2家机构共同减仓/清仓的13F集中度结论。",
+        amount_key="delta_abs",
+    )
+
+
 def _institutional_13f_current_concentration_table(holdings: list[Mapping], limit: int = 5) -> str:
     return _table(
         ["标的", "发行人", "合计13F市值", "占最新持仓样本", "持有机构数", "主要持有机构", "报告期", "备注"],
         _institutional_13f_current_concentration_rows(holdings, limit=limit),
-        empty="暂无可用于计算当前13F集中度的机构持仓数据。",
+        empty="暂无至少2家机构共同持有的13F集中度结论。",
     )
 
 
@@ -902,7 +982,7 @@ def _institutional_13f_increase_concentration_table(holdings: list[Mapping], lim
     return _table(
         ["标的", "发行人", "合计加仓/新建仓", "占加仓样本", "加仓机构数", "主要加仓/新建仓机构", "上期→最新合计市值", "比较区间", "备注"],
         _institutional_13f_delta_concentration_rows(holdings, direction="increase", limit=limit),
-        empty="暂无足够的相邻两期 13F 数据或未检测到可比加仓/新建仓。请确保 INSTITUTIONAL_13F_FILINGS_PER_MANAGER=2 并成功采集最近两期13F。",
+        empty="暂无足够的相邻两期 13F 数据，或未检测到至少2家机构共同加仓/新建仓的标的。",
     )
 
 
@@ -910,7 +990,7 @@ def _institutional_13f_decrease_concentration_table(holdings: list[Mapping], lim
     return _table(
         ["标的", "发行人", "合计减仓/清仓", "占减仓样本", "减仓机构数", "主要减仓/清仓机构", "上期→最新合计市值", "比较区间", "备注"],
         _institutional_13f_delta_concentration_rows(holdings, direction="decrease", limit=limit),
-        empty="暂无足够的相邻两期 13F 数据或未检测到可比减仓/清仓。请确保 INSTITUTIONAL_13F_FILINGS_PER_MANAGER=2 并成功采集最近两期13F。",
+        empty="暂无足够的相邻两期 13F 数据，或未检测到至少2家机构共同减仓/清仓的标的。",
     )
 
 def _new_items_summary_rows(
@@ -1121,6 +1201,9 @@ def build_html_report(
     )
     business_chart = _ticker_comparison_chart(business_trades, price_by_ticker, top_tickers=10)
     political_chart = _ticker_comparison_chart(political_trades, price_by_ticker, top_tickers=12)
+    institutional_13f_current_concentration_chart = _institutional_13f_current_concentration_chart(institutional_13f_holdings, limit=5)
+    institutional_13f_increase_concentration_chart = _institutional_13f_increase_concentration_chart(institutional_13f_holdings, limit=5)
+    institutional_13f_decrease_concentration_chart = _institutional_13f_decrease_concentration_chart(institutional_13f_holdings, limit=5)
     business_summary = _action_summary_table(business_trades, price_by_ticker, limit=15)
     political_summary_table = _action_summary_table(political_trades, price_by_ticker, limit=18)
     business_details = _table(["交易日", "股票", "方向", "代码", "巨鲸", "角色", "金额", "标的说明", "来源"], _detail_rows(business_trades, price_by_ticker, limit=60, new_since=new_since))
@@ -1130,7 +1213,7 @@ def build_html_report(
     institutional_13f_increase_concentration_table = _institutional_13f_increase_concentration_table(institutional_13f_holdings, limit=5)
     institutional_13f_decrease_concentration_table = _institutional_13f_decrease_concentration_table(institutional_13f_holdings, limit=5)
     institutional_13f_coverage_table = _institutional_13f_coverage_table(institutional_13f_holdings, institutional_13f_status)
-    institutional_13f_table = _table(["机构", "代表人物", "标的", "发行人", "13F市值", "股数", "报告期", "披露日", "来源"], _institutional_13f_rows(institutional_13f_holdings, limit=50, new_since=new_since), empty="暂无机构巨鲸 13F 持仓披露。")
+    institutional_13f_table = _table(["机构", "代表人物", "标的", "发行人", "13F市值", "股数", "报告期", "披露日", "来源"], _institutional_13f_rows(institutional_13f_holdings, limit=120, per_manager_limit=5, new_since=new_since), empty="暂无机构巨鲸 13F 持仓披露。")
 
     html = f"""
 <!doctype html>
@@ -1154,7 +1237,7 @@ th {{ background: #f9fafb; text-align: left; }}
 .chart {{ border: 1px solid #e5e7eb; background: #fff; padding: 10px; margin: 10px 0 18px; }}
 .chart-group {{ margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #e5e7eb; }}
 .chart-title {{ margin-bottom: 5px; }}
-.bar-row {{ display: grid; grid-template-columns: 320px 1fr 95px; gap: 8px; align-items: center; margin: 4px 0; font-size: 12px; }}
+.bar-row {{ display: grid; grid-template-columns: 320px 1fr 135px; gap: 8px; align-items: center; margin: 4px 0; font-size: 12px; }}
 .bar-track {{ background: #f3f4f6; height: 12px; border-radius: 6px; overflow: hidden; }}
 .bar {{ height: 12px; border-radius: 6px; }}
 .bar.buy {{ background: #2563eb; }}
@@ -1185,6 +1268,15 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 {business_chart}
 <h3>政界巨鲸 BUY/SELL 对比图（股票/标的 × 政界巨鲸）</h3>
 {political_chart}
+<h3>13F 最新持仓集中度 Top 5（按持有机构数）</h3>
+<p class="small">口径：第一排序是持有该标的的机构数量，且至少2家机构共同持有；金额只作为同机构数下的第二排序。</p>
+{institutional_13f_current_concentration_chart}
+<h3>13F 加仓 / 新建仓集中度 Top 5（按加仓机构数）</h3>
+<p class="small">口径：第一排序是最近两期中共同加仓/新建仓该标的的机构数量，且至少2家机构同向行动；金额只作为第二排序。</p>
+{institutional_13f_increase_concentration_chart}
+<h3>13F 减仓 / 清仓集中度 Top 5（按减仓机构数）</h3>
+<p class="small">口径：第一排序是最近两期中共同减仓/清仓该标的的机构数量，且至少2家机构同向行动；金额只作为第二排序。</p>
+{institutional_13f_decrease_concentration_chart}
 
 <h2>二、商界巨鲸行动</h2>
 <p class="note">仅展示核心摘要与必要明细。更长的审计明细建议另存附件，不放入正式邮件正文。</p>
@@ -1209,15 +1301,16 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <p class="small">口径：固定目标为默认Top20机构巨鲸；少于20家时，下面所有13F Top5分析都属于“不完整样本”，不能解读为完整Top20结论。</p>
 {institutional_13f_coverage_table}
 <h3>13F 最新持仓集中度 Top 5</h3>
-<p class="small">口径：汇总 Top20 机构巨鲸最新一期 13F 持仓，按同一股票在这些机构中的合计13F市值排序；若覆盖率不足20家，表格备注会明确标记为不完整样本。</p>
+<p class="small">口径：汇总 Top20 机构巨鲸最新一期 13F 持仓，第一排序为持有同一股票的机构数量，且至少2家机构共同持有；金额仅作为同机构数下的第二排序。若覆盖率不足20家，表格备注会明确标记为不完整样本。</p>
 {institutional_13f_current_concentration_table}
 <h3>13F 加仓 / 新建仓集中度 Top 5（最近两期）</h3>
-<p class="small">口径：比较同一机构最近两期13F，汇总各机构对同一股票的正向变化；“新建仓”表示上一期未持有、本期持有。</p>
+<p class="small">口径：比较同一机构最近两期13F，第一排序为共同加仓/新建仓同一股票的机构数量，且至少2家机构同向行动；金额仅作为同机构数下的第二排序。“新建仓”表示上一期未持有、本期持有。</p>
 {institutional_13f_increase_concentration_table}
 <h3>13F 减仓 / 清仓集中度 Top 5（最近两期）</h3>
-<p class="small">口径：比较同一机构最近两期13F，汇总各机构对同一股票的负向变化绝对值；“清仓/退出”表示上一期持有、本期未持有。</p>
+<p class="small">口径：比较同一机构最近两期13F，第一排序为共同减仓/清仓同一股票的机构数量，且至少2家机构同向行动；金额仅作为同机构数下的第二排序。“清仓/退出”表示上一期持有、本期未持有。</p>
 {institutional_13f_decrease_concentration_table}
 <h3>机构巨鲸 13F 持仓明细</h3>
+<p class="small">口径：按机构分组展示每家已成功采集机构最新一期 Top 5 持仓，避免一两家大额机构占满整张明细表。</p>
 {institutional_13f_table}
 
 <h2>五、口径说明</h2>

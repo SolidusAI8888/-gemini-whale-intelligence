@@ -151,3 +151,34 @@ def test_institutional_13f_amount_guard_repairs_implied_price_1000x_rows():
     html = build_html_report(top_scores=[], recent_trades=[], institutional_13f_holdings=holdings, baseline_trade_count=10)
     assert "$497.04M" in html
     assert "$497.04B" not in html
+
+
+def test_13f_concentration_charts_are_in_first_summary_and_require_two_managers():
+    holdings = [
+        {"ticker":"AAA","action":"HOLDING_13F","whale_name":"Lead A","insider_role":"Manager A","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":5_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager A\",\"lead_investor\":\"Lead A\",\"nameOfIssuer\":\"AAA INC\",\"report_period\":\"2026-03-31\",\"value_reported\":5000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"AAA","action":"HOLDING_13F","whale_name":"Lead A","insider_role":"Manager A","source":"INSTITUTIONAL_13F","trade_date":"2025-12-31","filing_date":"2026-02-15","amount_usd":2_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager A\",\"lead_investor\":\"Lead A\",\"nameOfIssuer\":\"AAA INC\",\"report_period\":\"2025-12-31\",\"value_reported\":2000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"AAA","action":"HOLDING_13F","whale_name":"Lead B","insider_role":"Manager B","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":4_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager B\",\"lead_investor\":\"Lead B\",\"nameOfIssuer\":\"AAA INC\",\"report_period\":\"2026-03-31\",\"value_reported\":4000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"AAA","action":"HOLDING_13F","whale_name":"Lead B","insider_role":"Manager B","source":"INSTITUTIONAL_13F","trade_date":"2025-12-31","filing_date":"2026-02-15","amount_usd":3_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager B\",\"lead_investor\":\"Lead B\",\"nameOfIssuer\":\"AAA INC\",\"report_period\":\"2025-12-31\",\"value_reported\":3000000,\"value_unit\":\"thousands_usd\"}"},
+        {"ticker":"SOLO","action":"HOLDING_13F","whale_name":"Lead C","insider_role":"Manager C","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":99_000_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager C\",\"lead_investor\":\"Lead C\",\"nameOfIssuer\":\"SOLO INC\",\"report_period\":\"2026-03-31\",\"value_reported\":99000000,\"value_unit\":\"thousands_usd\"}"},
+    ]
+    html = build_html_report(top_scores=[], recent_trades=[], institutional_13f_holdings=holdings, baseline_trade_count=10)
+    first = html[html.index("一、今日结论总览"):html.index("二、商界巨鲸行动")]
+    assert "13F 最新持仓集中度 Top 5（按持有机构数）" in first
+    assert "13F 加仓 / 新建仓集中度 Top 5（按加仓机构数）" in first
+    assert "13F 减仓 / 清仓集中度 Top 5（按减仓机构数）" in first
+    assert "AAA" in first
+    assert "SOLO" not in first
+    assert "2家" in first
+
+
+def test_13f_detail_table_is_balanced_by_manager_latest_top5():
+    holdings = []
+    for i in range(7):
+        holdings.append({"ticker":f"A{i}","action":"HOLDING_13F","whale_name":"Lead A","insider_role":"Manager A","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":10_000_000_000-i,"shares":10,"raw_json":f"{{\"manager\":\"Manager A\",\"lead_investor\":\"Lead A\",\"nameOfIssuer\":\"A{i} INC\",\"report_period\":\"2026-03-31\",\"value_reported\":{10000000-i},\"value_unit\":\"thousands_usd\"}}"})
+    holdings.append({"ticker":"B0","action":"HOLDING_13F","whale_name":"Lead B","insider_role":"Manager B","source":"INSTITUTIONAL_13F","trade_date":"2026-03-31","filing_date":"2026-05-15","amount_usd":1_000_000,"shares":10,"raw_json":"{\"manager\":\"Manager B\",\"lead_investor\":\"Lead B\",\"nameOfIssuer\":\"B0 INC\",\"report_period\":\"2026-03-31\",\"value_reported\":1000,\"value_unit\":\"thousands_usd\"}"})
+    html = build_html_report(top_scores=[], recent_trades=[], institutional_13f_holdings=holdings, baseline_trade_count=10)
+    detail = html[html.index("机构巨鲸 13F 持仓明细"):]
+    assert "Manager A" in detail and "Manager B" in detail
+    assert "A0" in detail and "A4" in detail
+    assert "A5" not in detail and "A6" not in detail
+    assert "B0" in detail
