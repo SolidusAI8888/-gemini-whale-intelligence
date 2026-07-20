@@ -1132,6 +1132,27 @@ def _highlight_names_in_html(html: str) -> str:
     return head + highlighted + tail
 
 
+def _wis_ranking_table(rows: list[Mapping] | None, mode: str) -> str:
+    rows = rows or []
+    table_rows = []
+    for idx, row in enumerate(rows[:10], start=1):
+        primary = row.get("risk_score") if mode == "risk" else row.get("resonance_score") if mode == "resonance" else row.get("opportunity_score")
+        table_rows.append([
+            idx,
+            escape(str(row.get("ticker") or "")),
+            f"{float(row.get('wis_score') or 0):.1f}",
+            f"{float(primary or 0):.1f}",
+            f"{float(row.get('confidence') or 0):.0f}%",
+            f"{float(row.get('form4_score') or 0):.1f}",
+            f"{float(row.get('institutional_score') or 0):.1f}",
+            f"{float(row.get('congress_score') or 0):.1f}",
+            f"L{int(row.get('resonance_level') or 0)} / {float(row.get('resonance_score') or 0):.1f}",
+            escape(", ".join(row.get("major_actors") or [])),
+        ])
+    primary_name = {"risk": "风险分", "resonance": "共振分"}.get(mode, "机会分")
+    return _table(["#", "股票", "WIS", primary_name, "置信度", "Form4", "13F", "Congress/OGE", "共振", "主要巨鲸"], table_rows, empty="暂无可计算的 WIS 信号。")
+
+
 def build_html_report(
     top_scores: list[Mapping],
     recent_trades: list[Mapping],
@@ -1151,6 +1172,7 @@ def build_html_report(
     institutional_13f_status: list[Mapping] | None = None,
     new_since: str | None = None,
     baseline_trade_count: int = 0,
+    wis_rankings: Mapping[str, list[Mapping]] | None = None,
 ) -> str:
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     price_by_ticker = _market_price_map(market_context)
@@ -1161,6 +1183,10 @@ def build_html_report(
     oge_executive_trades = oge_executive_trades or []
     institutional_13f_holdings = institutional_13f_holdings or []
     institutional_13f_status = institutional_13f_status or []
+    wis_rankings = wis_rankings or {}
+    wis_opportunities = _wis_ranking_table(list(wis_rankings.get("opportunities") or []), "opportunity")
+    wis_risks = _wis_ranking_table(list(wis_rankings.get("risks") or []), "risk")
+    wis_resonance = _wis_ranking_table(list(wis_rankings.get("resonance") or []), "resonance")
 
     all_recent = [t for t in recent_trades if _trade_date_ok(t) and not _is_institutional_13f(t)]
     # Political trading details must include only real BUY/SELL/EXCHANGE records.
@@ -1257,6 +1283,15 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <div class="{change_class}">{escape(change_text)}</div>
 <p class="small">变化口径：{escape(change_note)}</p>
 <p class="notice"><b>报告定位：</b>快速了解近期商界/政界巨鲸在美股及公开投资标的上的真金白银 BUY/SELL 披露。金额来自公开披露，政治期权默认按披露金额区间排序，名义敞口只作备注；本报告不构成个性化投资建议。</p>
+
+<h2>Whale Intelligence Score（V39.0）</h2>
+<p class="note">统一评分权重：Form4 20% · 13F 30% · Congress/OGE 20% · 跨来源共振 30%。榜单固定展示 Top10。</p>
+<h3>Top10 Opportunities</h3>
+{wis_opportunities}
+<h3>Top10 Risks</h3>
+{wis_risks}
+<h3>Top10 Most Resonant Stocks</h3>
+{wis_resonance}
 
 <h2>一、今日结论总览</h2>
 <p class="note">本部分集中展示所有核心图示。图示以股票/标的为纲，同一股票的 BUY 与 SELL 放在同一图组中对比，旁边列出主要巨鲸和交易日期。</p>

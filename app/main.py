@@ -37,6 +37,7 @@ from app.db import (
     normalize_institutional_13f_amounts,
 )
 from app.llm.gemini_analyzer import analyze_with_gemini
+from app.intelligence import build_rankings, load_wis_config, normalize_trades, score_signals
 from app.reports.html_report import build_html_report, save_report
 from app.reports.mailer import send_report
 
@@ -124,6 +125,15 @@ def run_scan() -> dict:
             scoring_base = [t for t in trades if str(t.get("trade_date") or t.get("filing_date") or "")[:10] >= settings.scan_start_date]
         consensus_rows = build_consensus_scores(scoring_base)
         scored = score_opportunities(consensus_rows)
+
+        # V39.0 unified Whale Intelligence Score (WIS). This runs in parallel
+        # with the legacy opportunity score so existing report sections remain
+        # backward compatible while the new Top10 rankings are introduced.
+        wis_config = load_wis_config()
+        wis_signals = normalize_trades(scoring_base)
+        wis_scores = score_signals(wis_signals, wis_config)
+        wis_rankings = build_rankings(wis_scores, wis_config.top_n)
+        log.info("WIS generated: signals=%s tickers=%s", len(wis_signals), len(wis_scores))
         # Pull market/valuation/sentiment context for the highest-interest tickers,
         # then apply a small, transparent adjustment to opportunity scores.
         candidate_symbols = [row["ticker"] for row in sorted(scored, key=lambda r: r.get("opportunity_score", 0), reverse=True)]
@@ -195,6 +205,7 @@ def run_scan() -> dict:
             institutional_13f_status=institutional_13f_status,
             new_since=run_started_at if baseline_trade_count > 0 else None,
             baseline_trade_count=baseline_trade_count,
+            wis_rankings=wis_rankings,
         )
         path = save_report(html)
         report_path = str(path)

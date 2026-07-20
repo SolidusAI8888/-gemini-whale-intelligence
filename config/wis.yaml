@@ -1,0 +1,11 @@
+weights:
+  form4: 0.20
+  institutional: 0.30
+  congress_oge: 0.20
+  resonance: 0.30
+ranking:
+  top_n: 10
+resonance:
+  level_1_sources: 2
+  level_2_sources: 3
+  level_3_sources: 4
