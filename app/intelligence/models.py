@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from datetime import date
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 
@@ -17,6 +16,13 @@ class SignalDirection(str, Enum):
     BULLISH = "BULLISH"
     BEARISH = "BEARISH"
     NEUTRAL = "NEUTRAL"
+
+
+class ResonanceDirection(str, Enum):
+    BULLISH = "BULLISH"
+    BEARISH = "BEARISH"
+    CONFLICTED = "CONFLICTED"
+    NONE = "NONE"
 
 
 @dataclass(frozen=True)
@@ -40,6 +46,23 @@ class Signal:
         return data
 
 
+@dataclass(frozen=True)
+class ResonanceResult:
+    score: float
+    signed_score: float
+    level: int
+    direction: ResonanceDirection
+    sources: list[str]
+    bullish_sources: list[str]
+    bearish_sources: list[str]
+
+    def __iter__(self):
+        """Backward-compatible unpacking: score, level, sources."""
+        yield self.score
+        yield self.level
+        yield self.sources
+
+
 @dataclass
 class WISScore:
     ticker: str
@@ -48,12 +71,24 @@ class WISScore:
     risk_score: float
     confidence: float
     momentum: float
-    form4_score: float
-    institutional_score: float
-    congress_score: float
+    form4_score: float | None
+    institutional_score: float | None
+    congress_score: float | None
     resonance_score: float
+    resonance_signed_score: float
     resonance_level: int
+    resonance_direction: str
+    resonance_sources: list[str]
     sources: list[str]
+    effective_sources: list[str]
+    coverage_count: int
+    coverage_total: int
+    coverage_ratio: float
+    coverage_label: str
+    signal_count: int
+    freshness_days: int | None
+    freshness_label: str
+    low_coverage: bool
     major_actors: list[str]
     explanation: str
 
