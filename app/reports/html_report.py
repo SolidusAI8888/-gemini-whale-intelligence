@@ -1135,22 +1135,42 @@ def _highlight_names_in_html(html: str) -> str:
 def _wis_ranking_table(rows: list[Mapping] | None, mode: str) -> str:
     rows = rows or []
     table_rows = []
+
+    def score_text(value) -> str:
+        return "N/A" if value is None else f"{float(value):.1f}"
+
     for idx, row in enumerate(rows[:10], start=1):
         primary = row.get("risk_score") if mode == "risk" else row.get("resonance_score") if mode == "resonance" else row.get("opportunity_score")
+        coverage = str(row.get("coverage_label") or f"{int(row.get('coverage_count') or 0)}/{int(row.get('coverage_total') or 3)} Sources")
+        if row.get("low_coverage"):
+            coverage += " / Low Coverage"
+        resonance_sources = ", ".join(row.get("resonance_sources") or []) or "N/A"
+        resonance = (
+            f"{escape(str(row.get('resonance_direction') or 'NONE').title())} "
+            f"L{int(row.get('resonance_level') or 0)} / "
+            f"{float(row.get('resonance_signed_score') or 0):+.1f} / {escape(resonance_sources)}"
+        )
         table_rows.append([
             idx,
             escape(str(row.get("ticker") or "")),
-            f"{float(row.get('wis_score') or 0):.1f}",
-            f"{float(primary or 0):.1f}",
+            score_text(row.get("wis_score")),
+            score_text(primary),
             f"{float(row.get('confidence') or 0):.0f}%",
-            f"{float(row.get('form4_score') or 0):.1f}",
-            f"{float(row.get('institutional_score') or 0):.1f}",
-            f"{float(row.get('congress_score') or 0):.1f}",
-            f"L{int(row.get('resonance_level') or 0)} / {float(row.get('resonance_score') or 0):.1f}",
+            escape(coverage),
+            int(row.get("signal_count") or 0),
+            escape(str(row.get("freshness_label") or "N/A")),
+            score_text(row.get("form4_score")),
+            score_text(row.get("institutional_score")),
+            score_text(row.get("congress_score")),
+            resonance,
             escape(", ".join(row.get("major_actors") or [])),
         ])
     primary_name = {"risk": "风险分", "resonance": "共振分"}.get(mode, "机会分")
-    return _table(["#", "股票", "WIS", primary_name, "置信度", "Form4", "13F", "Congress/OGE", "共振", "主要巨鲸"], table_rows, empty="暂无可计算的 WIS 信号。")
+    return _table(
+        ["#", "股票", "WIS", primary_name, "置信度", "覆盖率", "信号数", "新鲜度", "Form4", "13F", "Congress/OGE", "共振方向/等级/来源", "主要巨鲸"],
+        table_rows,
+        empty="暂无符合覆盖率与可信度准入条件的 WIS 信号。",
+    )
 
 
 def build_html_report(

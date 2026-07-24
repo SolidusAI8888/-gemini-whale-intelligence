@@ -203,3 +203,6 @@ FMP Congressional / Senate endpoint 对当前 key 若返回 402，说明需要�
 ## V13: OGE Executive Branch 模块
 
 V13 新增总统特朗普和部长/Cabinet-level 官员的 OGE 278-T/278e 披露追踪。请在 GitHub Secrets 中配置 `OGE_TRUMP_REPORT_URLS` 和可选的 `OGE_CABINET_REPORTS`。报告会单独生成“总统特朗普 OGE 投资披露专题”和“部长 / Cabinet OGE 披露雷达”。详见 `README_V13_OGE_EXECUTIVE_MODULE.md`。
+## V39.1 Signal Integrity
+
+See `README_V39_1_SIGNAL_INTEGRITY.md` for the dynamic-weight, confidence, signed-resonance, independent-risk, and ranking-integrity upgrade.

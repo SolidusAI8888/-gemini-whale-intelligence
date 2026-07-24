@@ -1,9 +1,16 @@
 from __future__ import annotations
 
-from datetime import date, datetime
 from typing import Iterable, Mapping, Any
 
 from app.intelligence.models import Signal, SignalDirection, SignalSource
+
+# Conservative seed map for common unresolved 13F CUSIPs. Unknown identifiers are
+# still excluded rather than guessed. Extend this map as verified mappings are added.
+CUSIP_TO_TICKER = {
+    "007903107": "AMD",
+    "N07059210": "ASML",
+    "512807108": "LRCX",
+}
 
 
 def _source(row: Mapping[str, Any]) -> SignalSource | None:
@@ -29,9 +36,20 @@ def _direction(action: str) -> SignalDirection:
     return SignalDirection.NEUTRAL
 
 
+def _normalize_ticker(row: Mapping[str, Any]) -> str:
+    raw = str(row.get("ticker") or "").strip().upper()
+    cusip = str(row.get("cusip") or "").strip().upper().replace(" ", "")
+    if raw.startswith("CUSIP:"):
+        cusip = raw.split(":", 1)[1].strip().replace(" ", "")
+        raw = ""
+    if raw and raw not in {"UNKNOWN", "N/A", "NONE", "NULL"}:
+        return raw
+    return CUSIP_TO_TICKER.get(cusip, "")
+
+
 def normalize_trade(row: Mapping[str, Any]) -> Signal | None:
-    ticker = str(row.get("ticker") or "").strip().upper()
-    if not ticker or ticker in {"UNKNOWN", "N/A"} or ticker.startswith("CUSIP:"):
+    ticker = _normalize_ticker(row)
+    if not ticker:
         return None
     source = _source(row)
     if source is None:
@@ -41,7 +59,10 @@ def normalize_trade(row: Mapping[str, Any]) -> Signal | None:
     if direction is SignalDirection.NEUTRAL:
         return None
     event_date = str(row.get("trade_date") or row.get("filing_date") or "")[:10]
-    amount = max(0.0, float(row.get("amount_usd") or 0.0))
+    try:
+        amount = max(0.0, float(row.get("amount_usd") or 0.0))
+    except (TypeError, ValueError):
+        amount = 0.0
     confidence = 0.75 if source in {SignalSource.FORM4, SignalSource.INSTITUTIONAL_13F} else 0.65
     return Signal(
         ticker=ticker,
@@ -60,6 +81,7 @@ def normalize_trade(row: Mapping[str, Any]) -> Signal | None:
             "filing_url": row.get("filing_url"),
             "shares": row.get("shares"),
             "price": row.get("price"),
+            "cusip": row.get("cusip"),
         },
     )
 
