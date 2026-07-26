@@ -1,0 +1,15 @@
+Product: Gemini Whale Intelligence
+Version: V39.1.1 Integrity Hotfix
+Build date: 2026-07-25
+Python test result: 41 passed
+
+Primary modified files:
+- app/intelligence/signal.py
+- app/intelligence/resonance.py
+- app/intelligence/score_engine.py
+- app/intelligence/ranking.py
+- app/collectors/sec_13f.py
+- app/reports/html_report.py
+- tests/test_wis_v39_1.py
+- CHANGELOG.md
+- README_V39_1_1_INTEGRITY_HOTFIX.md

@@ -80,6 +80,13 @@ ISSUER_TICKER_HINTS = {
     "CANADIAN PACIFIC": "CP",
 }
 
+CUSIP_TICKER_HINTS = {
+    "007903107": "AMD",
+    "N07059210": "ASML",
+    "512807306": "LRCX",
+    "512807108": "LRCX",
+}
+
 
 def _http_get(url: str, user_agent: str, timeout: int = 30) -> bytes:
     req = urllib.request.Request(url, headers={"User-Agent": user_agent, "Accept-Encoding": "identity"})
@@ -167,6 +174,9 @@ def _pick_info_table(files: Iterable[str]) -> str | None:
 
 
 def _infer_ticker(issuer: str, ticker_tag: str, cusip: str) -> str:
+    normalized_cusip = re.sub(r"\s+", "", cusip or "").upper()
+    if normalized_cusip in CUSIP_TICKER_HINTS:
+        return CUSIP_TICKER_HINTS[normalized_cusip]
     tag = re.sub(r"[^A-Za-z0-9.-]", "", ticker_tag or "").upper()
     if tag and tag not in {"COM", "SH", "CL", "CLASS"}:
         return tag[:12]
