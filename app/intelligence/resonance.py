@@ -3,80 +3,80 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Iterable
 
-from app.intelligence.models import ResonanceDirection, ResonanceResult, Signal, SignalDirection, SignalSource
-
-
-def _pillar(signal: Signal) -> str:
-    # Congress and Cabinet OGE form one political pillar. Counting them as two
-    # independent pillars inflated resonance while coverage correctly showed 1/3.
-    if signal.source in {SignalSource.CONGRESS, SignalSource.OGE}:
-        return "CONGRESS_OGE"
-    return signal.source.value
+from app.intelligence.models import (
+    ResonanceDirection,
+    ResonanceResult,
+    Signal,
+    SignalDirection,
+)
 
 
 def calculate_resonance(signals: Iterable[Signal]) -> ResonanceResult:
-    """Calculate signed agreement across the three independent WIS pillars.
+    """Calculate signed, cross-source resonance.
 
-    L0: fewer than two agreeing pillars (no cross-source resonance)
-    L1: two agreeing pillars
-    L2: all three pillars agree
-    L3: all three pillars agree with broad actor confirmation (>= 6 actors)
+    L0: no cross-source agreement
+    L1: two agreeing source pillars
+    L2: three agreeing source pillars
+    L3: four agreeing source pillars
+
+    The absolute score measures agreement strength; signed_score preserves direction.
+    Mixed bullish and bearish source pillars are marked CONFLICTED.
     """
     rows = list(signals)
-    by_pillar: dict[str, dict[SignalDirection, float]] = defaultdict(lambda: defaultdict(float))
-    actors_by_pillar: dict[str, set[str]] = defaultdict(set)
+    by_source: dict[str, dict[SignalDirection, float]] = defaultdict(lambda: defaultdict(float))
     for signal in rows:
         if signal.direction is SignalDirection.NEUTRAL:
             continue
-        pillar = _pillar(signal)
-        by_pillar[pillar][signal.direction] += max(0.0, signal.confidence)
-        actors_by_pillar[pillar].add(signal.actor)
+        # Confidence and transaction size are intentionally not used here: resonance
+        # measures independent source agreement, while strength is handled by WIS.
+        by_source[signal.source.value][signal.direction] += max(0.0, signal.confidence)
 
-    bullish: set[str] = set()
-    bearish: set[str] = set()
-    for pillar, values in by_pillar.items():
+    bullish_sources: set[str] = set()
+    bearish_sources: set[str] = set()
+    for source, values in by_source.items():
         bull = values.get(SignalDirection.BULLISH, 0.0)
         bear = values.get(SignalDirection.BEARISH, 0.0)
         if bull > bear:
-            bullish.add(pillar)
+            bullish_sources.add(source)
         elif bear > bull:
-            bearish.add(pillar)
+            bearish_sources.add(source)
         elif bull > 0:
-            bullish.add(pillar)
-            bearish.add(pillar)
+            bullish_sources.add(source)
+            bearish_sources.add(source)
 
-    bull_n, bear_n = len(bullish), len(bearish)
+    bull_n, bear_n = len(bullish_sources), len(bearish_sources)
     dominant_n = max(bull_n, bear_n)
-    actor_count = len({s.actor for s in rows})
-    if dominant_n < 2:
-        level = 0
-    elif dominant_n == 2:
-        level = 1
-    elif actor_count >= 6:
-        level = 3
-    else:
-        level = 2
+    level = 3 if dominant_n >= 4 else 2 if dominant_n == 3 else 1 if dominant_n == 2 else 0
     base = {0: 0.0, 1: 45.0, 2: 75.0, 3: 100.0}[level]
 
-    if not bullish and not bearish:
-        direction, signed, sources = ResonanceDirection.NONE, 0.0, set()
-    elif bullish and bearish:
-        direction = ResonanceDirection.CONFLICTED
-        sources = bullish | bearish
-        # Conflicted signals are not "resonance" unless at least two pillars
-        # agree on one side. Preserve a signed lean without granting single-source
-        # conflicts a positive resonance contribution.
-        score = max(0.0, base - min(50.0, min(bull_n, bear_n) * 20.0))
-        lean = 1.0 if bull_n > bear_n else -1.0 if bear_n > bull_n else 0.0
-        signed = score * lean
-        return ResonanceResult(round(score, 2), round(signed, 2), level, direction, sorted(sources), sorted(bullish), sorted(bearish))
-    elif bullish:
-        direction, signed, sources = ResonanceDirection.BULLISH, base, bullish
-    else:
-        direction, signed, sources = ResonanceDirection.BEARISH, -base, bearish
-
-    # A single directional pillar is a signal direction, not cross-source resonance.
-    if level == 0:
+    if not bullish_sources and not bearish_sources:
         direction = ResonanceDirection.NONE
         signed = 0.0
-    return ResonanceResult(round(abs(signed), 2), round(signed, 2), level, direction, sorted(sources), sorted(bullish), sorted(bearish))
+        sources: set[str] = set()
+    elif bullish_sources and bearish_sources:
+        direction = ResonanceDirection.CONFLICTED
+        # Penalize cross-direction disagreement, but keep a small signed lean.
+        conflict_penalty = min(50.0, min(bull_n, bear_n) * 20.0)
+        score = max(0.0, base - conflict_penalty)
+        lean = 1.0 if bull_n > bear_n else -1.0 if bear_n > bull_n else 0.0
+        signed = score * lean
+        sources = bullish_sources | bearish_sources
+        return ResonanceResult(
+            score=round(score, 2), signed_score=round(signed, 2), level=level,
+            direction=direction, sources=sorted(sources),
+            bullish_sources=sorted(bullish_sources), bearish_sources=sorted(bearish_sources),
+        )
+    elif bullish_sources:
+        direction = ResonanceDirection.BULLISH
+        signed = base
+        sources = bullish_sources
+    else:
+        direction = ResonanceDirection.BEARISH
+        signed = -base
+        sources = bearish_sources
+
+    return ResonanceResult(
+        score=round(abs(signed), 2), signed_score=round(signed, 2), level=level,
+        direction=direction, sources=sorted(sources),
+        bullish_sources=sorted(bullish_sources), bearish_sources=sorted(bearish_sources),
+    )
