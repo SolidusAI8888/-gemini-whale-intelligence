@@ -121,7 +121,7 @@ def score_signals(signals: Iterable[Signal], config: WISConfig | None = None) ->
         resonance = calculate_resonance(rows)
         resonance_component = 50.0 + resonance.signed_score / 2.0
         w = cfg.weights
-        wis = _dynamic_weighted_average([
+        raw_wis = _dynamic_weighted_average([
             (form4, w.form4),
             (institutional, w.institutional),
             (congress, w.congress),
@@ -140,6 +140,12 @@ def score_signals(signals: Iterable[Signal], config: WISConfig | None = None) ->
         coverage_ratio = coverage_count / coverage_total
         freshness_days = min((_age_days(s.event_date) for s in rows), default=None)
         confidence = _confidence(coverage_ratio, len(rows), freshness_days, rows)
+        # Coverage-adjusted opportunity prevents a single perfect pillar from
+        # becoming an undifferentiated 100-point Top10 result. WIS remains the
+        # available-source directional score; opportunity expresses usability.
+        coverage_factor = {0: 0.0, 1: 0.72, 2: 0.90, 3: 1.0}[coverage_count]
+        opportunity = _clamp(raw_wis * coverage_factor)
+        wis = raw_wis
         risk = _risk_score(rows, cfg.max_signal_age_days, resonance.signed_score)
         momentum = _clamp(sum(
             _signal_strength(s, cfg.max_signal_age_days) * (1 if s.direction is SignalDirection.BULLISH else -1)
@@ -162,7 +168,7 @@ def score_signals(signals: Iterable[Signal], config: WISConfig | None = None) ->
         out.append(WISScore(
             ticker=ticker,
             wis_score=round(wis, 2),
-            opportunity_score=round(wis, 2),
+            opportunity_score=round(opportunity, 2),
             risk_score=round(risk, 2),
             confidence=round(confidence, 2),
             momentum=round(momentum, 2),

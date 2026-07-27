@@ -8,6 +8,7 @@ import json
 import re
 from typing import Iterable, Mapping
 
+from app.intelligence.signal import canonical_ticker
 from app.config import settings
 from app.collectors.sec_13f import DEFAULT_INSTITUTIONAL_WHALES
 
@@ -505,7 +506,7 @@ def _institutional_13f_rows(
             cells = [
                 escape(manager if first else ""),
                 escape(lead if first else ""),
-                f"<b>{escape(str(h.get('ticker') or ''))}</b>",
+                f"<b>{escape(canonical_ticker(h.get('ticker'), obj.get('cusip')) or str(h.get('ticker') or ''))}</b>",
                 escape(issuer[:100]),
                 _money(_institutional_13f_amount_usd(h)),
                 escape(f"{_safe_float(h.get('shares')):,.0f}" if _safe_float(h.get("shares")) else "-"),
@@ -538,7 +539,7 @@ def _institutional_13f_consensus_rows(holdings: list[Mapping], limit: int = 20) 
         if lead:
             manager_lead[manager] = lead
         period = str(obj.get("report_period") or h.get("trade_date") or "")[:10]
-        ticker = str(h.get("ticker") or "").upper().strip()
+        ticker = canonical_ticker(h.get("ticker"), obj.get("cusip")) or str(h.get("ticker") or "").upper().strip()
         if not period or not ticker:
             continue
         existing = by_manager_period[manager][period].get(ticker)
@@ -668,7 +669,7 @@ def _institutional_13f_manager_periods(holdings: list[Mapping]) -> tuple[dict[st
         if lead:
             manager_lead[manager] = lead
         period = str(obj.get("report_period") or h.get("trade_date") or "")[:10]
-        ticker = str(h.get("ticker") or "").upper().strip()
+        ticker = canonical_ticker(h.get("ticker"), obj.get("cusip")) or str(h.get("ticker") or "").upper().strip()
         if not period or not ticker:
             continue
         existing = by_manager_period[manager][period].get(ticker)
@@ -1304,8 +1305,8 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <p class="small">变化口径：{escape(change_note)}</p>
 <p class="notice"><b>报告定位：</b>快速了解近期商界/政界巨鲸在美股及公开投资标的上的真金白银 BUY/SELL 披露。金额来自公开披露，政治期权默认按披露金额区间排序，名义敞口只作备注；本报告不构成个性化投资建议。</p>
 
-<h2>Whale Intelligence Score（V39.0）</h2>
-<p class="note">统一评分权重：Form4 20% · 13F 30% · Congress/OGE 20% · 跨来源共振 30%。榜单固定展示 Top10。</p>
+<h2>Whale Intelligence Score（V39.1.1）</h2>
+<p class="note">评分采用“可用来源动态归一化”；缺失来源显示 N/A。机会分另受覆盖率折扣和准入门槛约束；13F 使用最近两期持仓变化，不把季度持仓快照当作实时交易。榜单最多展示 Top10。</p>
 <h3>Top10 Opportunities</h3>
 {wis_opportunities}
 <h3>Top10 Risks</h3>

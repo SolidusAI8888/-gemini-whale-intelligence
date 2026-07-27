@@ -9,7 +9,12 @@ def _opportunity_eligible(score: WISScore) -> bool:
     # enter only when the score and confidence are both exceptional; it remains
     # explicitly marked Low Coverage in the report.
     return score.coverage_count >= 2 or (
-        score.coverage_count == 1 and score.opportunity_score >= 90 and score.confidence >= 55
+        score.coverage_count == 1
+        and score.opportunity_score >= 85
+        and score.confidence >= 80
+        and score.signal_count >= 10
+        and score.freshness_days is not None
+        and score.freshness_days <= 14
     )
 
 
