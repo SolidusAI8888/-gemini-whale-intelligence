@@ -48,7 +48,7 @@ def test_single_source_is_excluded_from_opportunity_without_exceptional_confiden
     ])[0]
     rankings = build_rankings([score])
     assert rankings["opportunities"] == []
-    assert rankings["risks"]
+    assert rankings["risks"] == []
 
 
 def test_verified_cusip_maps_to_ticker():

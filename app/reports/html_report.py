@@ -759,7 +759,7 @@ def _institutional_13f_coverage_table(holdings: list[Mapping], status_rows: list
         ]
         html_rows.append((row_class, cells) if row_class else cells)
     coverage_note = (
-        f"目标Top20；最新期成功 {summary['ok_latest']}/{summary['target']}；"
+        f"目标Top50；最新期成功 {summary['ok_latest']}/{summary['target']}；"
         f"最近两期可比 {summary['ok_comparable']}/{summary['target']}；"
         f"缺失 {summary['missing']} 家。"
     )
@@ -814,7 +814,7 @@ def _institutional_13f_current_concentration_items(holdings: list[Mapping], limi
             continue
         item["share_pct"] = (item["amount"] / latest_total * 100) if latest_total > 0 else None
         item["manager_count"] = len(item["holders"])
-        item["sample_note"] = "完整Top20样本" if comparable_managers >= target_count else f"不完整样本：{comparable_managers}/{target_count}家已采集最新期13F"
+        item["sample_note"] = "完整Top50样本" if comparable_managers >= target_count else f"不完整样本：{comparable_managers}/{target_count}家已采集最新期13F"
         items.append(item)
     items.sort(key=lambda x: (x["manager_count"], x["amount"]), reverse=True)
     return items[:limit]
@@ -896,7 +896,7 @@ def _institutional_13f_delta_concentration_items(holdings: list[Mapping], direct
             continue
         item["share_pct"] = (item["delta_abs"] / total_abs * 100) if total_abs > 0 else None
         item["manager_count"] = len(item["managers"])
-        item["sample_note"] = "完整Top20可比样本" if comparable_managers >= target_count else f"不完整可比样本：{comparable_managers}/{target_count}家"
+        item["sample_note"] = "完整Top50可比样本" if comparable_managers >= target_count else f"不完整可比样本：{comparable_managers}/{target_count}家"
         items.append(item)
     items.sort(key=lambda x: (x["manager_count"], x["delta_abs"]), reverse=True)
     return items[:limit]
@@ -1166,7 +1166,7 @@ def _wis_ranking_table(rows: list[Mapping] | None, mode: str) -> str:
             resonance,
             escape(", ".join(row.get("major_actors") or [])),
         ])
-    primary_name = {"risk": "风险分", "resonance": "共振分"}.get(mode, "机会分")
+    primary_name = {"risk": "风险分", "resonance": "共振分", "conflicted": "分歧观察分"}.get(mode, "机会分")
     return _table(
         ["#", "股票", "WIS", primary_name, "置信度", "覆盖率", "信号数", "新鲜度", "Form4", "13F", "Congress/OGE", "共振方向/等级/来源", "主要巨鲸"],
         table_rows,
@@ -1207,6 +1207,7 @@ def build_html_report(
     wis_rankings = wis_rankings or {}
     wis_opportunities = _wis_ranking_table(list(wis_rankings.get("opportunities") or []), "opportunity")
     wis_risks = _wis_ranking_table(list(wis_rankings.get("risks") or []), "risk")
+    wis_conflicted = _wis_ranking_table(list(wis_rankings.get("conflicted") or []), "conflicted")
     wis_resonance = _wis_ranking_table(list(wis_rankings.get("resonance") or []), "resonance")
 
     all_recent = [t for t in recent_trades if _trade_date_ok(t) and not _is_institutional_13f(t)]
@@ -1305,12 +1306,14 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <p class="small">变化口径：{escape(change_note)}</p>
 <p class="notice"><b>报告定位：</b>快速了解近期商界/政界巨鲸在美股及公开投资标的上的真金白银 BUY/SELL 披露。金额来自公开披露，政治期权默认按披露金额区间排序，名义敞口只作备注；本报告不构成个性化投资建议。</p>
 
-<h2>Whale Intelligence Score（V39.1.1）</h2>
+<h2>Whale Intelligence Score（V39.2）</h2>
 <p class="note">评分采用“可用来源动态归一化”；缺失来源显示 N/A。机会分另受覆盖率折扣和准入门槛约束；13F 使用最近两期持仓变化，不把季度持仓快照当作实时交易。榜单最多展示 Top10。</p>
 <h3>Top10 Opportunities</h3>
 {wis_opportunities}
 <h3>Top10 Risks</h3>
 {wis_risks}
+<h3>Top10 Conflicted / Divergence Watchlist</h3>
+{wis_conflicted}
 <h3>Top10 Most Resonant Stocks</h3>
 {wis_resonance}
 
@@ -1353,11 +1356,11 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 
 <h2>四、机构巨鲸 13F 持仓雷达</h2>
 <p class="note">13F 是机构投资经理的季度持仓披露，不代表实时买入/卖出交易。表中的“报告期”是季度末持仓日，“披露日”是 13F 文件提交日。</p>
-<h3>13F Top20 机构采集覆盖率</h3>
-<p class="small">口径：固定目标为默认Top20机构巨鲸；少于20家时，下面所有13F Top5分析都属于“不完整样本”，不能解读为完整Top20结论。</p>
+<h3>13F Top50 机构采集覆盖率</h3>
+<p class="small">口径：固定目标为默认Top50机构巨鲸；少于50家时，下面所有13F Top5分析都属于“不完整样本”，不能解读为完整Top50结论。</p>
 {institutional_13f_coverage_table}
 <h3>13F 最新持仓集中度 Top 5</h3>
-<p class="small">口径：汇总 Top20 机构巨鲸最新一期 13F 持仓，第一排序为持有同一股票的机构数量，且至少2家机构共同持有；金额仅作为同机构数下的第二排序。若覆盖率不足20家，表格备注会明确标记为不完整样本。</p>
+<p class="small">口径：汇总 Top50 机构巨鲸最新一期 13F 持仓，第一排序为持有同一股票的机构数量，且至少2家机构共同持有；金额仅作为同机构数下的第二排序。若覆盖率不足50家，表格备注会明确标记为不完整样本。</p>
 {institutional_13f_current_concentration_table}
 <h3>13F 加仓 / 新建仓集中度 Top 5（最近两期）</h3>
 <p class="small">口径：比较同一机构最近两期13F，第一排序为共同加仓/新建仓同一股票的机构数量，且至少2家机构同向行动；金额仅作为同机构数下的第二排序。“新建仓”表示上一期未持有、本期持有。</p>

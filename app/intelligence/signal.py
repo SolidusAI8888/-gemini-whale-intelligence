@@ -10,6 +10,7 @@ from app.intelligence.models import Signal, SignalDirection, SignalSource
 # security cannot appear once as a ticker and again as a CUSIP pseudo-ticker.
 CUSIP_TO_TICKER = {
     "007903107": "AMD",
+    "25809K105": "DASH",
     "N07059210": "ASML",
     "512807306": "LRCX",
     "512807108": "LRCX",  # legacy/alternate value observed in old caches

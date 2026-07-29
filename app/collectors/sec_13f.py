@@ -48,6 +48,36 @@ DEFAULT_INSTITUTIONAL_WHALES: tuple[InstitutionalWhale, ...] = (
     InstitutionalWhale("Elliott Investment Management", "1048445", "Paul Singer", "Activist/event-driven"),
     InstitutionalWhale("Icahn Capital", "921669", "Carl Icahn", "Activist"),
     InstitutionalWhale("Trian Fund Management", "1345471", "Nelson Peltz", "Activist"),
+    InstitutionalWhale("Citadel Advisors", "1423053", "Ken Griffin", "Multi-strategy"),
+    InstitutionalWhale("Millennium Management", "1273087", "Israel Englander", "Multi-strategy"),
+    InstitutionalWhale("Two Sigma Investments", "1179392", "John Overdeck/David Siegel", "Systematic/quant"),
+    InstitutionalWhale("Renaissance Technologies", "1037389", "Jim Simons legacy", "Systematic/quant"),
+    InstitutionalWhale("DE Shaw & Co", "1009207", "David Shaw", "Systematic/multi-strategy"),
+    InstitutionalWhale("AQR Capital Management", "1167557", "Cliff Asness", "Systematic/factor"),
+    InstitutionalWhale("Farallon Capital Management", "909661", "Thomas Steyer lineage", "Event-driven"),
+    InstitutionalWhale("ValueAct Capital", "1418814", "Mason Morfit", "Activist/value"),
+    InstitutionalWhale("JANA Partners", "1159159", "Barry Rosenstein", "Activist/event-driven"),
+    InstitutionalWhale("Starboard Value", "1517137", "Jeff Smith", "Activist/value"),
+    InstitutionalWhale("TCI Fund Management", "1647251", "Chris Hohn", "Concentrated quality/activist"),
+    InstitutionalWhale("Altimeter Capital Management", "1579191", "Brad Gerstner", "Technology growth"),
+    InstitutionalWhale("Durable Capital Partners", "1797812", "Henry Ellenbogen", "Long-term growth"),
+    InstitutionalWhale("Whale Rock Capital Management", "1387322", "Alex Sacerdote", "Technology growth"),
+    InstitutionalWhale("Light Street Capital Management", "1569049", "Glen Kacher", "Technology growth"),
+    InstitutionalWhale("Dragoneer Investment Group", "1581811", "Marc Stad", "Technology growth"),
+    InstitutionalWhale("General Atlantic", "1017645", "General Atlantic", "Growth equity"),
+    InstitutionalWhale("Thrive Capital Management", "1756111", "Joshua Kushner", "Technology growth"),
+    InstitutionalWhale("ARK Investment Management", "1697748", "Cathie Wood", "Disruptive growth"),
+    InstitutionalWhale("Capital Research Global Investors", "1422849", "Capital Group", "Long-only fundamental"),
+    InstitutionalWhale("FMR LLC", "315066", "Fidelity", "Long-only fundamental"),
+    InstitutionalWhale("T. Rowe Price Associates", "80255", "T. Rowe Price", "Long-only growth"),
+    InstitutionalWhale("Wellington Management Group", "902219", "Wellington", "Long-only fundamental"),
+    InstitutionalWhale("Dodge & Cox", "200217", "Dodge & Cox", "Long-term value"),
+    InstitutionalWhale("BlackRock", "1364742", "BlackRock", "Large diversified asset manager"),
+    InstitutionalWhale("Vanguard Group", "102909", "Vanguard", "Large diversified asset manager"),
+    InstitutionalWhale("State Street Corp", "93751", "State Street", "Large diversified asset manager"),
+    InstitutionalWhale("Geode Capital Management", "1214717", "Geode", "Systematic/index"),
+    InstitutionalWhale("Norges Bank Investment Management", "1374170", "Norges Bank", "Sovereign wealth"),
+    InstitutionalWhale("California Public Employees Retirement System", "919079", "CalPERS", "Public pension"),
 )
 
 
@@ -82,6 +112,7 @@ ISSUER_TICKER_HINTS = {
 
 CUSIP_TICKER_HINTS = {
     "007903107": "AMD",
+    "25809K105": "DASH",
     "N07059210": "ASML",
     "512807306": "LRCX",
     "512807108": "LRCX",
@@ -280,10 +311,10 @@ def collect_institutional_13f_holdings(user_agent: str, lookback_days: int = 370
     rows: list[dict] = []
     # User requirement: this module is a Top20 institutional-whale radar, not
     # "up to whatever number the current variable happens to allow".  Therefore
-    # process at least the default Top20 unless a custom watchlist itself has
-    # fewer than 20 entries.
+    # process at least the default Top50 unless a custom watchlist itself has
+    # fewer than 50 entries.
     watchlist = _parse_watchlist()
-    target_count = min(len(watchlist), max(20, int(settings.institutional_13f_max_managers or 20)))
+    target_count = min(len(watchlist), max(50, int(settings.institutional_13f_max_managers or 50)))
     whales = watchlist[:target_count]
     for idx, whale in enumerate(whales, start=1):
         status = {

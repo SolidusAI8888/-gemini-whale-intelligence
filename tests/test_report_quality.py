@@ -137,8 +137,8 @@ def test_institutional_13f_top20_coverage_table_marks_incomplete_sample():
         institutional_13f_status=[{"rank": 1, "manager": "Berkshire Hathaway", "lead_investor": "Warren Buffett", "cik": "1067983", "status": "OK_LATEST_ONLY", "message": "已采集最新期"}],
         baseline_trade_count=10,
     )
-    assert "13F Top20 机构采集覆盖率" in html
-    assert "目标Top20" in html
+    assert "13F Top50 机构采集覆盖率" in html
+    assert "目标Top50" in html
     assert "不完整样本" in html
     assert "Berkshire Hathaway" in html
     assert "Pershing Square Capital Management" in html

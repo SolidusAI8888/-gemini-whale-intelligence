@@ -130,7 +130,14 @@ def run_scan() -> dict:
         # with the legacy opportunity score so existing report sections remain
         # backward compatible while the new Top10 rankings are introduced.
         wis_config = load_wis_config()
-        wis_signals = normalize_trades(scoring_base)
+        # 13F directional signals require two adjacent report periods. The prior
+        # quarter can predate SCAN_START_DATE, so merge the persisted 13F history
+        # explicitly instead of scoring only the current-year transaction window.
+        wis_13f_history = [_row_to_dict(r) for r in fetch_institutional_13f_holdings("1900-01-01", limit=20000)]
+        wis_input_by_source_id = {str(r.get("source_id") or f"row:{i}"): r for i, r in enumerate(scoring_base)}
+        for i, row in enumerate(wis_13f_history):
+            wis_input_by_source_id.setdefault(str(row.get("source_id") or f"13f:{i}"), row)
+        wis_signals = normalize_trades(wis_input_by_source_id.values())
         wis_scores = score_signals(wis_signals, wis_config)
         wis_rankings = build_rankings(wis_scores, wis_config.top_n)
         log.info("WIS generated: signals=%s tickers=%s", len(wis_signals), len(wis_scores))
