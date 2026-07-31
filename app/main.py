@@ -41,6 +41,7 @@ from app.llm.gemini_analyzer import analyze_with_gemini
 from app.intelligence import build_rankings, load_wis_config, normalize_trades, score_signals
 from app.reports.html_report import build_html_report, save_report
 from app.reports.mailer import send_report
+from app.reports.v40_report import apply_v40_report_layout
 
 logging.basicConfig(
     level=logging.INFO,
@@ -226,6 +227,11 @@ def run_scan() -> dict:
             new_since=run_started_at if baseline_trade_count > 0 else None,
             baseline_trade_count=baseline_trade_count,
             wis_rankings=wis_rankings,
+        )
+        html = apply_v40_report_layout(
+            html,
+            recent_trades,
+            new_since=run_started_at if baseline_trade_count > 0 else None,
         )
         path = save_report(html)
         report_path = str(path)
