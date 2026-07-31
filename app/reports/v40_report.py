@@ -5,7 +5,9 @@ from html import escape
 import re
 from typing import Iterable, Mapping
 
+from app.db import fetch_oge_executive_trades
 from app.domain.trade_classification import is_primary_transaction
+from app.reports.v40_oge import build_cabinet_oge_radar
 
 
 def _float(value: object) -> float:
@@ -26,8 +28,6 @@ def _money(value: float) -> str:
 
 
 def _economic_key(row: Mapping[str, object]) -> tuple[str, ...]:
-    """Identify one disclosed economic transaction across duplicate reporters."""
-
     return (
         str(row.get("ticker") or "").strip().upper(),
         str(row.get("action") or "").strip().upper(),
@@ -55,8 +55,6 @@ def build_active_buy_radar(
     new_since: str | None = None,
     limit: int = 20,
 ) -> str:
-    """Build V40 P/BUY radar sorted by deduplicated disclosed buy amount."""
-
     deduped: dict[tuple[str, ...], dict] = {}
     for source_row in rows:
         if not is_primary_transaction(source_row):
@@ -101,7 +99,7 @@ def build_active_buy_radar(
         item["is_new"] = bool(item["is_new"] or row.get("_is_new"))
 
     ordered = sorted(grouped.items(), key=lambda pair: pair[1]["amount"], reverse=True)[:limit]
-    body = []
+    body: list[str] = []
     for rank, (ticker, item) in enumerate(ordered, start=1):
         reporters = sorted(item["reporters"])
         reporter_text = ", ".join(reporters[:4])
@@ -111,41 +109,25 @@ def build_active_buy_radar(
         sources = ", ".join(sorted(item["sources"])) or "-"
         row_class = ' class="row-new"' if item["is_new"] else ""
         body.append(
-            f"<tr{row_class}>"
-            f"<td>{rank}</td>"
-            f"<td><b>{escape(ticker)}</b></td>"
-            f"<td><b>P/BUY</b></td>"
-            f"<td>{escape(_money(item['amount']))}</td>"
-            f"<td>{item['trades']}</td>"
-            f"<td>{escape(reporter_text or '-')}</td>"
-            f"<td>{escape(dates)}</td>"
-            f"<td>{escape(sources)}</td>"
-            "</tr>"
+            f"<tr{row_class}><td>{rank}</td><td><b>{escape(ticker)}</b></td>"
+            f"<td><b>P/BUY</b></td><td>{escape(_money(item['amount']))}</td>"
+            f"<td>{item['trades']}</td><td>{escape(reporter_text or '-')}</td>"
+            f"<td>{escape(dates)}</td><td>{escape(sources)}</td></tr>"
         )
 
-    if not body:
-        table_html = "<p>暂无符合口径的主动买入交易。</p>"
-    else:
-        table_html = (
-            "<table><thead><tr>"
-            "<th>#</th><th>股票</th><th>信号</th><th>去重买入金额</th>"
-            "<th>独立交易数</th><th>真实交易人/机构</th><th>交易日期</th><th>来源</th>"
-            "</tr></thead><tbody>" + "".join(body) + "</tbody></table>"
-        )
-
+    table_html = "<p>暂无符合口径的主动买入交易。</p>" if not body else (
+        "<table><thead><tr><th>#</th><th>股票</th><th>信号</th><th>去重买入金额</th>"
+        "<th>独立交易数</th><th>真实交易人/机构</th><th>交易日期</th><th>来源</th>"
+        "</tr></thead><tbody>" + "".join(body) + "</tbody></table>"
+    )
     return (
-        '<section id="v40-active-buy-radar">'
-        '<h2>主动买入雷达（P/BUY，按去重买入金额）</h2>'
+        '<section id="v40-active-buy-radar"><h2>主动买入雷达（P/BUY，按去重买入金额）</h2>'
         '<p class="small">仅统计真实 BUY 交易；相同经济交易的联合申报人合并展示，金额只计算一次。'
-        'OGE 资产持仓披露与 13F 持仓不进入本榜单。</p>'
-        + table_html
-        + "</section>"
+        'OGE 资产持仓披露与 13F 持仓不进入本榜单。</p>' + table_html + "</section>"
     )
 
 
 def _remove_named_table_column(html: str, header_name: str) -> str:
-    """Remove a table column by exact visible header text."""
-
     table_pattern = re.compile(r"<table\b[^>]*>.*?</table>", re.I | re.S)
     cell_pattern = re.compile(r"<(th|td)\b[^>]*>.*?</\1>", re.I | re.S)
 
@@ -177,21 +159,31 @@ def _remove_named_table_column(html: str, header_name: str) -> str:
     return table_pattern.sub(clean_table, html)
 
 
+def _oge_rows() -> list[dict]:
+    rows: list[dict] = []
+    try:
+        for row in fetch_oge_executive_trades(limit=800):
+            rows.append({key: row[key] for key in row.keys()} if hasattr(row, "keys") else dict(row))
+    except Exception:
+        return []
+    return rows
+
+
 def apply_v40_report_layout(
     html: str,
     primary_rows: Iterable[Mapping[str, object]],
     *,
     new_since: str | None = None,
 ) -> str:
-    """Apply V40 report requirements without disturbing legacy report sections."""
-
     updated = _remove_named_table_column(html, "净额")
-    radar = build_active_buy_radar(primary_rows, new_since=new_since)
+    active_radar = build_active_buy_radar(primary_rows, new_since=new_since)
+    oge_radar = build_cabinet_oge_radar(_oge_rows(), new_since=new_since)
+    overlay = active_radar + oge_radar
 
     first_h2 = re.search(r"<h2\b", updated, re.I)
     if first_h2:
-        return updated[: first_h2.start()] + radar + updated[first_h2.start() :]
+        return updated[: first_h2.start()] + overlay + updated[first_h2.start() :]
     body_end = re.search(r"</body>", updated, re.I)
     if body_end:
-        return updated[: body_end.start()] + radar + updated[body_end.start() :]
-    return updated + radar
+        return updated[: body_end.start()] + overlay + updated[body_end.start() :]
+    return updated + overlay
