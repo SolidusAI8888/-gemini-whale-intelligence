@@ -1,4 +1,4 @@
-from app.reports.v40_report import build_cabinet_oge_radar
+from app.reports.v40_oge import build_cabinet_oge_radar
 
 
 def test_oge_radar_keeps_non_ticker_assets_and_categories():
