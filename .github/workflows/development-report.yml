@@ -1,0 +1,122 @@
+name: Development Report Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Branch, tag, or commit to test
+        required: true
+        default: feature/v40-foundation
+        type: string
+      send_email:
+        description: Send the generated preview by email
+        required: true
+        default: true
+        type: boolean
+      enable_gemini:
+        description: Enable Gemini analysis
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: development-report-preview
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    name: Generate development report
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      PYTHONUNBUFFERED: "1"
+      DATABASE_PATH: data/dev-preview-whale.db
+      REPORT_DIR: data/dev-preview-reports
+      DRY_RUN: "false"
+      FORCE_SEND_EMAIL: ${{ inputs.send_email }}
+      SEND_EMAIL: ${{ inputs.send_email }}
+      ENABLE_GEMINI: ${{ inputs.enable_gemini }}
+
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+
+      EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER }}
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_STARTTLS: ${{ secrets.SMTP_STARTTLS }}
+      SMTP_FROM_NAME: "Gemini Whale Intelligence — Development Preview"
+
+      FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+      ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+      FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+
+      OGE_TRUMP_REPORT_URLS: ${{ secrets.OGE_TRUMP_REPORT_URLS }}
+      OGE_CABINET_REPORTS: ${{ secrets.OGE_CABINET_REPORTS }}
+      OGE_SEED_CABINET_REPORTS: ${{ secrets.OGE_SEED_CABINET_REPORTS }}
+
+    steps:
+      - name: Check out selected development ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Restore isolated development database
+        uses: actions/cache@v4
+        with:
+          path: data/dev-preview-whale.db
+          key: dev-preview-db-${{ inputs.source_ref }}-${{ github.run_id }}
+          restore-keys: |
+            dev-preview-db-${{ inputs.source_ref }}-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Compile Python sources
+        run: python -m compileall -q app tests
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Generate preview report
+        run: python -m app.main
+
+      - name: Upload generated report and database
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: development-report-${{ github.run_number }}
+          path: |
+            data/dev-preview-reports/**
+            data/dev-preview-whale.db
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Write run summary
+        if: always()
+        run: |
+          {
+            echo "## Development report preview"
+            echo "- Source ref: \`${{ inputs.source_ref }}\`"
+            echo "- Email requested: \`${{ inputs.send_email }}\`"
+            echo "- Gemini enabled: \`${{ inputs.enable_gemini }}\`"
+            echo "- Production 08:00 workflow was not modified."
+            echo "- Preview uses an isolated development database and report directory."
+          } >> "$GITHUB_STEP_SUMMARY"
