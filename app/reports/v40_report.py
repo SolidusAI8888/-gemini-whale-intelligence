@@ -5,9 +5,10 @@ from html import escape
 import re
 from typing import Iterable, Mapping
 
-from app.db import fetch_oge_executive_trades
+from app.db import fetch_institutional_13f_holdings, fetch_oge_executive_trades
 from app.domain.trade_classification import is_primary_transaction
 from app.reports.v40_oge import build_cabinet_oge_radar
+from app.reports.v40_overview import build_daily_changes_overview
 
 
 def _float(value: object) -> float:
@@ -159,14 +160,25 @@ def _remove_named_table_column(html: str, header_name: str) -> str:
     return table_pattern.sub(clean_table, html)
 
 
+def _row_dicts(rows: Iterable[object]) -> list[dict]:
+    result: list[dict] = []
+    for row in rows:
+        result.append({key: row[key] for key in row.keys()} if hasattr(row, "keys") else dict(row))
+    return result
+
+
 def _oge_rows() -> list[dict]:
-    rows: list[dict] = []
     try:
-        for row in fetch_oge_executive_trades(limit=800):
-            rows.append({key: row[key] for key in row.keys()} if hasattr(row, "keys") else dict(row))
+        return _row_dicts(fetch_oge_executive_trades(limit=800))
     except Exception:
         return []
-    return rows
+
+
+def _institutional_rows() -> list[dict]:
+    try:
+        return _row_dicts(fetch_institutional_13f_holdings("1900-01-01", limit=5000))
+    except Exception:
+        return []
 
 
 def apply_v40_report_layout(
@@ -175,10 +187,18 @@ def apply_v40_report_layout(
     *,
     new_since: str | None = None,
 ) -> str:
+    primary_rows = [dict(row) for row in primary_rows]
+    oge_rows = _oge_rows()
+    institutional_rows = _institutional_rows()
+
     updated = _remove_named_table_column(html, "净额")
+    overview = build_daily_changes_overview(
+        [*primary_rows, *oge_rows, *institutional_rows],
+        new_since=new_since,
+    )
     active_radar = build_active_buy_radar(primary_rows, new_since=new_since)
-    oge_radar = build_cabinet_oge_radar(_oge_rows(), new_since=new_since)
-    overlay = active_radar + oge_radar
+    oge_radar = build_cabinet_oge_radar(oge_rows, new_since=new_since)
+    overlay = overview + active_radar + oge_radar
 
     first_h2 = re.search(r"<h2\b", updated, re.I)
     if first_h2:
