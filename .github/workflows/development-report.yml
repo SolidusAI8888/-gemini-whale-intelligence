@@ -45,12 +45,13 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
 
-      EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER }}
-      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+      # Development preview uses the known iCloud STARTTLS endpoint explicitly.
+      # Only credentials and addresses come from repository secrets.
+      EMAIL_PROVIDER: smtp
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
-      SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.mail.me.com' }}
-      SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
+      SMTP_HOST: smtp.mail.me.com
+      SMTP_PORT: "587"
       SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       SMTP_STARTTLS: "true"
@@ -95,6 +96,18 @@ jobs:
       - name: Run tests
         run: python -m pytest -q
 
+      - name: Verify SMTP configuration without exposing secrets
+        if: ${{ inputs.send_email }}
+        run: |
+          python - <<'PY'
+          import os
+          required = ["EMAIL_FROM", "EMAIL_TO", "SMTP_USERNAME", "SMTP_PASSWORD"]
+          missing = [name for name in required if not os.getenv(name, "").strip()]
+          if missing:
+              raise SystemExit("Missing required email secrets: " + ", ".join(missing))
+          print("SMTP endpoint:", os.environ["SMTP_HOST"], os.environ["SMTP_PORT"], "STARTTLS=", os.environ["SMTP_STARTTLS"])
+          PY
+
       - name: Generate preview report
         run: python -m app.main
 
@@ -117,7 +130,7 @@ jobs:
             echo "- Source ref: \`${{ inputs.source_ref }}\`"
             echo "- Email requested: \`${{ inputs.send_email }}\`"
             echo "- Gemini enabled: \`${{ inputs.enable_gemini }}\`"
-            echo "- SMTP transport: STARTTLS on port 587"
+            echo "- SMTP endpoint: \`smtp.mail.me.com:587\` with STARTTLS"
             echo "- Production 08:00 workflow was not modified."
             echo "- Preview uses an isolated development database and report directory."
           } >> "$GITHUB_STEP_SUMMARY"
