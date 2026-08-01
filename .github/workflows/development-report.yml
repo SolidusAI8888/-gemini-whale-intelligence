@@ -49,11 +49,11 @@ jobs:
       SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
-      SMTP_HOST: ${{ secrets.SMTP_HOST }}
-      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.mail.me.com' }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
       SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-      SMTP_STARTTLS: ${{ secrets.SMTP_STARTTLS }}
+      SMTP_STARTTLS: "true"
       SMTP_FROM_NAME: "Gemini Whale Intelligence — Development Preview"
 
       FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
@@ -117,6 +117,7 @@ jobs:
             echo "- Source ref: \`${{ inputs.source_ref }}\`"
             echo "- Email requested: \`${{ inputs.send_email }}\`"
             echo "- Gemini enabled: \`${{ inputs.enable_gemini }}\`"
+            echo "- SMTP transport: STARTTLS on port 587"
             echo "- Production 08:00 workflow was not modified."
             echo "- Preview uses an isolated development database and report directory."
           } >> "$GITHUB_STEP_SUMMARY"
