@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import smtplib
+import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
@@ -72,14 +73,14 @@ def _send_with_smtp(subject: str, html: str) -> bool:
         len(recipients),
     )
 
-    # Create the client first and connect explicitly. This makes an empty or
-    # unreachable host fail at connect() with a useful error instead of the
-    # misleading "please run connect() first" error at ehlo().
-    with smtplib.SMTP(timeout=timeout) as server:
-        server.connect(host, port)
+    # Pass host and port to the constructor. smtplib records this hostname for
+    # TLS SNI/certificate validation; connect() on an unbound SMTP object can
+    # leave the internal hostname empty and make starttls() fail.
+    with smtplib.SMTP(host=host, port=port, timeout=timeout) as server:
         server.ehlo()
         if settings.smtp_starttls:
-            server.starttls()
+            tls_context = ssl.create_default_context()
+            server.starttls(context=tls_context)
             server.ehlo()
         server.login(settings.smtp_username, settings.smtp_password)
         server.sendmail(settings.email_from, recipients, msg.as_string())
