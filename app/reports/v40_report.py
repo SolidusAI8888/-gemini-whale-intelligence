@@ -50,6 +50,12 @@ def _is_new(row: Mapping[str, object], new_since: str | None) -> bool:
     return bool(created_at and created_at >= str(new_since)[:19])
 
 
+def _is_dubious_political_amount(row: Mapping[str, object]) -> bool:
+    source = str(row.get("source") or "").upper()
+    amount = _float(row.get("amount_usd"))
+    return source.startswith("POLITICAL") and 0 < amount < 100
+
+
 def build_active_buy_radar(
     rows: Iterable[Mapping[str, object]],
     *,
@@ -61,6 +67,8 @@ def build_active_buy_radar(
         if not is_primary_transaction(source_row):
             continue
         if str(source_row.get("action") or "").upper() != "BUY":
+            continue
+        if _is_dubious_political_amount(source_row):
             continue
         ticker = str(source_row.get("ticker") or "").strip().upper()
         if not ticker:
@@ -116,15 +124,16 @@ def build_active_buy_radar(
             f"<td>{escape(dates)}</td><td>{escape(sources)}</td></tr>"
         )
 
-    table_html = "<p>暂无符合口径的主动买入交易。</p>" if not body else (
+    table_html = "<p>暂无金额口径可信的主动买入交易。</p>" if not body else (
         "<table><thead><tr><th>#</th><th>股票</th><th>信号</th><th>去重买入金额</th>"
         "<th>独立交易数</th><th>真实交易人/机构</th><th>交易日期</th><th>来源</th>"
         "</tr></thead><tbody>" + "".join(body) + "</tbody></table>"
     )
     return (
         '<section id="v40-active-buy-radar"><h2>主动买入雷达（P/BUY，按去重买入金额）</h2>'
-        '<p class="small">仅统计真实 BUY 交易；相同经济交易的联合申报人合并展示，金额只计算一次。'
-        'OGE 资产持仓披露与 13F 持仓不进入本榜单。</p>' + table_html + "</section>"
+        '<p class="small">仅统计真实 BUY 交易；联合申报人合并展示，金额只计算一次。'
+        '政治披露中低于100美元的异常解析值暂不进入排名；OGE与13F持仓不进入本榜单。</p>'
+        + table_html + "</section>"
     )
 
 
@@ -160,6 +169,18 @@ def _remove_named_table_column(html: str, header_name: str) -> str:
     return table_pattern.sub(clean_table, html)
 
 
+def _remove_legacy_new_overview(html: str) -> str:
+    pattern = re.compile(
+        r"<h3>今日新增内容总览（相对上一轮成功运行）</h3>.*?(?=<h3>|<h2>|</body>)",
+        re.I | re.S,
+    )
+    return pattern.sub("", html)
+
+
+def _clear_legacy_new_highlights(html: str) -> str:
+    return re.sub(r'<tr\s+class="row-new">', "<tr>", html, flags=re.I)
+
+
 def _row_dicts(rows: Iterable[object]) -> list[dict]:
     result: list[dict] = []
     for row in rows:
@@ -192,6 +213,9 @@ def apply_v40_report_layout(
     institutional_rows = _institutional_rows()
 
     updated = _remove_named_table_column(html, "净额")
+    updated = _remove_legacy_new_overview(updated)
+    updated = _clear_legacy_new_highlights(updated)
+
     overview = build_daily_changes_overview(
         [*primary_rows, *oge_rows, *institutional_rows],
         new_since=new_since,
