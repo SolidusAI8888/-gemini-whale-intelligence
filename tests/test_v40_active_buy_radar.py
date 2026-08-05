@@ -44,7 +44,7 @@ def test_active_buy_radar_excludes_sell_and_holding_rows():
 
     html = build_active_buy_radar(rows)
 
-    assert "暂无符合口径的主动买入交易" in html
+    assert "暂无金额口径可信的主动买入交易" in html
     assert "AAPL</b></td>" not in html
 
 
