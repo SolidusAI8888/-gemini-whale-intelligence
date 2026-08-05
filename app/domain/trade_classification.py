@@ -38,22 +38,19 @@ def is_asset_or_holding_disclosure(row: Mapping[str, object]) -> bool:
     return source in ASSET_OR_HOLDING_SOURCES or action in ASSET_OR_HOLDING_ACTIONS
 
 
-def is_primary_transaction(row: Mapping[str, object]) -> bool:
-    """Structural classification: BUY/SELL/EXCHANGE and not a holding disclosure."""
+def _is_structural_primary_transaction(row: Mapping[str, object]) -> bool:
     if is_asset_or_holding_disclosure(row):
         return False
     return _upper(row.get("action")) in PRIMARY_TRANSACTION_ACTIONS
 
 
 def is_credible_directional_transaction(row: Mapping[str, object]) -> bool:
-    """Exclude malformed or technical rows from directional signal products.
+    """Return True only for trustworthy directional transaction signals.
 
-    This is deliberately stricter than ``is_primary_transaction``. Raw rows stay
-    in the database for audit, but implausible political amounts, derivative-only
-    exercises and tiny broker/dealer affiliate Form 4 rows do not enter rankings,
-    charts, counts, consensus or AI context.
+    Raw rows remain in storage for audit. This filter governs transaction counts,
+    rankings, charts, consensus, WIS inputs and AI context.
     """
-    if not is_primary_transaction(row):
+    if not _is_structural_primary_transaction(row):
         return False
 
     source = _upper(row.get("source"))
@@ -61,22 +58,21 @@ def is_credible_directional_transaction(row: Mapping[str, object]) -> bool:
     code = _upper(row.get("transaction_code"))
     amount = _float(row.get("amount_usd"))
     actor = _upper(row.get("whale_name"))
-    raw = _raw(row)
-    raw_text = " ".join(str(v or "") for v in raw.values()).upper()
+    raw_text = " ".join(str(v or "") for v in _raw(row).values()).upper()
 
-    # Political disclosures use ranges; single-digit values are parser artefacts.
+    # Political disclosures use amount ranges; one- and two-digit values are
+    # parser artefacts rather than credible disclosed consideration.
     if source.startswith("POLITICAL") and 0 < amount < 100:
         return False
 
-    # Option exercise, award, conversion and derivative-only rows are not open-
-    # market directional purchases even if an upstream normalizer labelled BUY.
+    # Awards, exercises, conversions and derivative-only acquisitions are not
+    # open-market directional purchases.
     derivative_markers = r"DERIVATIVE|OPTION|EXERCISE|CONVERSION|AWARD|VEST|RESTRICTED STOCK|RSU"
     if action == "BUY" and (code in {"A", "M", "C", "F", "G"} or re.search(derivative_markers, raw_text)):
         return False
 
-    # Broker/dealer affiliates frequently file mirrored or technical Form 4 rows.
-    # Tiny values such as NMZ $368 are retained in raw evidence but excluded from
-    # the active-buy signal and all downstream directional summaries.
+    # Mirrored broker/dealer affiliate filings can create tiny technical BUY
+    # rows, e.g. the NMZ $368 cluster. Keep them as evidence, not as signals.
     broker_actor = re.search(r"BANK OF AMERICA|MERRILL LYNCH|BROKER|SECURITIES INC", actor)
     if action == "BUY" and source.startswith("SEC") and broker_actor and 0 < amount < 1_000:
         return False
@@ -84,6 +80,10 @@ def is_credible_directional_transaction(row: Mapping[str, object]) -> bool:
     return True
 
 
+def is_primary_transaction(row: Mapping[str, object]) -> bool:
+    """Unified V40 definition used by every transaction-based product surface."""
+    return is_credible_directional_transaction(row)
+
+
 def primary_transactions(rows: Iterable[Mapping[str, object]]) -> list[dict]:
-    """Materialize credible directional transaction rows as dictionaries."""
-    return [dict(row) for row in rows if is_credible_directional_transaction(row)]
+    return [dict(row) for row in rows if is_primary_transaction(row)]
