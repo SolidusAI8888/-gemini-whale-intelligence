@@ -48,14 +48,30 @@ def _strip_table_noise(text: str) -> str:
     return _collapse(value)
 
 
+def _trim_container_prefix(candidate: str) -> str:
+    """Prefer a nested asset entity over its enclosing trust/holding container."""
+    value = _collapse(candidate)
+    nested = re.search(r"\bNo\s+\d+(?:\.\d+)*\s+([A-Z].+)$", value, re.I)
+    if nested:
+        value = _collapse(nested.group(1))
+    return value
+
+
 def _best_entity(text: str) -> str:
     candidates: list[str] = []
     for pattern in _ENTITY_PATTERNS:
-        candidates.extend(_collapse(match.group(1)) for match in pattern.finditer(text))
+        for match in pattern.finditer(text):
+            candidates.append(_trim_container_prefix(match.group(1)))
     if not candidates:
         return ""
+
+    # Prefer the last specific entity in an OCR window. If two candidates refer
+    # to the same suffix, keep the shorter representation without its container.
     last = candidates[-1]
-    equivalent = [item for item in candidates if item.lower().endswith(last.lower()) or last.lower().endswith(item.lower())]
+    equivalent = [
+        item for item in candidates
+        if item.lower().endswith(last.lower()) or last.lower().endswith(item.lower())
+    ]
     return min(equivalent or [last], key=len)
 
 
