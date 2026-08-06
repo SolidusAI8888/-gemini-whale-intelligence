@@ -71,6 +71,7 @@ def _asset_text(row: Mapping[str, object]) -> tuple[str, str]:
 
 _FRAGMENT_PATTERNS = (
     r"^(?:n/?a|none|no|yes|rate term|borrower\)?|see endnote|over \$?[\d,]+)$",
+    r"^(?:n/?a\s+)?none\s*\(or\s+less\)?$",
     r"^(?:interest|dividends?|capital gains?|rent or royalties|net distributive|crop sales)$",
     r"^(?:government guaranteed collateral|secured facility|on demand)$",
     r"# employer or party|status and terms|date$",
@@ -80,6 +81,8 @@ _FRAGMENT_PATTERNS = (
 def _is_fragment(asset: str) -> bool:
     text = asset.strip().lower()
     if len(text) < 5:
+        return True
+    if "none (or less" in text:
         return True
     if any(re.search(pattern, text, re.I) for pattern in _FRAGMENT_PATTERNS):
         return True
@@ -94,7 +97,7 @@ def classify_oge_asset(row: Mapping[str, object]) -> str:
         return "加密资产"
     if re.search(r"real estate|property|land|building|commercial real estate|mixed use", text):
         return "房地产/商业权益"
-    if re.search(r"\b(?:llc|l\.p\.|lp|limited partnership)\b|trust|private equity|venture", text):
+    if re.search(r"\bllc\b|(?:^|\s)l\.?\s*p\.?(?:\s|$)|limited partnership|trust|private equity|venture", text, re.I):
         return "私募/LLC/信托"
     if re.search(r"\b(?:etf|mutual fund|index fund|fund)\b", text):
         return "ETF/基金"
