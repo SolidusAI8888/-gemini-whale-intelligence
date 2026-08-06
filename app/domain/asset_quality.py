@@ -21,10 +21,9 @@ _NOISE_ONLY = re.compile(
 )
 
 _ENTITY_PATTERNS = (
-    # Prefer the most specific legal entity appearing anywhere in an OCR window.
     re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:L\.P\.|LP|LLC|L\.L\.C\.|Trust))\b", re.I),
     re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:Inc\.?|Corp\.?|Corporation|Company|Co\.?)(?:\s*\([A-Z.\-]{1,8}\))?(?:\s*\(Class\s+[AB]\))?)", re.I),
-    re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\bN\.A\.)", re.I),
+    re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\bN\.A\.?)", re.I),
 )
 
 
@@ -55,11 +54,15 @@ def _best_entity(text: str) -> str:
         candidates.extend(_collapse(match.group(1)) for match in pattern.finditer(text))
     if not candidates:
         return ""
-    # OCR windows often contain a parent container followed by the actual asset.
-    # Prefer the last specific entity, then the shortest non-empty representation.
     last = candidates[-1]
     equivalent = [item for item in candidates if item.lower().endswith(last.lower()) or last.lower().endswith(item.lower())]
     return min(equivalent or [last], key=len)
+
+
+def _standardize_legal_suffixes(name: str) -> str:
+    value = re.sub(r"\bN\.A\.?\b", "N.A.", name, flags=re.I)
+    value = re.sub(r"\bL\.P\.?\b", "L.P.", value, flags=re.I)
+    return _collapse(value)
 
 
 def _category(name: str) -> str:
@@ -88,12 +91,10 @@ def normalize_oge_asset(value: object) -> NormalizedAsset:
         return NormalizedAsset("", "", "其他资产", "rejected", "noise_or_financing_term")
 
     entity = _best_entity(cleaned)
-    name = entity or cleaned
-    name = _strip_table_noise(name)
+    name = _standardize_legal_suffixes(_strip_table_noise(entity or cleaned))
     if not name or _NOISE_ONLY.fullmatch(name):
         return NormalizedAsset("", "", "其他资产", "rejected", "no_asset_entity")
 
-    # Reject residual windows that are mostly table vocabulary rather than an entity.
     residue = re.sub(
         r"\b(?:n/?a|on demand|rate term|secured facility|government guaranteed collateral|"
         r"interest|rent or royalties|see endnote|no|yes)\b",
