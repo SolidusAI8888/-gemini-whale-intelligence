@@ -21,9 +21,9 @@ _NOISE_ONLY = re.compile(
 )
 
 _ENTITY_PATTERNS = (
-    re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:L\.P\.|LP|LLC|L\.L\.C\.|Trust))\b", re.I),
+    re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:L\.P\.?|LP|LLC|L\.L\.C\.?|Trust))(?=\s|$|[,;)])", re.I),
     re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:Inc\.?|Corp\.?|Corporation|Company|Co\.?)(?:\s*\([A-Z.\-]{1,8}\))?(?:\s*\(Class\s+[AB]\))?)", re.I),
-    re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\bN\.A\.?)", re.I),
+    re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\bN\.A\.?)(?=\s|$|[,;)])", re.I),
 )
 
 
@@ -60,8 +60,12 @@ def _best_entity(text: str) -> str:
 
 
 def _standardize_legal_suffixes(name: str) -> str:
-    value = re.sub(r"\bN\.A\.?\b", "N.A.", name, flags=re.I)
-    value = re.sub(r"\bL\.P\.?\b", "L.P.", value, flags=re.I)
+    value = _collapse(name)
+    value = re.sub(r"N\.A\.?(?=\s|$|[,;)])", "N.A.", value, flags=re.I)
+    value = re.sub(r"L\.P\.?(?=\s|$|[,;)])", "L.P.", value, flags=re.I)
+    value = re.sub(r"L\.L\.C\.?(?=\s|$|[,;)])", "L.L.C.", value, flags=re.I)
+    value = re.sub(r"(?<![A-Za-z])LP(?=\s|$|[,;)])", "L.P.", value, flags=re.I)
+    value = re.sub(r"(?<![A-Za-z])LLC(?=\s|$|[,;)])", "LLC", value, flags=re.I)
     return _collapse(value)
 
 
@@ -71,7 +75,7 @@ def _category(name: str) -> str:
         return "加密资产"
     if re.search(r"real estate|property|land|building|commercial|royalty interest", lower):
         return "房地产/商业权益"
-    if re.search(r"\b(?:l\.p\.|lp|llc|l\.l\.c\.)\b|trust|limited partnership|private equity|venture", lower):
+    if re.search(r"(?:^|\s|[,;(])(?:l\.p\.|lp|llc|l\.l\.c\.)(?=\s|$|[,;)])|trust|limited partnership|private equity|venture", lower):
         return "私募/LLC/信托"
     if re.search(r"\b(?:etf|mutual fund|index fund|fund)\b", lower):
         return "ETF/基金"
@@ -79,7 +83,7 @@ def _category(name: str) -> str:
         return "债券"
     if re.search(r"\([A-Z.\-]{1,8}\)|\bclass\s+[ab]\b", name, re.I):
         return "股票/上市证券"
-    if re.search(r"\b(?:inc\.?|corp\.?|corporation|company|co\.?|n\.a\.)\b", name, re.I):
+    if re.search(r"\b(?:inc\.?|corp\.?|corporation|company|co\.?)\b|n\.a\.(?=\s|$|[,;)])", name, re.I):
         return "公司权益/商业权益"
     return "其他资产"
 
