@@ -71,17 +71,17 @@ def is_credible_directional_transaction(row: Mapping[str, object]) -> bool:
     if action == "BUY" and (code in {"A", "M", "C", "F", "G"} or re.search(derivative_markers, raw_text)):
         return False
 
-    # Mirrored broker/dealer affiliate filings can create tiny technical BUY
-    # rows, e.g. the NMZ $368 cluster. Keep them as evidence, not as signals.
+    # Mirrored broker/dealer affiliate filings can create tiny technical BUY and
+    # SELL rows, e.g. the NMZ $368/$370 cluster. Keep them in raw evidence only.
     broker_actor = re.search(r"BANK OF AMERICA|MERRILL LYNCH|BROKER|SECURITIES INC", actor)
-    if action == "BUY" and source.startswith("SEC") and broker_actor and 0 < amount < 1_000:
+    if source.startswith("SEC") and broker_actor and 0 < amount < 1_000:
         return False
 
     return True
 
 
 def is_primary_transaction(row: Mapping[str, object]) -> bool:
-    """Unified V40 definition used by every transaction-based product surface."""
+    """Unified V41 definition used by every transaction-based product surface."""
     return is_credible_directional_transaction(row)
 
 
