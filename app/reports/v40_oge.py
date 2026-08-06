@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import date
 from html import escape
 import json
-import re
 from typing import Iterable, Mapping
+
+from app.domain.asset_quality import normalize_oge_asset
 
 
 def _float(value: object) -> float:
@@ -48,73 +49,20 @@ def _is_new(row: Mapping[str, object], new_since: str | None) -> bool:
     return bool(created_at and created_at >= str(new_since)[:19])
 
 
-def _clean_text(value: object) -> str:
-    text = re.sub(r"\s+", " ", str(value or "")).strip(" -:;,")
-    text = re.sub(r"^(?:\d+(?:\.\d+)*\s+)+", "", text)
-    text = re.sub(r"\s+(?:N/A\s+)?(?:Over|\$)[\s\$\d,–-]+$", "", text, flags=re.I)
-    text = re.sub(r"\s+See Endnote\b.*$", "", text, flags=re.I)
-    return text.strip(" -:;,")
-
-
-def _asset_text(row: Mapping[str, object]) -> tuple[str, str]:
+def _raw_asset_text(row: Mapping[str, object]) -> str:
     raw = _raw(row)
-    asset = _clean_text(
+    return str(
         raw.get("asset_name")
         or raw.get("name")
         or raw.get("description")
         or row.get("company_name")
         or row.get("ticker")
+        or ""
     )
-    description = _clean_text(raw.get("context") or "")
-    return asset or "未命名资产", description
-
-
-_FRAGMENT_PATTERNS = (
-    r"^(?:n/?a|none|no|yes|rate term|borrower\)?|see endnote|over \$?[\d,]+)$",
-    r"^(?:n/?a\s+)?none\s*\(or\s+less\)?$",
-    r"^(?:interest|dividends?|capital gains?|rent or royalties|net distributive|crop sales)$",
-    r"^(?:government guaranteed collateral|secured facility|on demand)$",
-    r"# employer or party|status and terms|date$",
-)
-
-
-def _is_fragment(asset: str) -> bool:
-    text = asset.strip().lower()
-    if len(text) < 5:
-        return True
-    if "none (or less" in text:
-        return True
-    if any(re.search(pattern, text, re.I) for pattern in _FRAGMENT_PATTERNS):
-        return True
-    meaningful = re.sub(r"\b(?:n/?a|no|yes|over|see|endnote)\b|[\d\W_]", "", text, flags=re.I)
-    return len(meaningful) < 4
 
 
 def classify_oge_asset(row: Mapping[str, object]) -> str:
-    asset, description = _asset_text(row)
-    text = f"{asset} {description}".lower()
-    if re.search(r"bitcoin|ethereum|crypto|digital asset|token", text):
-        return "加密资产"
-    if re.search(r"real estate|property|land|building|commercial real estate|mixed use", text):
-        return "房地产/商业权益"
-    if re.search(r"\bllc\b|(?:^|\s)l\.?\s*p\.?(?:\s|$)|limited partnership|trust|private equity|venture", text, re.I):
-        return "私募/LLC/信托"
-    if re.search(r"\b(?:etf|mutual fund|index fund|fund)\b", text):
-        return "ETF/基金"
-    if re.search(r"\b(?:treasury|municipal bond|corporate bond|fixed income|debenture)\b", text):
-        return "债券"
-    if re.search(r"\b(?:class [ab]|common stock|ordinary shares|inc\.?\s*\([A-Z]{1,6}\)|corp\.?\s*\([A-Z]{1,6}\))", asset, re.I):
-        return "股票/上市证券"
-    if re.search(r"\b(?:inc\.?|corp\.?|company|co\.?)\b", asset, re.I):
-        return "公司权益/商业权益"
-    return "其他资产"
-
-
-def _canonical_asset(asset: str) -> str:
-    text = asset.lower()
-    text = re.sub(r"\b(?:n/?a|no|yes|see endnote|over \$?[\d,]+)\b", " ", text)
-    text = re.sub(r"[^a-z0-9]+", " ", text)
-    return re.sub(r"\s+", " ", text).strip()
+    return normalize_oge_asset(_raw_asset_text(row)).category
 
 
 def _report_date(row: Mapping[str, object]) -> str:
@@ -139,21 +87,22 @@ def build_cabinet_oge_radar(
     for source_row in rows:
         if not _is_oge_asset(source_row):
             continue
-        asset, _ = _asset_text(source_row)
-        if _is_fragment(asset):
+        normalized = normalize_oge_asset(_raw_asset_text(source_row))
+        if normalized.quality != "accepted" or not normalized.canonical_key:
             continue
         key = (
             str(source_row.get("whale_name") or "").strip().lower(),
             str(source_row.get("filing_url") or source_row.get("source_id") or ""),
-            _canonical_asset(asset),
+            normalized.canonical_key,
         )
-        if not key[2]:
-            continue
+        candidate = dict(source_row)
+        candidate["_normalized_asset_name"] = normalized.name
+        candidate["_normalized_asset_category"] = normalized.category
         current = deduped.get(key)
-        if current is None or _float(source_row.get("amount_usd")) > _float(current.get("amount_usd")):
-            deduped[key] = dict(source_row)
-        elif _is_new(source_row, new_since):
-            current["created_at"] = source_row.get("created_at")
+        if current is None or _float(candidate.get("amount_usd")) > _float(current.get("amount_usd")):
+            deduped[key] = candidate
+        elif _is_new(candidate, new_since):
+            current["created_at"] = candidate.get("created_at")
 
     ordered = sorted(
         deduped.values(),
@@ -164,7 +113,8 @@ def build_cabinet_oge_radar(
     body: list[str] = []
     for row in ordered:
         raw = _raw(row)
-        asset, description = _asset_text(row)
+        asset = str(row.get("_normalized_asset_name") or "-")
+        category = str(row.get("_normalized_asset_category") or "其他资产")
         amount_label = str(raw.get("amount_range_label") or raw.get("value_range") or "").strip()
         midpoint = _money(_float(row.get("amount_usd")))
         amount = amount_label + (f"（估算中点 {midpoint}）" if amount_label and midpoint != "-" else "")
@@ -177,19 +127,17 @@ def build_cabinet_oge_radar(
         body.append(
             f"<tr{row_class}><td>{escape(str(row.get('whale_name') or '-'))}</td>"
             f"<td>{escape(str(row.get('insider_role') or '-'))}</td>"
-            f"<td>{escape(classify_oge_asset(row))}</td>"
-            f"<td><b>{escape(asset)}</b>"
-            + (f'<br><span class="small">{escape(description[:180])}</span>' if description and description != asset else "")
-            + f"</td><td>{escape(amount or '-')}</td><td>{escape(_report_date(row))}</td><td>{source_html}</td></tr>"
+            f"<td>{escape(category)}</td><td><b>{escape(asset)}</b></td>"
+            f"<td>{escape(amount or '-')}</td><td>{escape(_report_date(row))}</td><td>{source_html}</td></tr>"
         )
 
     table = "<p>暂无通过质量校验的行政分支 OGE 资产披露。</p>" if not body else (
-        "<table><thead><tr><th>人物</th><th>职位</th><th>资产类别</th><th>投资标的及简要描述</th>"
+        "<table><thead><tr><th>人物</th><th>职位</th><th>资产类别</th><th>标准化投资标的</th>"
         "<th>金额/区间</th><th>披露/报告日期</th><th>来源</th></tr></thead><tbody>"
         + "".join(body) + "</tbody></table>"
     )
     return (
         '<section id="v40-cabinet-oge-radar"><h2>部长 / Cabinet OGE 披露雷达</h2>'
-        '<p class="small">仅展示可识别的完整资产实体；表头、金额残片、脚注和融资条款碎片已排除。'
-        '同一人物同一申报文件中的同一资产只保留一条，邮件正文最多18行。</p>' + table + "</section>"
+        '<p class="small">V41 数据质量层先提取标准化资产实体，再进行分类和去重。融资条款、收益类型、表头、金额残片和脚注不会作为资产展示。'
+        '同一人物同一申报文件中的同一标准化资产只保留一条，邮件正文最多18行。</p>' + table + "</section>"
     )
