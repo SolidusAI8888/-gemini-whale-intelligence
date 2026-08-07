@@ -5,7 +5,7 @@ from html import escape
 import json
 from typing import Iterable, Mapping
 
-from app.domain.asset_quality import normalize_oge_asset
+from app.domain.asset_semantics import parse_oge_asset_semantics
 
 
 def _float(value: object) -> float:
@@ -62,7 +62,7 @@ def _raw_asset_text(row: Mapping[str, object]) -> str:
 
 
 def classify_oge_asset(row: Mapping[str, object]) -> str:
-    return normalize_oge_asset(_raw_asset_text(row)).category
+    return parse_oge_asset_semantics(_raw_asset_text(row)).category
 
 
 def _report_date(row: Mapping[str, object]) -> str:
@@ -87,17 +87,17 @@ def build_cabinet_oge_radar(
     for source_row in rows:
         if not _is_oge_asset(source_row):
             continue
-        normalized = normalize_oge_asset(_raw_asset_text(source_row))
-        if normalized.quality != "accepted" or not normalized.canonical_key:
+        parsed = parse_oge_asset_semantics(_raw_asset_text(source_row))
+        if parsed.quality != "accepted" or not parsed.canonical_key or not parsed.asset_name:
             continue
         key = (
             str(source_row.get("whale_name") or "").strip().lower(),
             str(source_row.get("filing_url") or source_row.get("source_id") or ""),
-            normalized.canonical_key,
+            parsed.canonical_key,
         )
         candidate = dict(source_row)
-        candidate["_normalized_asset_name"] = normalized.name
-        candidate["_normalized_asset_category"] = normalized.category
+        candidate["_normalized_asset_name"] = parsed.asset_name
+        candidate["_normalized_asset_category"] = parsed.category
         current = deduped.get(key)
         if current is None or _float(candidate.get("amount_usd")) > _float(current.get("amount_usd")):
             deduped[key] = candidate
@@ -138,6 +138,7 @@ def build_cabinet_oge_radar(
     )
     return (
         '<section id="v40-cabinet-oge-radar"><h2>部长 / Cabinet OGE 披露雷达</h2>'
-        '<p class="small">V41 数据质量层先提取标准化资产实体，再进行分类和去重。融资条款、收益类型、表头、金额残片和脚注不会作为资产展示。'
-        '同一人物同一申报文件中的同一标准化资产只保留一条，邮件正文最多18行。</p>' + table + "</section>"
+        '<p class="small">V41 语义解析层先拆分资产、金额、收益类型与融资条款，再对标准化资产实体分类和去重。'
+        '金额、收益类型、融资条款、表头和脚注不会作为资产展示；同一人物同一申报文件中的同一标准化资产只保留一条，邮件正文最多18行。</p>'
+        + table + "</section>"
     )
