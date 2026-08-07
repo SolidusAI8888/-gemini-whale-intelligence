@@ -12,7 +12,7 @@ from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
 from app.collectors.market_data import apply_market_context_to_scores, collect_market_snapshots
 from app.collectors.sec_13f import collect_institutional_13f_holdings, get_institutional_13f_status
-from app.collectors.oge_executive import collect_oge_executive_trades
+from app.collectors.oge_executive_v42 import collect_oge_executive_trades
 from app.collectors.universe import build_company_universe, tickers_from_companies
 from app.config import settings
 from app.db import (
