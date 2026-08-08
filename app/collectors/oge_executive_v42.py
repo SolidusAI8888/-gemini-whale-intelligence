@@ -66,16 +66,31 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
     gate. Amount-only, income-type, financing-term and fragment rows are dropped;
     accepted assets are stored under their normalized entity names.
     """
+    log.info("V42 OGE collector ACTIVE: starting legacy collection + pre-upsert quality gate")
     rows = collect_oge_executive_trades_legacy(user_agent, lookback_days)
     output: list[dict] = []
     rejected = 0
+    accepted_assets = 0
+    passthrough_nonassets = 0
     for row in rows:
+        is_asset = str(row.get("source") or "").upper() == "OGE_EXECUTIVE_ASSET"
         normalized = _normalize_asset_row(row)
         if normalized is None:
             rejected += 1
             continue
         output.append(normalized)
-    log.info("V42 OGE pre-upsert gate: input=%s accepted=%s rejected=%s", len(rows), len(output), rejected)
+        if is_asset:
+            accepted_assets += 1
+        else:
+            passthrough_nonassets += 1
+    log.info(
+        "V42 OGE pre-upsert gate COMPLETE: input=%s output=%s accepted_assets=%s rejected_assets=%s passthrough_nonassets=%s",
+        len(rows),
+        len(output),
+        accepted_assets,
+        rejected,
+        passthrough_nonassets,
+    )
     return output
 
 
