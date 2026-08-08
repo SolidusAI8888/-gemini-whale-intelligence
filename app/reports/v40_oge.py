@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import date
 from html import escape
 import json
+import os
+import re
 from typing import Iterable, Mapping
 
 from app.domain.asset_semantics import parse_oge_asset_semantics
@@ -61,6 +63,26 @@ def _raw_asset_text(row: Mapping[str, object]) -> str:
     )
 
 
+_LEGACY_DIRTY_ASSET_RE = re.compile(
+    r"^(?:\s*(?:n/?a\s+)?)?(?:"
+    r"over\s+\$?[\d,]+|"
+    r"dividends?\b|interest(?:\s+income)?\b|capital gains?\b|"
+    r"rent or royalties\b|rental income\b|crop sales\b|net distributive income\b|"
+    r"rate term\b|on demand\b|secured facility\b|government guaranteed collateral\b|"
+    r"#?\s*employer or party\b|city,?\s*state\s+status and terms\b"
+    r")",
+    re.I,
+)
+
+
+def _passes_v42_report_gate(text: str) -> bool:
+    value = re.sub(r"\s+", " ", str(text or "")).strip()
+    if not value or _LEGACY_DIRTY_ASSET_RE.search(value):
+        return False
+    parsed = parse_oge_asset_semantics(value)
+    return parsed.quality == "accepted" and bool(parsed.asset_name and parsed.canonical_key)
+
+
 def classify_oge_asset(row: Mapping[str, object]) -> str:
     return parse_oge_asset_semantics(_raw_asset_text(row)).category
 
@@ -87,9 +109,12 @@ def build_cabinet_oge_radar(
     for source_row in rows:
         if not _is_oge_asset(source_row):
             continue
-        parsed = parse_oge_asset_semantics(_raw_asset_text(source_row))
-        if parsed.quality != "accepted" or not parsed.canonical_key or not parsed.asset_name:
+        raw_asset = _raw_asset_text(source_row)
+        # Defense in depth: old persisted rows predate V42 and must never be
+        # allowed to bypass the pre-upsert gate merely because they remain in DB.
+        if not _passes_v42_report_gate(raw_asset):
             continue
+        parsed = parse_oge_asset_semantics(raw_asset)
         key = (
             str(source_row.get("whale_name") or "").strip().lower(),
             str(source_row.get("filing_url") or source_row.get("source_id") or ""),
@@ -136,9 +161,13 @@ def build_cabinet_oge_radar(
         "<th>金额/区间</th><th>披露/报告日期</th><th>来源</th></tr></thead><tbody>"
         + "".join(body) + "</tbody></table>"
     )
+    build_sha = str(os.getenv("GITHUB_SHA") or "local")[:8]
     return (
         '<section id="v40-cabinet-oge-radar"><h2>部长 / Cabinet OGE 披露雷达</h2>'
-        '<p class="small">V41 语义解析层先拆分资产、金额、收益类型与融资条款，再对标准化资产实体分类和去重。'
+        f'<p class="small">V42 数据质量门已启用（build {escape(build_sha)}）：采集入库前过滤 + 报告读取历史库后二次过滤。'
         '金额、收益类型、融资条款、表头和脚注不会作为资产展示；同一人物同一申报文件中的同一标准化资产只保留一条，邮件正文最多18行。</p>'
         + table + "</section>"
     )
+
+
+passes_v42_report_gate_for_tests = _passes_v42_report_gate
