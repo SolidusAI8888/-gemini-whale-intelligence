@@ -29,6 +29,31 @@ def test_trailing_llc_column_fragment_is_removed():
     assert normalized.name == "DFI BD, LLC"
 
 
+@pytest.mark.parametrize(
+    "asset",
+    [
+        "Dividends $100,001",
+        "Dividend $15,001 - $50,000",
+        "Crop Sales $51,180",
+        "Interest $25,000",
+        "Interest Income $100,001",
+        "Rent or Royalties $250,000",
+        "Capital Gains $1,000,001",
+        "Net Distributive Income $75,000",
+    ],
+)
+def test_income_labels_with_amounts_are_rejected_upstream(asset: str):
+    normalized = normalize_oge_asset(asset)
+    assert normalized.quality == "rejected"
+    assert normalized.name == ""
+
+
+def test_income_prefix_can_still_recover_a_real_legal_entity():
+    normalized = normalize_oge_asset("Dividends $100,001 Example Holdings LLC")
+    assert normalized.quality == "accepted"
+    assert normalized.name == "Example Holdings LLC"
+
+
 def test_release_gate_accepts_clean_report():
     validate_report_html_for_tests(_base_html('<tr><td><b>Bank of America, N.A.</b></td></tr>'))
 
