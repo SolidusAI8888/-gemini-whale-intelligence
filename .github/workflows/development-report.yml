@@ -45,8 +45,6 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
 
-      # Development preview uses the known iCloud STARTTLS endpoint explicitly.
-      # Only credentials and addresses come from repository secrets.
       EMAIL_PROVIDER: smtp
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       EMAIL_TO: ${{ secrets.EMAIL_TO }}
@@ -70,6 +68,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_ref }}
+
+      - name: Record checked-out source revision
+        run: |
+          checked_out_sha="$(git rev-parse HEAD)"
+          echo "REPORT_BUILD_SHA=$checked_out_sha" >> "$GITHUB_ENV"
+          echo "Checked-out source ref: ${{ inputs.source_ref }}"
+          echo "Checked-out source SHA: $checked_out_sha"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -128,6 +133,7 @@ jobs:
           {
             echo "## Development report preview"
             echo "- Source ref: \`${{ inputs.source_ref }}\`"
+            echo "- Checked-out source SHA: \`${REPORT_BUILD_SHA:-unknown}\`"
             echo "- Email requested: \`${{ inputs.send_email }}\`"
             echo "- Gemini enabled: \`${{ inputs.enable_gemini }}\`"
             echo "- SMTP endpoint: \`smtp.mail.me.com:587\` with STARTTLS"
