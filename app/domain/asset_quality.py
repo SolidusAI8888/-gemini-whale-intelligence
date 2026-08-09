@@ -20,6 +20,12 @@ _NOISE_ONLY = re.compile(
     re.I,
 )
 
+_INCOME_LABEL_PREFIX = re.compile(
+    r"^(?:dividends?|crop sales|interest(?: income)?|rent or royalties|capital gains?|"
+    r"net distributive income)\b",
+    re.I,
+)
+
 _ENTITY_PATTERNS = (
     re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:L\.P\.?|LP|LLC|L\.L\.C\.?|Trust))(?=\s|$|[,;)])", re.I),
     re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:Inc\.?|Corp\.?|Corporation|Company|Co\.?)(?:\s*\([A-Z.\-]{1,8}\))?(?:\s*\(Class\s+[AB]\))?)", re.I),
@@ -110,6 +116,13 @@ def normalize_oge_asset(value: object) -> NormalizedAsset:
     cleaned = _strip_table_noise(raw)
     if not cleaned or _NOISE_ONLY.fullmatch(cleaned):
         return NormalizedAsset("", "", "其他资产", "rejected", "noise_or_financing_term")
+
+    # OGE PDF extraction sometimes shifts the income-type and amount columns
+    # into the asset-name field, producing values such as "Dividends $100,001"
+    # or "Crop Sales $51,180".  These are not assets.  Preserve the row only
+    # when a real legal entity can still be recovered from the same string.
+    if _INCOME_LABEL_PREFIX.match(cleaned) and not _best_entity(cleaned):
+        return NormalizedAsset("", "", "其他资产", "rejected", "income_label_not_asset")
 
     entity = _best_entity(cleaned)
     name = _standardize_legal_suffixes(_strip_table_noise(entity or cleaned))
