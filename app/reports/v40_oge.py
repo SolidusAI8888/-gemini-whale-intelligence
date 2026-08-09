@@ -63,30 +63,40 @@ def _raw_asset_text(row: Mapping[str, object]) -> str:
     )
 
 
-_LEGACY_HEADER_RE = re.compile(
-    r"^(?:\s*#?\s*)?(?:employer or party\b|city,?\s*state\s+status and terms\b|assets? and income\b|description\b)",
+_HEADER_RE = re.compile(
+    r"^(?:\s*(?:#|\d+(?:\.\d+)*)?\s*)?(?:"
+    r"employer or party\b|city,?\s*state\b|status and terms\b|assets? and income\b|"
+    r"source of income\b|type of income\b|income amount\b|value\b|description\b|"
+    r"date\b|transaction date\b|notification date\b|amount of transaction\b)",
     re.I,
 )
 
 
-def _passes_v42_report_gate(text: str) -> bool:
-    """Re-validate persisted OGE rows without discarding recoverable entities.
-
-    Historical rows may contain financing/noise tokens around a real asset entity,
-    e.g. ``N/A On Demand 3 Bank of America, N.A See Endnote Over $50,000,000``.
-    V42 must first attempt semantic extraction and reject only when no trustworthy
-    asset survives. Pure table headers are rejected before parsing because they
-    can otherwise look like generic text entities.
-    """
+def _trusted_asset(text: object):
     value = re.sub(r"\s+", " ", str(text or "")).strip()
-    if not value or _LEGACY_HEADER_RE.search(value):
-        return False
+    if not value or _HEADER_RE.search(value):
+        return None
     parsed = parse_oge_asset_semantics(value)
-    return parsed.quality == "accepted" and bool(parsed.asset_name and parsed.canonical_key)
+    if parsed.quality != "accepted" or not parsed.asset_name or not parsed.canonical_key:
+        return None
+    # Final boundary validation: re-parse the normalized entity itself. This
+    # prevents persisted legacy rows or future parser changes from rendering a
+    # table header/noise token as an investment asset.
+    final = parse_oge_asset_semantics(parsed.asset_name)
+    if final.quality != "accepted" or not final.asset_name or not final.canonical_key:
+        return None
+    if _HEADER_RE.search(final.asset_name):
+        return None
+    return final
+
+
+def _passes_v42_report_gate(text: str) -> bool:
+    return _trusted_asset(text) is not None
 
 
 def classify_oge_asset(row: Mapping[str, object]) -> str:
-    return parse_oge_asset_semantics(_raw_asset_text(row)).category
+    parsed = _trusted_asset(_raw_asset_text(row))
+    return parsed.category if parsed else "其他资产"
 
 
 def _report_date(row: Mapping[str, object]) -> str:
@@ -111,12 +121,9 @@ def build_cabinet_oge_radar(
     for source_row in rows:
         if not _is_oge_asset(source_row):
             continue
-        raw_asset = _raw_asset_text(source_row)
-        # Defense in depth: persisted rows predating V42 are re-parsed. Recoverable
-        # entities are normalized; pure noise/header rows remain excluded.
-        if not _passes_v42_report_gate(raw_asset):
+        parsed = _trusted_asset(_raw_asset_text(source_row))
+        if parsed is None:
             continue
-        parsed = parse_oge_asset_semantics(raw_asset)
         key = (
             str(source_row.get("whale_name") or "").strip().lower(),
             str(source_row.get("filing_url") or source_row.get("source_id") or ""),
@@ -140,8 +147,13 @@ def build_cabinet_oge_radar(
     body: list[str] = []
     for row in ordered:
         raw = _raw(row)
-        asset = str(row.get("_normalized_asset_name") or "-")
-        category = str(row.get("_normalized_asset_category") or "其他资产")
+        # Re-check immediately before HTML emission. The report renderer is a
+        # release boundary and must never trust cached normalized fields alone.
+        final = _trusted_asset(row.get("_normalized_asset_name"))
+        if final is None:
+            continue
+        asset = final.asset_name
+        category = final.category
         amount_label = str(raw.get("amount_range_label") or raw.get("value_range") or "").strip()
         midpoint = _money(_float(row.get("amount_usd")))
         amount = amount_label + (f"（估算中点 {midpoint}）" if amount_label and midpoint != "-" else "")
@@ -163,11 +175,11 @@ def build_cabinet_oge_radar(
         "<th>金额/区间</th><th>披露/报告日期</th><th>来源</th></tr></thead><tbody>"
         + "".join(body) + "</tbody></table>"
     )
-    build_sha = str(os.getenv("GITHUB_SHA") or "local")[:8]
+    build_sha = str(os.getenv("GITHUB_SHA") or "local")[:12]
     return (
         '<section id="v40-cabinet-oge-radar"><h2>部长 / Cabinet OGE 披露雷达</h2>'
-        f'<p class="small">V42 数据质量门已启用（build {escape(build_sha)}）：采集入库前过滤 + 报告读取历史库后二次语义提取。'
-        '金额、收益类型、融资条款、表头和脚注不会作为资产展示；含噪声但可恢复真实实体的历史行会保留标准化资产；同一人物同一申报文件中的同一标准化资产只保留一条，邮件正文最多18行。</p>'
+        f'<p class="small">V43 数据质量门已启用（build {escape(build_sha)}）：采集入库、历史库读取和最终 HTML 渲染三次语义校验。'
+        '金额、收益类型、融资条款、表头和脚注不会作为资产展示；含噪声但可恢复真实实体的历史行只展示标准化资产；同一人物同一申报文件中的同一标准化资产只保留一条，邮件正文最多18行。</p>'
         + table + "</section>"
     )
 
