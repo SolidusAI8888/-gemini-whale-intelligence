@@ -18,7 +18,7 @@ def _cabinet_section(html: str) -> str:
 
 
 def _build_sha() -> str:
-    return str(os.getenv("GITHUB_SHA") or "local")[:12]
+    return str(os.getenv("REPORT_BUILD_SHA") or os.getenv("GITHUB_SHA") or "local")[:12]
 
 
 def _parse_billions(label: str) -> float | None:
