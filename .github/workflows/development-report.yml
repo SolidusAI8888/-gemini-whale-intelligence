@@ -41,6 +41,19 @@ jobs:
       SEND_EMAIL: ${{ inputs.send_email }}
       ENABLE_GEMINI: ${{ inputs.enable_gemini }}
 
+      # V44: preview must use the same report/scanning policy as production.
+      # Otherwise a 3-day/core-only preview is not a valid regression comparison
+      # against the 200-day/all-politics production report.
+      LOOKBACK_DAYS: "200"
+      SCAN_START_DATE: "2026-01-01"
+      MAX_COMPANIES: "0"
+      MIN_OPPORTUNITY_SCORE: "55"
+      ENABLE_POLITICAL_TRADES: "true"
+      POLITICAL_PROVIDER: "auto"
+      POLITICAL_UNIVERSE_SCOPE: "all"
+      POLITICAL_MAX_FILINGS: "300"
+      FMP_CONGRESSIONAL_ENABLED: "false"
+
       SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
@@ -76,19 +89,33 @@ jobs:
           echo "Checked-out source ref: ${{ inputs.source_ref }}"
           echo "Checked-out source SHA: $checked_out_sha"
 
+      - name: Restore latest production scan database as regression baseline
+        id: restore_production_state
+        uses: actions/cache/restore@v4
+        with:
+          path: data/whale.db
+          key: preview-production-baseline-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            whale-state-${{ runner.os }}-
+
+      - name: Seed isolated preview database from production baseline
+        run: |
+          mkdir -p data
+          if [ -f data/whale.db ]; then
+            cp data/whale.db data/dev-preview-whale.db
+            echo "Preview baseline copied from production whale.db: $(du -h data/whale.db | cut -f1)"
+            echo "PREVIEW_BASELINE=production-cache" >> "$GITHUB_ENV"
+          else
+            rm -f data/dev-preview-whale.db
+            echo "WARNING: no production whale.db cache was restored; preview starts from an empty baseline."
+            echo "PREVIEW_BASELINE=empty-no-production-cache" >> "$GITHUB_ENV"
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-
-      - name: Restore isolated development database
-        uses: actions/cache@v4
-        with:
-          path: data/dev-preview-whale.db
-          key: dev-preview-db-${{ inputs.source_ref }}-${{ github.run_id }}
-          restore-keys: |
-            dev-preview-db-${{ inputs.source_ref }}-
 
       - name: Install dependencies
         run: |
@@ -100,6 +127,14 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -q
+
+      - name: Show regression-comparison policy
+        run: |
+          echo "PREVIEW_BASELINE=${PREVIEW_BASELINE:-unknown}"
+          echo "LOOKBACK_DAYS=${LOOKBACK_DAYS}"
+          echo "SCAN_START_DATE=${SCAN_START_DATE}"
+          echo "POLITICAL_UNIVERSE_SCOPE=${POLITICAL_UNIVERSE_SCOPE}"
+          echo "POLITICAL_MAX_FILINGS=${POLITICAL_MAX_FILINGS}"
 
       - name: Verify SMTP configuration without exposing secrets
         if: ${{ inputs.send_email }}
@@ -134,9 +169,14 @@ jobs:
             echo "## Development report preview"
             echo "- Source ref: \`${{ inputs.source_ref }}\`"
             echo "- Checked-out source SHA: \`${REPORT_BUILD_SHA:-unknown}\`"
+            echo "- Regression baseline: \`${PREVIEW_BASELINE:-unknown}\`"
+            echo "- LOOKBACK_DAYS: \`${LOOKBACK_DAYS}\`"
+            echo "- SCAN_START_DATE: \`${SCAN_START_DATE}\`"
+            echo "- POLITICAL_UNIVERSE_SCOPE: \`${POLITICAL_UNIVERSE_SCOPE}\`"
+            echo "- POLITICAL_MAX_FILINGS: \`${POLITICAL_MAX_FILINGS}\`"
             echo "- Email requested: \`${{ inputs.send_email }}\`"
             echo "- Gemini enabled: \`${{ inputs.enable_gemini }}\`"
             echo "- SMTP endpoint: \`smtp.mail.me.com:587\` with STARTTLS"
             echo "- Production 08:00 workflow was not modified."
-            echo "- Preview uses an isolated development database and report directory."
+            echo "- Preview runs feature code on a COPY of the latest production database baseline."
           } >> "$GITHUB_STEP_SUMMARY"
