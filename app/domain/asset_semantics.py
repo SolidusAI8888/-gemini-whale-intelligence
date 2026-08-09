@@ -41,15 +41,22 @@ TABLE_HEADER_RE = re.compile(
 )
 
 
+def _strip_empty_prefixes(text: str) -> str:
+    """Remove OGE/OCR empty-cell markers before semantic type detection."""
+    return re.sub(r"^(?:(?:N/?A|NONE|NOT APPLICABLE)\s+)+", "", text, flags=re.I).strip()
+
+
 def parse_oge_asset_semantics(value: object) -> ParsedAssetSemantic:
     raw = re.sub(r"\s+", " ", str(value or "")).strip()
     if not raw:
         return ParsedAssetSemantic("", "", "其他资产", None, None, None, "rejected", "empty")
 
-    # OGE PDFs frequently repeat table headings on page boundaries.  These are
-    # structural labels, never investment assets, even when OCR prefixes them
-    # with row/page numbers or a '#'.  Reject them before any entity recovery.
-    if TABLE_HEADER_RE.search(raw):
+    # Structural labels often arrive with an empty preceding table cell, e.g.
+    # "N/A # EMPLOYER OR PARTY ...". Strip those empty-cell markers before
+    # deciding whether the row is a header; otherwise the header can be mistaken
+    # for an asset and persist into the database/report.
+    semantic_probe = _strip_empty_prefixes(raw)
+    if TABLE_HEADER_RE.search(semantic_probe):
         return ParsedAssetSemantic("", "", "其他资产", None, None, None, "rejected", "table_header")
 
     amount = re.search(
@@ -58,10 +65,10 @@ def parse_oge_asset_semantics(value: object) -> ParsedAssetSemantic:
         raw,
         re.I,
     )
-    income = INCOME_PREFIX_RE.search(raw)
-    financing = FINANCING_RE.search(raw)
+    income = INCOME_PREFIX_RE.search(semantic_probe)
+    financing = FINANCING_RE.search(semantic_probe)
 
-    stripped = re.sub(r"^(?:N/?A\s+)?", "", raw, flags=re.I)
+    stripped = semantic_probe
     if income:
         stripped = ""
     if AMOUNT_ONLY_RE.fullmatch(stripped or raw):
