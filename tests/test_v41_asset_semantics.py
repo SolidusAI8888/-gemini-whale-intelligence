@@ -16,6 +16,23 @@ def test_semantic_parser_rejects_income_type_rows():
         assert parsed.asset_name == ""
 
 
+def test_semantic_parser_rejects_actual_na_prefixed_table_header_from_preview_cache():
+    parsed = parse_oge_asset_semantics(
+        "N/A # EMPLOYER OR PARTY CITY, STATE STATUS AND TERMS DATE"
+    )
+    assert parsed.quality == "rejected"
+    assert parsed.rejected_reason == "table_header"
+    assert parsed.asset_name == ""
+
+
+def test_semantic_parser_rejects_numbered_table_header_after_empty_cell_marker():
+    parsed = parse_oge_asset_semantics(
+        "N/A 12 EMPLOYER OR PARTY CITY, STATE STATUS AND TERMS DATE"
+    )
+    assert parsed.quality == "rejected"
+    assert parsed.rejected_reason == "table_header"
+
+
 def test_semantic_parser_keeps_real_entities_and_strips_financing_terms():
     parsed = parse_oge_asset_semantics("Bank of America, N.A. Secured Facility")
     assert parsed.quality == "accepted"
