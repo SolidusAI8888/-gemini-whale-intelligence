@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from html import escape
+import json
 import re
 from typing import Iterable, Mapping
 
@@ -26,6 +27,28 @@ def _money(value: float) -> str:
     if value >= 1_000:
         return f"${value / 1_000:.1f}K"
     return f"${value:.0f}"
+
+
+def _raw_dict(row: Mapping[str, object]) -> dict:
+    value = row.get("raw_json")
+    if isinstance(value, dict):
+        return value
+    try:
+        parsed = json.loads(str(value or ""))
+        return parsed if isinstance(parsed, dict) else {}
+    except Exception:
+        return {}
+
+
+def _instrument_label(row: Mapping[str, object]) -> str:
+    source = str(row.get("source") or "").upper()
+    raw = _raw_dict(row)
+    asset_type = str(raw.get("asset_type") or "").strip()
+    option_type = str(raw.get("option_type") or "").strip().title()
+    raw_text = " ".join(str(v or "") for v in raw.values()).lower()
+    if source.startswith("POLITICAL") and (asset_type.lower() == "option" or "option" in raw_text):
+        return f"{option_type} Option" if option_type in {"Call", "Put"} else "Option"
+    return "股票/直接买入"
 
 
 def _economic_key(row: Mapping[str, object]) -> tuple[str, ...]:
@@ -79,6 +102,7 @@ def build_active_buy_radar(
             row = dict(source_row)
             row["_reporters"] = [reporter] if reporter else []
             row["_is_new"] = _is_new(source_row, new_since)
+            row["_instrument"] = _instrument_label(source_row)
             deduped[key] = row
         else:
             if reporter and reporter not in deduped[key]["_reporters"]:
@@ -91,6 +115,7 @@ def build_active_buy_radar(
         "reporters": set(),
         "dates": set(),
         "sources": set(),
+        "instruments": set(),
         "is_new": False,
     })
     for row in deduped.values():
@@ -99,6 +124,7 @@ def build_active_buy_radar(
         item["amount"] += max(0.0, _float(row.get("amount_usd")))
         item["trades"] += 1
         item["reporters"].update(row.get("_reporters") or [])
+        item["instruments"].add(str(row.get("_instrument") or "股票/直接买入"))
         date_value = str(row.get("trade_date") or row.get("filing_date") or "")[:10]
         if date_value:
             item["dates"].add(date_value)
@@ -116,22 +142,24 @@ def build_active_buy_radar(
             reporter_text += f" 等{len(reporters)}人/机构"
         dates = ", ".join(sorted(item["dates"], reverse=True)[:3]) or "-"
         sources = ", ".join(sorted(item["sources"])) or "-"
+        instruments = ", ".join(sorted(item["instruments"])) or "-"
         row_class = ' class="row-new"' if item["is_new"] else ""
         body.append(
             f"<tr{row_class}><td>{rank}</td><td><b>{escape(ticker)}</b></td>"
-            f"<td><b>P/BUY</b></td><td>{escape(_money(item['amount']))}</td>"
+            f"<td><b>P/BUY</b></td><td>{escape(instruments)}</td><td>{escape(_money(item['amount']))}</td>"
             f"<td>{item['trades']}</td><td>{escape(reporter_text or '-')}</td>"
             f"<td>{escape(dates)}</td><td>{escape(sources)}</td></tr>"
         )
 
     table_html = "<p>暂无金额口径可信的主动买入交易。</p>" if not body else (
-        "<table><thead><tr><th>#</th><th>股票</th><th>信号</th><th>去重买入金额</th>"
+        "<table><thead><tr><th>#</th><th>股票</th><th>信号</th><th>标的类型</th><th>去重买入金额</th>"
         "<th>独立交易数</th><th>真实交易人/机构</th><th>交易日期</th><th>来源</th>"
         "</tr></thead><tbody>" + "".join(body) + "</tbody></table>"
     )
     return (
         '<section id="v40-active-buy-radar"><h2>主动买入雷达（P/BUY，按去重买入金额）</h2>'
-        '<p class="small">仅统计真实 BUY 交易；联合申报人合并展示，金额只计算一次。'
+        '<p class="small">仅统计真实方向性 BUY；Congress 披露的主动 Call/Put Option 购买属于有效方向性交易并明确标注标的类型；'
+        'SEC 员工期权行权、奖励、RSU/转换等技术性取得仍排除。联合申报人合并展示，披露金额只计算一次；'
         '政治披露中低于100美元的异常解析值暂不进入排名；OGE与13F持仓不进入本榜单。</p>'
         + table_html + "</section>"
     )
@@ -203,7 +231,6 @@ def _institutional_rows() -> list[dict]:
 
 
 def _asset_text(row: Mapping[str, object]) -> str:
-    import json
     value = row.get("raw_json")
     raw = value if isinstance(value, dict) else {}
     if not raw:
