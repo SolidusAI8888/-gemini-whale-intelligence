@@ -28,7 +28,7 @@ _INCOME_LABEL_PREFIX = re.compile(
 
 _ENTITY_PATTERNS = (
     re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:L\.P\.?|LP|LLC|L\.L\.C\.?|Trust))(?=\s|$|[,;)])", re.I),
-    re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:Inc\.?|Corp\.?|Corporation|Company|Co\.?)(?:\s*\([A-Z.\-]{1,8}\))?(?:\s*\(Class\s+[AB]\))?)", re.I),
+    re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\b(?:Inc\.?|Corp\.?|Corporation|Company|Co\.?)(?:\s*\([A-Z.\-]{1,8}\))?(?:\s*\(Class\s+[AB]\))?)(?=\s|$|[,;)])", re.I),
     re.compile(r"([A-Z][A-Za-z0-9&'.,\- ]{2,100}?\bN\.A\.?)(?=\s|$|[,;)])", re.I),
 )
 
@@ -51,15 +51,11 @@ def _strip_table_noise(text: str) -> str:
         value,
         flags=re.I,
     )
-    # PDF table extraction can append the beginning of the next column after a
-    # complete legal entity, e.g. "DFI BD, LLC, co". Keep the legal entity and
-    # drop that orphaned column fragment.
     value = re.sub(r"\b(LLC|L\.L\.C\.|L\.P\.|N\.A\.)\s*,\s*(?:co|company)\.?$", r"\1", value, flags=re.I)
     return _collapse(value)
 
 
 def _trim_container_prefix(candidate: str) -> str:
-    """Prefer a nested asset entity over its enclosing trust/holding container."""
     value = _collapse(candidate)
     nested = re.search(r"\bNo\s+\d+(?:\.\d+)*\s+([A-Z].+)$", value, re.I)
     if nested:
@@ -117,10 +113,6 @@ def normalize_oge_asset(value: object) -> NormalizedAsset:
     if not cleaned or _NOISE_ONLY.fullmatch(cleaned):
         return NormalizedAsset("", "", "其他资产", "rejected", "noise_or_financing_term")
 
-    # OGE PDF extraction sometimes shifts the income-type and amount columns
-    # into the asset-name field, producing values such as "Dividends $100,001"
-    # or "Crop Sales $51,180".  These are not assets.  Preserve the row only
-    # when a real legal entity can still be recovered from the same string.
     if _INCOME_LABEL_PREFIX.match(cleaned) and not _best_entity(cleaned):
         return NormalizedAsset("", "", "其他资产", "rejected", "income_label_not_asset")
 
