@@ -8,6 +8,7 @@ from email.mime.text import MIMEText
 from email.utils import formataddr
 
 from app.config import settings
+from app.reports.quality_gate import validate_report_html
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +36,6 @@ def _send_with_sendgrid(subject: str, html: str) -> bool:
 
 def _smtp_host() -> str:
     """Return a usable SMTP host even when an empty GitHub secret is injected."""
-
     host = str(settings.smtp_host or "").strip()
     if host:
         return host
@@ -73,9 +73,6 @@ def _send_with_smtp(subject: str, html: str) -> bool:
         len(recipients),
     )
 
-    # Pass host and port to the constructor. smtplib records this hostname for
-    # TLS SNI/certificate validation; connect() on an unbound SMTP object can
-    # leave the internal hostname empty and make starttls() fail.
     with smtplib.SMTP(host=host, port=port, timeout=timeout) as server:
         server.ehlo()
         if settings.smtp_starttls:
@@ -93,6 +90,11 @@ def send_report(subject: str, html: str) -> bool:
     if not settings.send_email:
         log.info("SEND_EMAIL=false; skipping email send")
         return False
+
+    # Fail closed: a report that violates known semantic, amount-unit or count
+    # invariants must never be sent. This removes the user from the QA loop.
+    validate_report_html(html)
+    log.info("Report quality gate passed; proceeding with email delivery")
 
     provider = (settings.email_provider or "sendgrid").strip().lower()
     if provider in {"smtp", "icloud", "apple", "mail"}:
