@@ -93,7 +93,12 @@ jobs:
         id: restore_production_state
         uses: actions/cache/restore@v4
         with:
-          path: data/whale.db
+          # IMPORTANT: cache version hashes include the path list. Keep this
+          # exactly aligned with daily_scan.yml's cache/save paths; restoring
+          # only whale.db creates a different cache version and can never hit.
+          path: |
+            data/whale.db
+            data/last_email_date.txt
           key: preview-production-baseline-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             whale-state-${{ runner.os }}-
@@ -107,8 +112,10 @@ jobs:
             echo "PREVIEW_BASELINE=production-cache" >> "$GITHUB_ENV"
           else
             rm -f data/dev-preview-whale.db
-            echo "WARNING: no production whale.db cache was restored; preview starts from an empty baseline."
-            echo "PREVIEW_BASELINE=empty-no-production-cache" >> "$GITHUB_ENV"
+            echo "ERROR: production whale.db cache was not restored."
+            echo "A regression preview without the production baseline is not a valid comparison; failing closed."
+            echo "PREVIEW_BASELINE=missing-production-cache" >> "$GITHUB_ENV"
+            exit 1
           fi
 
       - name: Set up Python
@@ -230,5 +237,5 @@ jobs:
             echo "- Gemini enabled: \`${{ inputs.enable_gemini }}\`"
             echo "- SMTP endpoint: \`smtp.mail.me.com:587\` with STARTTLS"
             echo "- Production 08:00 workflow was not modified."
-            echo "- Preview runs feature code on a COPY of the latest production database baseline."
+            echo "- Preview requires and uses a COPY of the latest production database cache; it fails closed if that baseline cannot be restored."
           } >> "$GITHUB_STEP_SUMMARY"
