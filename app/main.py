@@ -11,10 +11,11 @@ from app.collectors.congress import collect_congress_trades
 from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
 from app.collectors.market_data import apply_market_context_to_scores, collect_market_snapshots
-from app.collectors.sec_13f import collect_institutional_13f_holdings, get_institutional_13f_status
+from app.collectors.sec_13f_v43 import collect_institutional_13f_holdings, get_institutional_13f_status
 from app.collectors.oge_executive_v42 import collect_oge_executive_trades
 from app.collectors.universe import build_company_universe, tickers_from_companies
 from app.config import settings
+from app.data_quality.repairs import normalize_institutional_13f_amounts
 from app.db import (
     fetch_political_action_summary,
     fetch_recent_political_trades,
@@ -34,7 +35,6 @@ from app.db import (
     insert_scores,
     upsert_market_snapshots,
     upsert_trades,
-    normalize_institutional_13f_amounts,
 )
 from app.domain.trade_classification import is_primary_transaction, primary_transactions
 from app.llm.gemini_analyzer import analyze_with_gemini
@@ -93,8 +93,6 @@ def run_scan() -> dict:
     baseline_trade_count = _count_existing_trades_before_run()
     log.info("Existing disclosures before collection: %s", baseline_trade_count)
     run_id = _start_run()
-    # UTC timestamp used by the report to mark rows inserted in this run.
-    # With V22's persisted DB cache, this is a real day-over-day comparison.
     run_started_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     report_path = None
     try:
@@ -122,11 +120,8 @@ def run_scan() -> dict:
         log.info("Inserted new disclosures: %s", new_disclosure_count)
         repaired_13f_count = normalize_institutional_13f_amounts()
         if repaired_13f_count:
-            log.info("Repaired persisted institutional 13F amount rows: %s", repaired_13f_count)
+            log.info("V43 repaired persisted institutional 13F dollar rows: %s", repaired_13f_count)
 
-        # V40: keep all disclosures in storage and dedicated report sections, but
-        # only genuine BUY/SELL/EXCHANGE rows may enter transaction scoring,
-        # consensus, BUY/SELL rankings, and transaction counts.
         all_window_rows = [_row_to_dict(r) for r in fetch_trades_since(settings.scan_start_date, limit=50000)]
         if not all_window_rows:
             all_window_rows = [
@@ -139,7 +134,7 @@ def run_scan() -> dict:
             if is_primary_transaction(row) and _is_inserted_in_run(row, run_started_at)
         )
         log.info(
-            "V40 classification: report_disclosures=%s primary_transactions=%s new_primary_transactions=%s",
+            "V43 classification: report_disclosures=%s primary_transactions=%s new_primary_transactions=%s",
             len(all_window_rows),
             len(scoring_base),
             new_primary_trade_count,
@@ -148,9 +143,6 @@ def run_scan() -> dict:
         consensus_rows = build_consensus_scores(scoring_base)
         scored = score_opportunities(consensus_rows)
 
-        # V39.0 unified Whale Intelligence Score (WIS). Transaction-based inputs
-        # use only genuine transactions. Historical 13F rows are merged separately
-        # because the institutional pillar requires adjacent reporting periods.
         wis_config = load_wis_config()
         wis_13f_history = [_row_to_dict(r) for r in fetch_institutional_13f_holdings("1900-01-01", limit=20000)]
         wis_input_by_source_id = {str(r.get("source_id") or f"row:{i}"): r for i, r in enumerate(scoring_base)}
@@ -195,7 +187,7 @@ def run_scan() -> dict:
         sell_evidence = primary_transactions([_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(sell_signal_tickers, "SELL", settings.lookback_days, limit=5000)])
         core_buy_trades = primary_transactions([_row_to_dict(r) for r in fetch_core_trades_by_action("BUY", settings.lookback_days, limit=120)])
         core_sell_trades = primary_transactions([_row_to_dict(r) for r in fetch_core_trades_by_action("SELL", settings.lookback_days, limit=1000)])
-        noncore_trades = primary_transactions([_row_to_dict(r) for r in fetch_noncore_recent_trades(settings.lookback_days, limit=100)])
+        noncore_trades = [_row_to_dict(r) for r in fetch_noncore_recent_trades(settings.lookback_days, limit=100)]
 
         seen_source_ids = {str(t.get("source_id") or "") for t in recent_trades}
         for t in political_recent_trades:
