@@ -151,6 +151,58 @@ jobs:
       - name: Generate preview report
         run: python -m app.main
 
+      - name: Audit historical political regression signals
+        if: always()
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+          import os
+          import sqlite3
+          from pathlib import Path
+          from app.domain.trade_classification import is_primary_transaction
+
+          db = Path(os.environ.get("DATABASE_PATH", "data/dev-preview-whale.db"))
+          tickers = ("UBER", "MSFT", "INTC")
+          lines = ["## V44 political regression audit", ""]
+          if not db.exists():
+              lines.append(f"- Database not found: `{db}`")
+          else:
+              conn = sqlite3.connect(db)
+              conn.row_factory = sqlite3.Row
+              for ticker in tickers:
+                  rows = conn.execute(
+                      """
+                      SELECT ticker, action, amount_usd, whale_name, trade_date, filing_date,
+                             source, transaction_code, raw_json
+                      FROM trades
+                      WHERE ticker = ? AND source LIKE 'POLITICAL%'
+                      ORDER BY COALESCE(trade_date, filing_date) DESC, amount_usd DESC
+                      """,
+                      (ticker,),
+                  ).fetchall()
+                  accepted = [r for r in rows if is_primary_transaction(dict(r))]
+                  lines.append(f"### {ticker}")
+                  lines.append(f"- Political rows in preview DB: **{len(rows)}**")
+                  lines.append(f"- Rows accepted by current V44 signal policy: **{len(accepted)}**")
+                  if rows:
+                      lines.append("")
+                      lines.append("|Accepted|Action|Amount|Actor|Trade date|Source|Code|")
+                      lines.append("|---|---|---:|---|---|---|---|")
+                      for row in rows[:20]:
+                          ok = "YES" if is_primary_transaction(dict(row)) else "NO"
+                          amount = float(row["amount_usd"] or 0)
+                          lines.append(
+                              f"|{ok}|{row['action'] or '-'}|${amount:,.0f}|{row['whale_name'] or '-'}|"
+                              f"{row['trade_date'] or row['filing_date'] or '-'}|{row['source'] or '-'}|{row['transaction_code'] or '-'}|"
+                          )
+                  lines.append("")
+              conn.close()
+          summary = "\n".join(lines) + "\n"
+          print(summary)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as fh:
+              fh.write(summary)
+          PY
+
       - name: Upload generated report and database
         if: always()
         uses: actions/upload-artifact@v4
