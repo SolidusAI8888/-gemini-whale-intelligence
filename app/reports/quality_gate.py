@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 
 
@@ -8,15 +9,16 @@ class ReportQualityError(RuntimeError):
 
 
 def _cabinet_section(html: str) -> str:
-    # Match the complete section, including its internal <h2>. The prior regex
-    # stopped at the section's own heading and could therefore inspect an empty
-    # string in real reports while synthetic tests still passed.
     match = re.search(
         r'<section id="v40-cabinet-oge-radar">(.*?)</section>',
         html or "",
         re.I | re.S,
     )
     return match.group(1) if match else ""
+
+
+def _build_sha() -> str:
+    return str(os.getenv("GITHUB_SHA") or "local")[:12]
 
 
 def _parse_billions(label: str) -> float | None:
@@ -28,8 +30,9 @@ def _parse_billions(label: str) -> float | None:
 
 def validate_report_html(html: str) -> None:
     """Fail closed before email delivery when known report regressions return."""
+    build = _build_sha()
     if not html or "Gemini-美股聪明钱_政商巨鲸行动追踪" not in html:
-        raise ReportQualityError("Report HTML is empty or missing the expected title")
+        raise ReportQualityError(f"Report HTML is empty or missing the expected title (build={build})")
 
     cabinet = _cabinet_section(html)
     forbidden_oge_assets = [
@@ -44,21 +47,19 @@ def validate_report_html(html: str) -> None:
     ]
     for pattern in forbidden_oge_assets:
         if re.search(pattern, cabinet, re.I):
-            raise ReportQualityError(f"OGE semantic quality gate failed: {pattern}")
+            raise ReportQualityError(f"OGE semantic quality gate failed (build={build}): {pattern}")
 
     header = re.search(r"今日新增/变化可信记录：\s*(\d+)\s*条", html)
     overview = re.search(r"本次新增可信记录\s*(\d+)\s*条", html)
     if header and overview and header.group(1) != overview.group(1):
         raise ReportQualityError(
-            f"New-record count mismatch: header={header.group(1)} overview={overview.group(1)}"
+            f"New-record count mismatch (build={build}): header={header.group(1)} overview={overview.group(1)}"
         )
 
-    # A single 13F position above $5T is not credible for this radar and is a
-    # strong signature of the historical x1000 unit bug.
     for label in re.findall(r"\$[0-9][0-9,]*(?:\.\d+)?B", html):
         billions = _parse_billions(label)
         if billions is not None and billions > 5_000:
-            raise ReportQualityError(f"13F/holding amount exceeds $5T sanity limit: {label}")
+            raise ReportQualityError(f"13F/holding amount exceeds $5T sanity limit (build={build}): {label}")
 
 
 validate_report_html_for_tests = validate_report_html
