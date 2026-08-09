@@ -91,15 +91,17 @@ def send_report(subject: str, html: str) -> bool:
         log.info("SEND_EMAIL=false; skipping email send")
         return False
 
-    # Fail closed: a report that violates known semantic, amount-unit or count
-    # invariants must never be sent. This removes the user from the QA loop.
+    # Preserve provider validation as the first public contract check. This keeps
+    # configuration errors deterministic while still failing closed before any
+    # supported provider can send a bad report.
+    provider = (settings.email_provider or "sendgrid").strip().lower()
+    supported = {"smtp", "icloud", "apple", "mail", "sendgrid"}
+    if provider not in supported:
+        raise RuntimeError(f"Unsupported EMAIL_PROVIDER={settings.email_provider!r}; use sendgrid or smtp")
+
     validate_report_html(html)
     log.info("Report quality gate passed; proceeding with email delivery")
 
-    provider = (settings.email_provider or "sendgrid").strip().lower()
     if provider in {"smtp", "icloud", "apple", "mail"}:
         return _send_with_smtp(subject, html)
-    if provider == "sendgrid":
-        return _send_with_sendgrid(subject, html)
-
-    raise RuntimeError(f"Unsupported EMAIL_PROVIDER={settings.email_provider!r}; use sendgrid or smtp")
+    return _send_with_sendgrid(subject, html)
