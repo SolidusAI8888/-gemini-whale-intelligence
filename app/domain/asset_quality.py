@@ -45,6 +45,10 @@ def _strip_table_noise(text: str) -> str:
         value,
         flags=re.I,
     )
+    # PDF table extraction can append the beginning of the next column after a
+    # complete legal entity, e.g. "DFI BD, LLC, co". Keep the legal entity and
+    # drop that orphaned column fragment.
+    value = re.sub(r"\b(LLC|L\.L\.C\.|L\.P\.|N\.A\.)\s*,\s*(?:co|company)\.?$", r"\1", value, flags=re.I)
     return _collapse(value)
 
 
@@ -64,9 +68,6 @@ def _best_entity(text: str) -> str:
             candidates.append(_trim_container_prefix(match.group(1)))
     if not candidates:
         return ""
-
-    # Prefer the last specific entity in an OCR window. If two candidates refer
-    # to the same suffix, keep the shorter representation without its container.
     last = candidates[-1]
     equivalent = [
         item for item in candidates
