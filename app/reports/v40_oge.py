@@ -79,9 +79,6 @@ def _trusted_asset(text: object):
     parsed = parse_oge_asset_semantics(value)
     if parsed.quality != "accepted" or not parsed.asset_name or not parsed.canonical_key:
         return None
-    # Final boundary validation: re-parse the normalized entity itself. This
-    # prevents persisted legacy rows or future parser changes from rendering a
-    # table header/noise token as an investment asset.
     final = parse_oge_asset_semantics(parsed.asset_name)
     if final.quality != "accepted" or not final.asset_name or not final.canonical_key:
         return None
@@ -147,8 +144,6 @@ def build_cabinet_oge_radar(
     body: list[str] = []
     for row in ordered:
         raw = _raw(row)
-        # Re-check immediately before HTML emission. The report renderer is a
-        # release boundary and must never trust cached normalized fields alone.
         final = _trusted_asset(row.get("_normalized_asset_name"))
         if final is None:
             continue
@@ -175,7 +170,7 @@ def build_cabinet_oge_radar(
         "<th>金额/区间</th><th>披露/报告日期</th><th>来源</th></tr></thead><tbody>"
         + "".join(body) + "</tbody></table>"
     )
-    build_sha = str(os.getenv("GITHUB_SHA") or "local")[:12]
+    build_sha = str(os.getenv("REPORT_BUILD_SHA") or os.getenv("GITHUB_SHA") or "local")[:12]
     return (
         '<section id="v40-cabinet-oge-radar"><h2>部长 / Cabinet OGE 披露雷达</h2>'
         f'<p class="small">V43 数据质量门已启用（build {escape(build_sha)}）：采集入库、历史库读取和最终 HTML 渲染三次语义校验。'
