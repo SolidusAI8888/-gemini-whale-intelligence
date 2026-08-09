@@ -63,21 +63,23 @@ def _raw_asset_text(row: Mapping[str, object]) -> str:
     )
 
 
-_LEGACY_DIRTY_ASSET_RE = re.compile(
-    r"^(?:\s*(?:n/?a\s+)?)?(?:"
-    r"over\s+\$?[\d,]+|"
-    r"dividends?\b|interest(?:\s+income)?\b|capital gains?\b|"
-    r"rent or royalties\b|rental income\b|crop sales\b|net distributive income\b|"
-    r"rate term\b|on demand\b|secured facility\b|government guaranteed collateral\b|"
-    r"#?\s*employer or party\b|city,?\s*state\s+status and terms\b"
-    r")",
+_LEGACY_HEADER_RE = re.compile(
+    r"^(?:\s*#?\s*)?(?:employer or party\b|city,?\s*state\s+status and terms\b|assets? and income\b|description\b)",
     re.I,
 )
 
 
 def _passes_v42_report_gate(text: str) -> bool:
+    """Re-validate persisted OGE rows without discarding recoverable entities.
+
+    Historical rows may contain financing/noise tokens around a real asset entity,
+    e.g. ``N/A On Demand 3 Bank of America, N.A See Endnote Over $50,000,000``.
+    V42 must first attempt semantic extraction and reject only when no trustworthy
+    asset survives. Pure table headers are rejected before parsing because they
+    can otherwise look like generic text entities.
+    """
     value = re.sub(r"\s+", " ", str(text or "")).strip()
-    if not value or _LEGACY_DIRTY_ASSET_RE.search(value):
+    if not value or _LEGACY_HEADER_RE.search(value):
         return False
     parsed = parse_oge_asset_semantics(value)
     return parsed.quality == "accepted" and bool(parsed.asset_name and parsed.canonical_key)
@@ -110,8 +112,8 @@ def build_cabinet_oge_radar(
         if not _is_oge_asset(source_row):
             continue
         raw_asset = _raw_asset_text(source_row)
-        # Defense in depth: old persisted rows predate V42 and must never be
-        # allowed to bypass the pre-upsert gate merely because they remain in DB.
+        # Defense in depth: persisted rows predating V42 are re-parsed. Recoverable
+        # entities are normalized; pure noise/header rows remain excluded.
         if not _passes_v42_report_gate(raw_asset):
             continue
         parsed = parse_oge_asset_semantics(raw_asset)
@@ -164,8 +166,8 @@ def build_cabinet_oge_radar(
     build_sha = str(os.getenv("GITHUB_SHA") or "local")[:8]
     return (
         '<section id="v40-cabinet-oge-radar"><h2>部长 / Cabinet OGE 披露雷达</h2>'
-        f'<p class="small">V42 数据质量门已启用（build {escape(build_sha)}）：采集入库前过滤 + 报告读取历史库后二次过滤。'
-        '金额、收益类型、融资条款、表头和脚注不会作为资产展示；同一人物同一申报文件中的同一标准化资产只保留一条，邮件正文最多18行。</p>'
+        f'<p class="small">V42 数据质量门已启用（build {escape(build_sha)}）：采集入库前过滤 + 报告读取历史库后二次语义提取。'
+        '金额、收益类型、融资条款、表头和脚注不会作为资产展示；含噪声但可恢复真实实体的历史行会保留标准化资产；同一人物同一申报文件中的同一标准化资产只保留一条，邮件正文最多18行。</p>'
         + table + "</section>"
     )
 
