@@ -122,3 +122,37 @@ def test_legitimate_political_sell_remains_after_bad_buy_is_removed():
     }
     assert not is_primary_transaction(bad_buy)
     assert is_primary_transaction(legitimate_sell)
+
+
+def test_congressional_directional_option_purchases_remain_signals():
+    """V44 regression: political option purchases must not be confused with SEC awards/exercises."""
+    rows = [
+        {
+            "source": "POLITICAL_HOUSE",
+            "action": "BUY",
+            "transaction_code": "P",
+            "amount_usd": 1_500_000,
+            "whale_name": "Nancy Pelosi",
+            "ticker": ticker,
+            "raw_json": {
+                "asset_type": "Option",
+                "option_type": "Call",
+                "description": f"Purchased call options in {ticker}",
+            },
+        }
+        for ticker in ("UBER", "MSFT", "INTC")
+    ]
+    assert [row["ticker"] for row in primary_transactions(rows)] == ["UBER", "MSFT", "INTC"]
+
+
+def test_sec_employee_option_acquisition_is_still_excluded():
+    row = {
+        "source": "SEC Form 4",
+        "action": "BUY",
+        "transaction_code": "M",
+        "amount_usd": 1_500_000,
+        "whale_name": "Example Executive",
+        "ticker": "MSFT",
+        "raw_json": {"description": "Option exercise acquisition"},
+    }
+    assert not is_primary_transaction(row)
