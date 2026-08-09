@@ -8,8 +8,11 @@ class ReportQualityError(RuntimeError):
 
 
 def _cabinet_section(html: str) -> str:
+    # Match the complete section, including its internal <h2>. The prior regex
+    # stopped at the section's own heading and could therefore inspect an empty
+    # string in real reports while synthetic tests still passed.
     match = re.search(
-        r'<section id="v40-cabinet-oge-radar">(.*?)(?=<section id=|<h2\b|</body>)',
+        r'<section id="v40-cabinet-oge-radar">(.*?)</section>',
         html or "",
         re.I | re.S,
     )
@@ -59,3 +62,4 @@ def validate_report_html(html: str) -> None:
 
 
 validate_report_html_for_tests = validate_report_html
+cabinet_section_for_tests = _cabinet_section
