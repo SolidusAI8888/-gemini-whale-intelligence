@@ -7,7 +7,7 @@ from typing import Iterable, Mapping
 
 from app.db import fetch_institutional_13f_holdings, fetch_oge_executive_trades
 from app.domain.trade_classification import is_primary_transaction
-from app.reports.v40_oge import build_cabinet_oge_radar
+from app.reports.v40_oge import build_cabinet_oge_radar, passes_v42_report_gate_for_tests
 from app.reports.v40_overview import build_daily_changes_overview
 
 
@@ -202,6 +202,44 @@ def _institutional_rows() -> list[dict]:
         return []
 
 
+def _asset_text(row: Mapping[str, object]) -> str:
+    import json
+    value = row.get("raw_json")
+    raw = value if isinstance(value, dict) else {}
+    if not raw:
+        try:
+            parsed = json.loads(str(value or ""))
+            raw = parsed if isinstance(parsed, dict) else {}
+        except Exception:
+            raw = {}
+    return str(raw.get("asset_name") or raw.get("name") or raw.get("description") or row.get("company_name") or row.get("ticker") or "")
+
+
+def _trusted_new_count(primary_rows: list[dict], oge_rows: list[dict], institutional_rows: list[dict], new_since: str | None) -> int:
+    primary_count = sum(1 for row in primary_rows if _is_new(row, new_since) and is_primary_transaction(row))
+    oge_count = sum(
+        1 for row in oge_rows
+        if _is_new(row, new_since) and passes_v42_report_gate_for_tests(_asset_text(row))
+    )
+    institutional_count = sum(
+        1 for row in institutional_rows
+        if _is_new(row, new_since)
+        and (str(row.get("source") or "").upper() == "INSTITUTIONAL_13F" or str(row.get("action") or "").upper() == "HOLDING_13F")
+    )
+    return primary_count + oge_count + institutional_count
+
+
+def _replace_header_change_count(html: str, count: int) -> str:
+    replacement = (
+        f'<div class="big-change">今日新增/变化可信记录：{count} 条</div>'
+        if count > 0 else '<div class="no-change">今日无新增重大变化</div>'
+    )
+    updated = re.sub(r'<div class="(?:big-change|no-change)">.*?</div>', replacement, html, count=1, flags=re.I | re.S)
+    note = f'<p class="small">变化口径：与“今日新增内容总览”完全一致，仅统计本次新插入且通过质量校验的可信记录。</p>'
+    updated = re.sub(r'<p class="small">变化口径：.*?</p>', note, updated, count=1, flags=re.I | re.S)
+    return updated
+
+
 def apply_v40_report_layout(
     html: str,
     primary_rows: Iterable[Mapping[str, object]],
@@ -215,6 +253,10 @@ def apply_v40_report_layout(
     updated = _remove_named_table_column(html, "净额")
     updated = _remove_legacy_new_overview(updated)
     updated = _clear_legacy_new_highlights(updated)
+    updated = _replace_header_change_count(
+        updated,
+        _trusted_new_count(primary_rows, oge_rows, institutional_rows, new_since),
+    )
 
     overview = build_daily_changes_overview(
         [*primary_rows, *oge_rows, *institutional_rows],
@@ -231,3 +273,7 @@ def apply_v40_report_layout(
     if body_end:
         return updated[: body_end.start()] + overlay + updated[body_end.start() :]
     return updated + overlay
+
+
+trusted_new_count_for_tests = _trusted_new_count
+replace_header_change_count_for_tests = _replace_header_change_count
