@@ -1,7 +1,7 @@
 from app.collectors.oge_asset_candidates import evaluate_oge_asset_candidate, extract_oge_asset_candidates
 
 
-def test_v42_rejects_amount_income_and_financing_cells():
+def test_v42_rejects_amount_income_financing_and_header_cells():
     rejected = [
         "Over $50,000,000",
         "Dividends $100,001",
@@ -10,6 +10,10 @@ def test_v42_rejects_amount_income_and_financing_cells():
         "RATE TERM 1",
         "On Demand",
         "Government guaranteed collateral)",
+        "# EMPLOYER OR PARTY CITY, STATE STATUS AND TERMS DATE",
+        "12 EMPLOYER OR PARTY CITY, STATE STATUS AND TERMS DATE",
+        "SOURCE OF INCOME TYPE OF INCOME INCOME AMOUNT",
+        "VALUE",
     ]
     for raw in rejected:
         candidate = evaluate_oge_asset_candidate(raw)
@@ -25,6 +29,7 @@ def test_v42_extracts_real_assets_and_dedupes_table_windows():
         "14.6 Cantor Fitzgerald, L.P. See Endnote Over $50,000,000",
         "HWL Personal Asset Trust No 2.1 BGC Group, Inc. (BGC) Over $50,000,000",
         "Crop Sales $51,180",
+        "# EMPLOYER OR PARTY CITY, STATE STATUS AND TERMS DATE",
     ]
 
     candidates = extract_oge_asset_candidates(lines)
@@ -35,6 +40,7 @@ def test_v42_extracts_real_assets_and_dedupes_table_windows():
     assert "BGC Group, Inc. (BGC)" in names
     assert all("Dividends" not in name for name in names)
     assert all("Crop Sales" not in name for name in names)
+    assert all("EMPLOYER OR PARTY" not in name for name in names)
     assert len([name for name in names if name.startswith("Bank of America")]) == 1
 
 
