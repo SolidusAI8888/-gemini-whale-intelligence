@@ -33,6 +33,7 @@ def test_active_buy_radar_deduplicates_joint_reporters_and_amount():
     assert "$200.0K" not in html
     assert "Buyer One" in html
     assert "Buyer Two" in html
+    assert "股票/直接买入" in html
     assert 'class="row-new"' in html
 
 
@@ -46,6 +47,28 @@ def test_active_buy_radar_excludes_sell_and_holding_rows():
 
     assert "暂无金额口径可信的主动买入交易" in html
     assert "AAPL</b></td>" not in html
+
+
+def test_active_buy_radar_labels_congressional_call_option():
+    row = _trade(
+        ticker="MSFT",
+        source="POLITICAL_HOUSE",
+        source_id="pelosi-msft-option",
+        amount_usd=3_000_000,
+        whale_name="Nancy Pelosi",
+        raw_json={
+            "asset_type": "Option",
+            "option_type": "Call",
+            "description": "Purchased call options in MSFT",
+        },
+    )
+
+    html = build_active_buy_radar([row])
+
+    assert "MSFT" in html
+    assert "Nancy Pelosi" in html
+    assert "Call Option" in html
+    assert "$3.00M" in html
 
 
 def test_v40_layout_removes_legacy_net_column_and_injects_before_first_section():
