@@ -59,6 +59,30 @@ def test_oge_radar_deduplicates_windows_by_normalized_entity():
     assert "On Demand" not in html
 
 
+def test_oge_radar_never_renders_persisted_table_headers():
+    rows = [
+        {
+            "source": "OGE_EXECUTIVE_ASSET",
+            "action": "HOLDING",
+            "whale_name": "Official",
+            "filing_url": "https://example.com/278e.pdf",
+            "amount_usd": 50_000_000,
+            "raw_json": {"asset_name": "# EMPLOYER OR PARTY CITY, STATE STATUS AND TERMS DATE"},
+        },
+        {
+            "source": "OGE_EXECUTIVE_ASSET",
+            "action": "HOLDING",
+            "whale_name": "Official",
+            "filing_url": "https://example.com/278e-2.pdf",
+            "amount_usd": 50_000_000,
+            "raw_json": {"asset_name": "12 EMPLOYER OR PARTY CITY, STATE STATUS AND TERMS DATE"},
+        },
+    ]
+    html = build_cabinet_oge_radar(rows)
+    assert "EMPLOYER OR PARTY" not in html
+    assert "暂无通过质量校验" in html
+
+
 def test_tiny_broker_affiliate_buy_and_sell_are_not_signals():
     rows = [
         {
