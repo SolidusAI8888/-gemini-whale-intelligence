@@ -49,6 +49,10 @@ def is_credible_directional_transaction(row: Mapping[str, object]) -> bool:
 
     Raw rows remain in storage for audit. This filter governs transaction counts,
     rankings, charts, consensus, WIS inputs and AI context.
+
+    V44 rule: congressional option purchases are intentional directional political
+    trades and remain valid signals. SEC employee/executive awards, exercises,
+    conversions and derivative-only acquisitions remain excluded.
     """
     if not _is_structural_primary_transaction(row):
         return False
@@ -65,10 +69,14 @@ def is_credible_directional_transaction(row: Mapping[str, object]) -> bool:
     if source.startswith("POLITICAL") and 0 < amount < 100:
         return False
 
-    # Awards, exercises, conversions and derivative-only acquisitions are not
-    # open-market directional purchases.
+    # SEC awards, exercises, conversions and derivative-only acquisitions are not
+    # open-market directional purchases. Do NOT apply this rule to congressional
+    # disclosure rows: a disclosed purchase of call/put options is itself the
+    # political actor's directional investment decision and belongs in the radar.
     derivative_markers = r"DERIVATIVE|OPTION|EXERCISE|CONVERSION|AWARD|VEST|RESTRICTED STOCK|RSU"
-    if action == "BUY" and (code in {"A", "M", "C", "F", "G"} or re.search(derivative_markers, raw_text)):
+    if source.startswith("SEC") and action == "BUY" and (
+        code in {"A", "M", "C", "F", "G"} or re.search(derivative_markers, raw_text)
+    ):
         return False
 
     # Mirrored broker/dealer affiliate filings can create tiny technical BUY and
@@ -81,7 +89,7 @@ def is_credible_directional_transaction(row: Mapping[str, object]) -> bool:
 
 
 def is_primary_transaction(row: Mapping[str, object]) -> bool:
-    """Unified V41 definition used by every transaction-based product surface."""
+    """Unified transaction definition used by every transaction-based surface."""
     return is_credible_directional_transaction(row)
 
 
