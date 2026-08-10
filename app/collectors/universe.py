@@ -1,30 +1,38 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from io import StringIO
+from io import BytesIO, StringIO
 import logging
+import re
 from typing import Iterable
 
 import pandas as pd
 import requests
+from pypdf import PdfReader
 
 log = logging.getLogger(__name__)
 
+# Primary sources. SPY is an S&P 500 tracker licensed by S&P DJI and State Street
+# publishes its complete daily holdings. Nasdaq publishes an official NDX
+# constituent/weight PDF. These binary sources are substantially more reliable on
+# GitHub-hosted runners than scraping Wikipedia directly.
+SP500_PRIMARY_URL = "https://www.ssga.com/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx"
+NASDAQ100_PRIMARY_URL = "https://www.nasdaq.com/NDX"
+
+# Public HTML fallbacks remain available if an issuer endpoint is temporarily
+# unavailable, but production logs identify which source succeeded.
 SP500_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 NASDAQ100_URL = "https://en.wikipedia.org/wiki/Nasdaq-100"
 SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 
-# Wikipedia rejects some default urllib/pandas requests from hosted runners. Fetch
-# the page ourselves with a normal browser UA, then let pandas parse the returned
-# HTML. Minimum-size guards stop a partial/changed page from silently becoming the
-# production trading universe.
 INDEX_HTTP_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; GeminiWhaleUniverse/1.0; +https://github.com/SolidusAI8888/-gemini-whale-intelligence)",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept": "*/*",
     "Accept-Language": "en-US,en;q=0.8",
 }
 SP500_MIN_COMPONENTS = 480
 NASDAQ100_MIN_COMPONENTS = 95
+_TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.\-]{0,9}$")
 
 # Emergency fallback only. A fallback universe is deliberately loud in logs and
 # must never be mistaken for successful S&P 500 + Nasdaq-100 coverage.
@@ -51,23 +59,107 @@ def normalize_ticker(ticker: str) -> str:
     return ticker.strip().upper().replace(".", "-")
 
 
-def _read_html_tables(url: str) -> list[pd.DataFrame]:
-    response = requests.get(url, headers=INDEX_HTTP_HEADERS, timeout=30)
+def _get(url: str) -> requests.Response:
+    response = requests.get(url, headers=INDEX_HTTP_HEADERS, timeout=45)
     response.raise_for_status()
+    return response
+
+
+def _read_html_tables(url: str) -> list[pd.DataFrame]:
+    response = _get(url)
     return pd.read_html(StringIO(response.text))
 
 
-def _read_sp500() -> set[str]:
+def _valid_ticker(value: object) -> str | None:
+    raw = str(value or "").strip().upper()
+    if not raw or raw in {"-", "NAN", "NONE", "N/A", "CASH_USD"}:
+        return None
+    if not _TICKER_RE.fullmatch(raw):
+        return None
+    return normalize_ticker(raw)
+
+
+def _parse_spy_holdings_excel(payload: bytes) -> set[str]:
+    frame = pd.read_excel(BytesIO(payload), header=None, engine="openpyxl")
+    header_index: int | None = None
+    ticker_col: int | None = None
+    for idx, row in frame.iterrows():
+        labels = [str(value).strip().lower() for value in row.tolist()]
+        if "ticker" in labels:
+            header_index = int(idx)
+            ticker_col = labels.index("ticker")
+            break
+    if header_index is None or ticker_col is None:
+        raise RuntimeError("State Street SPY holdings workbook contained no Ticker header")
+
+    tickers: set[str] = set()
+    for value in frame.iloc[header_index + 1 :, ticker_col].tolist():
+        ticker = _valid_ticker(value)
+        if ticker:
+            tickers.add(ticker)
+    if len(tickers) < SP500_MIN_COMPONENTS:
+        raise RuntimeError(
+            f"State Street SPY holdings parsed only {len(tickers)} equity tickers; refusing partial S&P 500 universe"
+        )
+    return tickers
+
+
+def _read_sp500_primary() -> set[str]:
+    response = _get(SP500_PRIMARY_URL)
+    return _parse_spy_holdings_excel(response.content)
+
+
+def _read_sp500_wikipedia() -> set[str]:
     tables = _read_html_tables(SP500_URL)
     table = tables[0]
     col = "Symbol" if "Symbol" in table.columns else table.columns[0]
     tickers = {normalize_ticker(x) for x in table[col].dropna().astype(str)}
     if len(tickers) < SP500_MIN_COMPONENTS:
-        raise RuntimeError(f"S&P 500 page parsed only {len(tickers)} tickers; refusing partial universe")
+        raise RuntimeError(f"Wikipedia S&P 500 page parsed only {len(tickers)} tickers; refusing partial universe")
     return tickers
 
 
-def _read_nasdaq100() -> set[str]:
+def _read_sp500() -> set[str]:
+    try:
+        tickers = _read_sp500_primary()
+        log.info("S&P 500 universe source=StateStreet-SPY-DailyHoldings count=%s", len(tickers))
+        return tickers
+    except Exception as primary_exc:  # noqa: BLE001
+        log.warning("Primary S&P 500 source failed (%s); trying Wikipedia fallback", primary_exc)
+        tickers = _read_sp500_wikipedia()
+        log.info("S&P 500 universe source=Wikipedia-fallback count=%s", len(tickers))
+        return tickers
+
+
+def _parse_nasdaq100_pdf(payload: bytes) -> set[str]:
+    reader = PdfReader(BytesIO(payload))
+    tickers: set[str] = set()
+    # Official Nasdaq NDX document rows end with: SYMBOL WEIGHT. Company names may
+    # contain spaces/punctuation, so parse from the right rather than guessing the
+    # number of name tokens.
+    row_re = re.compile(r"\s([A-Z][A-Z0-9.\-]{0,9})\s+\d+(?:\.\d+)?\s*$")
+    for page in reader.pages:
+        text = page.extract_text() or ""
+        for line in text.splitlines():
+            match = row_re.search(line.strip())
+            if not match:
+                continue
+            ticker = _valid_ticker(match.group(1))
+            if ticker:
+                tickers.add(ticker)
+    if len(tickers) < NASDAQ100_MIN_COMPONENTS:
+        raise RuntimeError(
+            f"Official Nasdaq NDX PDF parsed only {len(tickers)} tickers; refusing partial Nasdaq-100 universe"
+        )
+    return tickers
+
+
+def _read_nasdaq100_primary() -> set[str]:
+    response = _get(NASDAQ100_PRIMARY_URL)
+    return _parse_nasdaq100_pdf(response.content)
+
+
+def _read_nasdaq100_wikipedia() -> set[str]:
     tables = _read_html_tables(NASDAQ100_URL)
     candidates: list[pd.DataFrame] = []
     for table in tables:
@@ -75,7 +167,7 @@ def _read_nasdaq100() -> set[str]:
         if "ticker" in columns or "symbol" in columns:
             candidates.append(table)
     if not candidates:
-        raise RuntimeError("Nasdaq-100 page contained no ticker/symbol table")
+        raise RuntimeError("Wikipedia Nasdaq-100 page contained no ticker/symbol table")
     table = max(candidates, key=len)
     column = None
     for c in table.columns:
@@ -83,11 +175,23 @@ def _read_nasdaq100() -> set[str]:
             column = c
             break
     if column is None:
-        raise RuntimeError("Nasdaq-100 table contained no ticker/symbol column")
+        raise RuntimeError("Wikipedia Nasdaq-100 table contained no ticker/symbol column")
     tickers = {normalize_ticker(x) for x in table[column].dropna().astype(str)}
     if len(tickers) < NASDAQ100_MIN_COMPONENTS:
-        raise RuntimeError(f"Nasdaq-100 page parsed only {len(tickers)} tickers; refusing partial universe")
+        raise RuntimeError(f"Wikipedia Nasdaq-100 page parsed only {len(tickers)} tickers; refusing partial universe")
     return tickers
+
+
+def _read_nasdaq100() -> set[str]:
+    try:
+        tickers = _read_nasdaq100_primary()
+        log.info("Nasdaq-100 universe source=Nasdaq-NDX-official-PDF count=%s", len(tickers))
+        return tickers
+    except Exception as primary_exc:  # noqa: BLE001
+        log.warning("Primary Nasdaq-100 source failed (%s); trying Wikipedia fallback", primary_exc)
+        tickers = _read_nasdaq100_wikipedia()
+        log.info("Nasdaq-100 universe source=Wikipedia-fallback count=%s", len(tickers))
+        return tickers
 
 
 def load_universe_tickers() -> set[str]:
@@ -104,8 +208,6 @@ def load_universe_tickers() -> set[str]:
     except Exception as exc:  # noqa: BLE001
         log.warning("Failed to load Nasdaq-100 universe: %s", exc)
 
-    # The project contract is the union of both indices. If either source fails,
-    # do not silently claim that the surviving index is the complete universe.
     if not sp500 or not nasdaq100:
         missing = []
         if not sp500:
