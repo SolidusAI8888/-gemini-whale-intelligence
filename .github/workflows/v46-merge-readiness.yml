@@ -114,22 +114,37 @@ jobs:
           print('V46 production-baseline political visibility gate PASSED')
           PY
 
-      - name: Live-check full S&P500 plus Nasdaq100 universe sources
+      - name: Live-check S&P500 source
         run: |
           python - <<'PY'
-          from app.collectors.universe import _read_sp500, _read_nasdaq100, load_universe_tickers
-
+          from app.collectors.universe import _read_sp500
           sp = _read_sp500()
-          ndx = _read_nasdaq100()
-          combined = load_universe_tickers()
-          print(f'S&P500={len(sp)} Nasdaq100={len(ndx)} Combined={len(combined)}')
+          print(f'S&P500={len(sp)}')
           if len(sp) < 480:
               raise SystemExit(f'S&P500 live universe incomplete: {len(sp)}')
+          print('V46 S&P500 live source PASSED')
+          PY
+
+      - name: Live-check Nasdaq100 source
+        run: |
+          python - <<'PY'
+          from app.collectors.universe import _read_nasdaq100
+          ndx = _read_nasdaq100()
+          print(f'Nasdaq100={len(ndx)}')
           if len(ndx) < 95:
               raise SystemExit(f'Nasdaq100 live universe incomplete: {len(ndx)}')
+          print('V46 Nasdaq100 live source PASSED')
+          PY
+
+      - name: Verify combined target universe
+        run: |
+          python - <<'PY'
+          from app.collectors.universe import load_universe_tickers
+          combined = load_universe_tickers()
+          print(f'Combined={len(combined)}')
           if len(combined) < 500:
               raise SystemExit(f'Combined live universe unexpectedly small: {len(combined)}')
-          print('V46 live universe gate PASSED')
+          print('V46 combined universe gate PASSED')
           PY
 
       - name: Write readiness summary
@@ -140,6 +155,6 @@ jobs:
             echo "- Feature SHA: \`${GITHUB_SHA}\`"
             echo '- Baseline: latest production `whale.db` cache'
             echo '- Political visibility: UBER/MSFT/INTC large BUYs must survive into final active-buy radar when present'
-            echo '- Universe: live S&P500 and Nasdaq100 sources must pass completeness thresholds'
+            echo '- Universe: S&P500 and Nasdaq100 sources are checked independently, then as the combined target universe'
             echo '- Full pytest suite runs in the same job'
           } >> "$GITHUB_STEP_SUMMARY"
