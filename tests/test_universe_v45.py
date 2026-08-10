@@ -6,9 +6,10 @@ from app.collectors import universe
 
 
 class _Response:
-    def __init__(self, text: str = "<html></html>", status_code: int = 200):
+    def __init__(self, text: str = "<html></html>", status_code: int = 200, content: bytes | None = None):
         self.text = text
         self.status_code = status_code
+        self.content = content if content is not None else text.encode("utf-8")
 
     def raise_for_status(self):
         if self.status_code >= 400:
@@ -29,7 +30,7 @@ def test_index_html_fetch_uses_browser_headers(monkeypatch):
 
     assert tables[0].iloc[0, 0] == "AAPL"
     assert "Mozilla/5.0" in seen["headers"]["User-Agent"]
-    assert seen["timeout"] == 30
+    assert seen["timeout"] == 45
 
 
 def test_full_universe_requires_both_indices(monkeypatch):
@@ -48,7 +49,7 @@ def test_full_universe_unions_sp500_and_nasdaq100(monkeypatch):
     assert universe.load_universe_tickers() == {"AAPL", "MSFT", "BRK-B", "NVDA", "GOOG"}
 
 
-def test_sp500_rejects_partial_table(monkeypatch):
+def test_sp500_wikipedia_fallback_rejects_partial_table(monkeypatch):
     monkeypatch.setattr(
         universe,
         "_read_html_tables",
@@ -56,8 +57,44 @@ def test_sp500_rejects_partial_table(monkeypatch):
     )
 
     try:
-        universe._read_sp500()
+        universe._read_sp500_wikipedia()
     except RuntimeError as exc:
         assert "refusing partial universe" in str(exc)
     else:
         raise AssertionError("partial S&P 500 table must be rejected")
+
+
+def test_sp500_prefers_official_state_street_source(monkeypatch):
+    official = {f"S{i}" for i in range(500)}
+    monkeypatch.setattr(universe, "_read_sp500_primary", lambda: official)
+    monkeypatch.setattr(
+        universe,
+        "_read_sp500_wikipedia",
+        lambda: (_ for _ in ()).throw(AssertionError("fallback should not be called")),
+    )
+
+    assert universe._read_sp500() == official
+
+
+def test_sp500_falls_back_when_official_source_fails(monkeypatch):
+    fallback = {f"S{i}" for i in range(500)}
+    monkeypatch.setattr(
+        universe,
+        "_read_sp500_primary",
+        lambda: (_ for _ in ()).throw(RuntimeError("issuer unavailable")),
+    )
+    monkeypatch.setattr(universe, "_read_sp500_wikipedia", lambda: fallback)
+
+    assert universe._read_sp500() == fallback
+
+
+def test_nasdaq_prefers_official_ndx_pdf(monkeypatch):
+    official = {f"N{i}" for i in range(100)}
+    monkeypatch.setattr(universe, "_read_nasdaq100_primary", lambda: official)
+    monkeypatch.setattr(
+        universe,
+        "_read_nasdaq100_wikipedia",
+        lambda: (_ for _ in ()).throw(AssertionError("fallback should not be called")),
+    )
+
+    assert universe._read_nasdaq100() == official
