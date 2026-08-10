@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from io import BytesIO, StringIO
 import logging
+from pathlib import Path
 import re
 from typing import Iterable
 
@@ -12,18 +13,12 @@ from pypdf import PdfReader
 
 log = logging.getLogger(__name__)
 
-# Primary sources. SPY is an S&P 500 tracker licensed by S&P DJI and State Street
-# publishes its complete daily holdings. Nasdaq publishes an official NDX
-# constituent/weight PDF. These binary sources are substantially more reliable on
-# GitHub-hosted runners than scraping Wikipedia directly.
 SP500_PRIMARY_URL = "https://www.ssga.com/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx"
 NASDAQ100_PRIMARY_URL = "https://www.nasdaq.com/NDX"
-
-# Public HTML fallbacks remain available if an issuer endpoint is temporarily
-# unavailable, but production logs identify which source succeeded.
 SP500_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 NASDAQ100_URL = "https://en.wikipedia.org/wiki/Nasdaq-100"
 SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
+NASDAQ100_SNAPSHOT_PATH = Path(__file__).resolve().parents[1] / "data" / "index_universe" / "nasdaq100_2026-05-01.txt"
 
 INDEX_HTTP_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; GeminiWhaleUniverse/1.0; +https://github.com/SolidusAI8888/-gemini-whale-intelligence)",
@@ -34,8 +29,9 @@ SP500_MIN_COMPONENTS = 480
 NASDAQ100_MIN_COMPONENTS = 95
 _TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.\-]{0,9}$")
 
-# Emergency fallback only. A fallback universe is deliberately loud in logs and
-# must never be mistaken for successful S&P 500 + Nasdaq-100 coverage.
+# Emergency fallback is retained only for catastrophic loss of both an index's
+# live source and its validated full snapshot. Normal production must never use
+# this 66-name set as if it were the project universe.
 FALLBACK_TICKERS = {
     "AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "GOOG", "AVGO", "TSLA",
     "COST", "NFLX", "AMD", "ADBE", "PEP", "CSCO", "TMUS", "INTU", "QCOM",
@@ -59,8 +55,8 @@ def normalize_ticker(ticker: str) -> str:
     return ticker.strip().upper().replace(".", "-")
 
 
-def _get(url: str) -> requests.Response:
-    response = requests.get(url, headers=INDEX_HTTP_HEADERS, timeout=45)
+def _get(url: str, *, timeout: int = 20) -> requests.Response:
+    response = requests.get(url, headers=INDEX_HTTP_HEADERS, timeout=timeout)
     response.raise_for_status()
     return response
 
@@ -77,6 +73,22 @@ def _valid_ticker(value: object) -> str | None:
     if not _TICKER_RE.fullmatch(raw):
         return None
     return normalize_ticker(raw)
+
+
+def _validated_snapshot(path: Path, minimum: int, label: str) -> set[str]:
+    if not path.exists():
+        raise RuntimeError(f"{label} snapshot missing: {path}")
+    tickers: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        value = line.strip()
+        if not value or value.startswith("#"):
+            continue
+        ticker = _valid_ticker(value)
+        if ticker:
+            tickers.add(ticker)
+    if len(tickers) < minimum:
+        raise RuntimeError(f"{label} snapshot has only {len(tickers)} tickers; refusing partial snapshot")
+    return tickers
 
 
 def _parse_spy_holdings_excel(payload: bytes) -> set[str]:
@@ -105,7 +117,7 @@ def _parse_spy_holdings_excel(payload: bytes) -> set[str]:
 
 
 def _read_sp500_primary() -> set[str]:
-    response = _get(SP500_PRIMARY_URL)
+    response = _get(SP500_PRIMARY_URL, timeout=20)
     return _parse_spy_holdings_excel(response.content)
 
 
@@ -134,9 +146,6 @@ def _read_sp500() -> set[str]:
 def _parse_nasdaq100_pdf(payload: bytes) -> set[str]:
     reader = PdfReader(BytesIO(payload))
     tickers: set[str] = set()
-    # Official Nasdaq NDX document rows end with: SYMBOL WEIGHT. Company names may
-    # contain spaces/punctuation, so parse from the right rather than guessing the
-    # number of name tokens.
     row_re = re.compile(r"\s([A-Z][A-Z0-9.\-]{0,9})\s+\d+(?:\.\d+)?\s*$")
     for page in reader.pages:
         text = page.extract_text() or ""
@@ -155,8 +164,15 @@ def _parse_nasdaq100_pdf(payload: bytes) -> set[str]:
 
 
 def _read_nasdaq100_primary() -> set[str]:
-    response = _get(NASDAQ100_PRIMARY_URL)
+    # Nasdaq's PDF endpoint has intermittently stalled on GitHub-hosted runners.
+    # Keep the live attempt short, then fall back to a validated Nasdaq-issued
+    # last-known-good snapshot rather than degrading the whole project to 66 names.
+    response = _get(NASDAQ100_PRIMARY_URL, timeout=8)
     return _parse_nasdaq100_pdf(response.content)
+
+
+def _read_nasdaq100_snapshot() -> set[str]:
+    return _validated_snapshot(NASDAQ100_SNAPSHOT_PATH, NASDAQ100_MIN_COMPONENTS, "Nasdaq-100")
 
 
 def _read_nasdaq100_wikipedia() -> set[str]:
@@ -188,7 +204,13 @@ def _read_nasdaq100() -> set[str]:
         log.info("Nasdaq-100 universe source=Nasdaq-NDX-official-PDF count=%s", len(tickers))
         return tickers
     except Exception as primary_exc:  # noqa: BLE001
-        log.warning("Primary Nasdaq-100 source failed (%s); trying Wikipedia fallback", primary_exc)
+        log.warning("Live Nasdaq-100 source failed (%s); using validated Nasdaq official snapshot", primary_exc)
+    try:
+        tickers = _read_nasdaq100_snapshot()
+        log.info("Nasdaq-100 universe source=Nasdaq-official-snapshot-2026-05-01 count=%s", len(tickers))
+        return tickers
+    except Exception as snapshot_exc:  # noqa: BLE001
+        log.error("Nasdaq snapshot unavailable (%s); trying Wikipedia as last full-source fallback", snapshot_exc)
         tickers = _read_nasdaq100_wikipedia()
         log.info("Nasdaq-100 universe source=Wikipedia-fallback count=%s", len(tickers))
         return tickers
