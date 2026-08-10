@@ -44,6 +44,7 @@ def validate_report_html(html: str) -> None:
         r"<b>\s*On Demand\b",
         r"<b>\s*#?\s*EMPLOYER OR PARTY\b",
         r"<b>[^<]*\bLLC\s*,\s*co\b",
+        r"<b>\s*\(?\s*or less\b",
     ]
     for pattern in forbidden_oge_assets:
         if re.search(pattern, cabinet, re.I):
