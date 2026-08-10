@@ -16,7 +16,8 @@ class NormalizedAsset:
 _NOISE_ONLY = re.compile(
     r"^(?:n/?a\s*)?(?:on demand|interest|rent or royalties|dividends?|capital gains?|"
     r"net distributive income|rate term|secured facility|government guaranteed collateral\)?|"
-    r"borrower\)?|none(?:\s*\(or less\)?)?)$",
+    r"borrower\)?|none(?:\s*\(or less\)?)?|\(?\s*or less\s*\)?|more than|greater than|"
+    r"up to|approximately|estimated)$",
     re.I,
 )
 
