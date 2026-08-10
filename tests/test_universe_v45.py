@@ -30,7 +30,7 @@ def test_index_html_fetch_uses_browser_headers(monkeypatch):
 
     assert tables[0].iloc[0, 0] == "AAPL"
     assert "Mozilla/5.0" in seen["headers"]["User-Agent"]
-    assert seen["timeout"] == 45
+    assert seen["timeout"] == 20
 
 
 def test_full_universe_requires_both_indices(monkeypatch):
@@ -93,8 +93,32 @@ def test_nasdaq_prefers_official_ndx_pdf(monkeypatch):
     monkeypatch.setattr(universe, "_read_nasdaq100_primary", lambda: official)
     monkeypatch.setattr(
         universe,
-        "_read_nasdaq100_wikipedia",
-        lambda: (_ for _ in ()).throw(AssertionError("fallback should not be called")),
+        "_read_nasdaq100_snapshot",
+        lambda: (_ for _ in ()).throw(AssertionError("snapshot should not be called")),
     )
 
     assert universe._read_nasdaq100() == official
+
+
+def test_nasdaq_live_failure_uses_validated_official_snapshot(monkeypatch):
+    snapshot = {f"N{i}" for i in range(101)}
+    monkeypatch.setattr(
+        universe,
+        "_read_nasdaq100_primary",
+        lambda: (_ for _ in ()).throw(RuntimeError("Nasdaq endpoint timeout")),
+    )
+    monkeypatch.setattr(universe, "_read_nasdaq100_snapshot", lambda: snapshot)
+    monkeypatch.setattr(
+        universe,
+        "_read_nasdaq100_wikipedia",
+        lambda: (_ for _ in ()).throw(AssertionError("Wikipedia should not be called when snapshot is valid")),
+    )
+
+    assert universe._read_nasdaq100() == snapshot
+
+
+def test_checked_in_nasdaq_snapshot_is_complete_and_contains_key_names():
+    snapshot = universe._read_nasdaq100_snapshot()
+
+    assert len(snapshot) >= 95
+    assert {"AAPL", "MSFT", "NVDA", "INTC", "GOOGL", "GOOG"} <= snapshot
