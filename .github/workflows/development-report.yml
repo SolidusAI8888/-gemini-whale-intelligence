@@ -41,9 +41,7 @@ jobs:
       SEND_EMAIL: ${{ inputs.send_email }}
       ENABLE_GEMINI: ${{ inputs.enable_gemini }}
 
-      # V44: preview must use the same report/scanning policy as production.
-      # Otherwise a 3-day/core-only preview is not a valid regression comparison
-      # against the 200-day/all-politics production report.
+      # Preview must use the same report/scanning policy as production.
       LOOKBACK_DAYS: "200"
       SCAN_START_DATE: "2026-01-01"
       MAX_COMPANIES: "0"
@@ -93,9 +91,8 @@ jobs:
         id: restore_production_state
         uses: actions/cache/restore@v4
         with:
-          # IMPORTANT: cache version hashes include the path list. Keep this
-          # exactly aligned with daily_scan.yml's cache/save paths; restoring
-          # only whale.db creates a different cache version and can never hit.
+          # Cache versions include the path list. This must exactly match
+          # daily_scan.yml's cache/save paths.
           path: |
             data/whale.db
             data/last_email_date.txt
@@ -158,19 +155,82 @@ jobs:
       - name: Generate preview report
         run: python -m app.main
 
+      - name: Verify large political BUYs reached final active radar
+        if: success()
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+          import os
+          import re
+          import sqlite3
+          from pathlib import Path
+          from app.domain.trade_classification import is_primary_transaction
+          from app.reports.quality_gate import validate_report_html
+
+          db = Path(os.environ.get("DATABASE_PATH", "data/dev-preview-whale.db"))
+          report_dir = Path(os.environ.get("REPORT_DIR", "data/dev-preview-reports"))
+          reports = sorted(report_dir.glob("*.html"), key=lambda p: p.stat().st_mtime)
+          if not reports:
+              raise SystemExit("V46 merge gate: no generated HTML report found")
+          report = reports[-1]
+          html = report.read_text(encoding="utf-8")
+          validate_report_html(html)
+
+          match = re.search(r'<section id="v40-active-buy-radar">(.*?)</section>', html, re.I | re.S)
+          active = match.group(1) if match else ""
+          if not active:
+              raise SystemExit("V46 merge gate: active-buy radar section missing")
+
+          tickers = ("UBER", "MSFT", "INTC")
+          failures = []
+          conn = sqlite3.connect(db)
+          conn.row_factory = sqlite3.Row
+          try:
+              for ticker in tickers:
+                  rows = conn.execute(
+                      """
+                      SELECT * FROM trades
+                      WHERE ticker = ?
+                        AND (source LIKE 'POLITICAL%' OR whale_category LIKE 'Political%')
+                        AND action = 'BUY'
+                        AND COALESCE(trade_date, filing_date, '') >= ?
+                      """,
+                      (ticker, os.environ.get("SCAN_START_DATE", "2026-01-01")),
+                  ).fetchall()
+                  accepted = [dict(r) for r in rows if is_primary_transaction(dict(r))]
+                  largest = max((float(r.get("amount_usd") or 0) for r in accepted), default=0.0)
+                  visible = bool(re.search(rf"<b>\s*{ticker}\s*</b>", active, re.I))
+                  print(f"V46 final-HTML audit ticker={ticker} accepted_buy_rows={len(accepted)} largest=${largest:,.0f} visible={visible}")
+                  if largest >= 250_000 and not visible:
+                      failures.append(f"{ticker}: largest accepted political BUY ${largest:,.0f} missing from active radar")
+          finally:
+              conn.close()
+
+          if failures:
+              raise SystemExit("V46 political visibility merge gate failed: " + "; ".join(failures))
+          print(f"V46 political visibility merge gate passed for {report}")
+          PY
+
       - name: Audit historical political regression signals
         if: always()
         run: |
           python - <<'PY'
           from __future__ import annotations
           import os
+          import re
           import sqlite3
           from pathlib import Path
           from app.domain.trade_classification import is_primary_transaction
 
           db = Path(os.environ.get("DATABASE_PATH", "data/dev-preview-whale.db"))
+          report_dir = Path(os.environ.get("REPORT_DIR", "data/dev-preview-reports"))
+          reports = sorted(report_dir.glob("*.html"), key=lambda p: p.stat().st_mtime) if report_dir.exists() else []
+          html = reports[-1].read_text(encoding="utf-8") if reports else ""
+          active_match = re.search(r'<section id="v40-active-buy-radar">(.*?)</section>', html, re.I | re.S)
+          active = active_match.group(1) if active_match else ""
+
           tickers = ("UBER", "MSFT", "INTC")
-          lines = ["## V44 political regression audit", ""]
+          lines = ["## V46 political regression audit", ""]
           if not db.exists():
               lines.append(f"- Database not found: `{db}`")
           else:
@@ -188,9 +248,14 @@ jobs:
                       (ticker,),
                   ).fetchall()
                   accepted = [r for r in rows if is_primary_transaction(dict(r))]
+                  accepted_buys = [r for r in accepted if str(r["action"] or "").upper() == "BUY"]
+                  largest_buy = max((float(r["amount_usd"] or 0) for r in accepted_buys), default=0.0)
+                  visible = bool(re.search(rf"<b>\s*{ticker}\s*</b>", active, re.I))
                   lines.append(f"### {ticker}")
                   lines.append(f"- Political rows in preview DB: **{len(rows)}**")
-                  lines.append(f"- Rows accepted by current V44 signal policy: **{len(accepted)}**")
+                  lines.append(f"- Rows accepted by current signal policy: **{len(accepted)}**")
+                  lines.append(f"- Largest accepted BUY: **${largest_buy:,.0f}**")
+                  lines.append(f"- Visible in final active-buy radar: **{'YES' if visible else 'NO'}**")
                   if rows:
                       lines.append("")
                       lines.append("|Accepted|Action|Amount|Actor|Trade date|Source|Code|")
@@ -238,4 +303,5 @@ jobs:
             echo "- SMTP endpoint: \`smtp.mail.me.com:587\` with STARTTLS"
             echo "- Production 08:00 workflow was not modified."
             echo "- Preview requires and uses a COPY of the latest production database cache; it fails closed if that baseline cannot be restored."
+            echo "- V46 merge gate fails if a >=$250K accepted UBER/MSFT/INTC political BUY exists in the baseline but is absent from the final active-buy radar."
           } >> "$GITHUB_STEP_SUMMARY"
