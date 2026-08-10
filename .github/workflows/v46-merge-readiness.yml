@@ -1,0 +1,145 @@
+name: V46 Merge Readiness
+
+on:
+  push:
+    branches:
+      - feature/v40-foundation
+    paths:
+      - 'app/main.py'
+      - 'app/domain/**'
+      - 'app/reports/**'
+      - 'app/collectors/universe.py'
+      - 'tests/**'
+      - '.github/workflows/v46-merge-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-baseline:
+    name: Production baseline and final-radar gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUNBUFFERED: '1'
+      DATABASE_PATH: data/whale.db
+      SCAN_START_DATE: '2026-01-01'
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+
+      - name: Restore latest production database
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/whale.db
+            data/last_email_date.txt
+          key: v46-readiness-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            whale-state-${{ runner.os }}-
+
+      - name: Require production baseline
+        run: |
+          if [ ! -f data/whale.db ]; then
+            echo 'ERROR: latest production whale.db cache was not restored.'
+            exit 1
+          fi
+          echo "Production DB restored: $(du -h data/whale.db | cut -f1)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Compile and run full test suite
+        run: |
+          python -m compileall -q app tests
+          python -m pytest -q
+
+      - name: Verify complete formal window reaches final active-buy radar
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+          import os
+          import sqlite3
+          from pathlib import Path
+
+          from app.domain.trade_classification import primary_transactions
+          from app.reports.quality_gate import validate_key_political_visibility
+          from app.reports.v40_report import build_active_buy_radar
+
+          db = Path(os.environ['DATABASE_PATH'])
+          start = os.environ['SCAN_START_DATE']
+          conn = sqlite3.connect(db)
+          conn.row_factory = sqlite3.Row
+          try:
+              rows = [dict(r) for r in conn.execute(
+                  """
+                  SELECT * FROM trades
+                  WHERE COALESCE(trade_date, filing_date, '') >= ?
+                  ORDER BY COALESCE(trade_date, filing_date, '') DESC, id DESC
+                  LIMIT 50000
+                  """,
+                  (start,),
+              ).fetchall()]
+          finally:
+              conn.close()
+
+          primary = primary_transactions(rows)
+          html = build_active_buy_radar(primary)
+          validate_key_political_visibility(html, primary)
+
+          print(f'Formal DB rows: {len(rows)}; primary rows: {len(primary)}')
+          for ticker in ('UBER', 'MSFT', 'INTC'):
+              buys = [
+                  r for r in primary
+                  if str(r.get('ticker') or '').upper() == ticker
+                  and str(r.get('action') or '').upper() == 'BUY'
+                  and (str(r.get('source') or '').upper().startswith('POLITICAL')
+                       or str(r.get('whale_category') or '').upper().startswith('POLITICAL'))
+              ]
+              largest = max((float(r.get('amount_usd') or 0) for r in buys), default=0.0)
+              total = sum(float(r.get('amount_usd') or 0) for r in buys)
+              actors = sorted({str(r.get('whale_name') or '') for r in buys if r.get('whale_name')})
+              visible = f'<b>{ticker}</b>' in html
+              print(
+                  f'{ticker}: accepted political BUY rows={len(buys)} '
+                  f'largest=${largest:,.0f} total=${total:,.0f} visible={visible} actors={actors[:8]}'
+              )
+          print('V46 production-baseline political visibility gate PASSED')
+          PY
+
+      - name: Live-check full S&P500 plus Nasdaq100 universe sources
+        run: |
+          python - <<'PY'
+          from app.collectors.universe import _read_sp500, _read_nasdaq100, load_universe_tickers
+
+          sp = _read_sp500()
+          ndx = _read_nasdaq100()
+          combined = load_universe_tickers()
+          print(f'S&P500={len(sp)} Nasdaq100={len(ndx)} Combined={len(combined)}')
+          if len(sp) < 480:
+              raise SystemExit(f'S&P500 live universe incomplete: {len(sp)}')
+          if len(ndx) < 95:
+              raise SystemExit(f'Nasdaq100 live universe incomplete: {len(ndx)}')
+          if len(combined) < 500:
+              raise SystemExit(f'Combined live universe unexpectedly small: {len(combined)}')
+          print('V46 live universe gate PASSED')
+          PY
+
+      - name: Write readiness summary
+        if: always()
+        run: |
+          {
+            echo '## V46 merge readiness'
+            echo "- Feature SHA: \`${GITHUB_SHA}\`"
+            echo '- Baseline: latest production `whale.db` cache'
+            echo '- Political visibility: UBER/MSFT/INTC large BUYs must survive into final active-buy radar when present'
+            echo '- Universe: live S&P500 and Nasdaq100 sources must pass completeness thresholds'
+            echo '- Full pytest suite runs in the same job'
+          } >> "$GITHUB_STEP_SUMMARY"
