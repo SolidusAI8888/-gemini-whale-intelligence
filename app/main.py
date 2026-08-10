@@ -18,7 +18,6 @@ from app.config import settings
 from app.data_quality.repairs import normalize_institutional_13f_amounts
 from app.db import (
     fetch_political_action_summary,
-    fetch_recent_trades,
     fetch_top_scores,
     fetch_trades_since,
     fetch_market_snapshots,
@@ -40,6 +39,7 @@ from app.llm.gemini_analyzer import analyze_with_gemini
 from app.intelligence import build_rankings, load_wis_config, normalize_trades, score_signals
 from app.reports.html_report import build_html_report, save_report
 from app.reports.mailer import send_report
+from app.reports.quality_gate import validate_key_political_visibility, validate_report_html
 from app.reports.v40_report import apply_v40_report_layout
 
 logging.basicConfig(
@@ -101,7 +101,7 @@ def _log_key_political_report_inputs(rows: list[dict]) -> None:
 
     V46: important congressional trades were present in SQLite but disappeared
     from HTML because the final report re-fetched only 1,000 general rows plus
-    300 political rows.  The report now consumes the already-loaded full formal
+    300 political rows. The report now consumes the already-loaded full formal
     window; this log proves the three historical regression tickers survive all
     the way to the report input.
     """
@@ -157,7 +157,7 @@ def run_scan() -> dict:
         if repaired_13f_count:
             log.info("V43 repaired persisted institutional 13F dollar rows: %s", repaired_13f_count)
 
-        # Single formal reporting/scoring window.  Do not re-fetch a smaller
+        # Single formal reporting/scoring window. Do not re-fetch a smaller
         # subset later for HTML: that previously dropped valid older Congress
         # transactions (including UBER/MSFT/INTC large BUY disclosures).
         all_window_rows = [_row_to_dict(r) for r in fetch_trades_since(settings.scan_start_date, limit=50000)]
@@ -204,10 +204,9 @@ def run_scan() -> dict:
 
         top_scores = scored if scored else [_row_to_dict(r) for r in fetch_top_scores(limit=50)]
 
-        # V46 merge gate: the final HTML must consume exactly the same complete
-        # primary transaction window used for scoring.  The former 1000-row +
+        # V46 merge gate: the final HTML consumes exactly the same complete
+        # primary transaction window used for scoring. The former 1000-row +
         # 300-political-row re-fetch silently truncated historical large BUYs.
-        recent_disclosures = list(all_window_rows)
         recent_trades = list(scoring_base)
         political_recent_trades = [row for row in recent_trades if _is_political_row(row)]
         _log_key_political_report_inputs(recent_trades)
@@ -271,9 +270,16 @@ def run_scan() -> dict:
             recent_trades,
             new_since=run_started_at if baseline_trade_count > 0 else None,
         )
+
+        # Release gates run before the report is saved or any email is sent.
+        # This makes Development Preview and SEND_EMAIL=false runs just as strict
+        # as production delivery.
+        validate_report_html(html)
+        validate_key_political_visibility(html, recent_trades)
+
         path = save_report(html)
         report_path = str(path)
-        log.info("Report saved: %s", report_path)
+        log.info("Report saved after V46 release gates: %s", report_path)
 
         if settings.send_email:
             daily_status = "新增" if new_primary_trade_count > 0 else "无新增"
