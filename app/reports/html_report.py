@@ -1270,43 +1270,73 @@ def build_html_report(
 <meta charset="utf-8" />
 <title>Gemini-美股聪明钱_政商巨鲸行动追踪</title>
 <style>
-body {{ font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Arial, sans-serif; line-height: 1.55; color: #111827; max-width: 1280px; margin: 0 auto; padding: 18px; }}
-h1 {{ color: #111827; }}
-h2 {{ margin-top: 28px; border-top: 1px solid #e5e7eb; padding-top: 18px; }}
-h3 {{ margin: 16px 0 8px; }}
-.notice {{ background: #fff7ed; padding: 12px; border-left: 4px solid #f97316; }}
-.note {{ background: #f9fafb; padding: 10px; border-left: 4px solid #9ca3af; color: #374151; }}
-.big-change {{ font-size: 24px; font-weight: 800; background: #fef3c7; border: 2px solid #f59e0b; padding: 14px; border-radius: 8px; }}
-.no-change {{ font-size: 24px; font-weight: 800; background: #ecfdf5; border: 2px solid #10b981; padding: 14px; border-radius: 8px; }}
-table {{ border-collapse: collapse; width: 100%; font-size: 13px; }}
-th, td {{ border: 1px solid #e5e7eb; padding: 7px; vertical-align: top; }}
-th {{ background: #f9fafb; text-align: left; }}
-.small {{ color: #6b7280; font-size: 12px; }}
-.chart {{ border: 1px solid #e5e7eb; background: #fff; padding: 10px; margin: 10px 0 18px; }}
-.chart-group {{ margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #e5e7eb; }}
-.chart-title {{ margin-bottom: 5px; }}
-.bar-row {{ display: grid; grid-template-columns: 320px 1fr 135px; gap: 8px; align-items: center; margin: 4px 0; font-size: 12px; }}
-.bar-track {{ background: #f3f4f6; height: 12px; border-radius: 6px; overflow: hidden; }}
-.bar {{ height: 12px; border-radius: 6px; }}
-.bar.buy {{ background: #2563eb; }}
-.bar.sell {{ background: #dc2626; }}
-.bar.other {{ background: #6b7280; }}
-.bar-value {{ text-align: right; color: #374151; }}
-.trump-highlight {{ background: #fef08a; color: #78350f; font-weight: 700; padding: 0 2px; border-radius: 3px; }}
-.pelosi-highlight {{ background: #fde68a; color: #7c2d12; font-weight: 700; padding: 0 2px; border-radius: 3px; }}
-.change-new {{ background: #fed7aa; color: #9a3412; font-weight: 800; padding: 2px 6px; border-radius: 6px; }}
-.change-existing {{ color: #6b7280; }}
-tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bottom: 2px solid #fdba74; }}
+:root {{ --ink:#102033; --muted:#64748b; --line:#dbe4ee; --surface:#ffffff; --soft:#f5f8fc; --navy:#0b1f33; --blue:#1463ff; --cyan:#0aa6c2; --green:#11875d; --red:#c43b4d; --amber:#d97706; --orange:#f97316; }}
+* {{ box-sizing: border-box; }}
+html {{ scroll-behavior: smooth; background: #edf2f7; }}
+body {{ font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; line-height: 1.55; color: var(--ink); max-width: 1440px; margin: 0 auto; padding: 0 24px 64px; background: var(--surface); box-shadow: 0 0 0 1px rgba(15,35,55,.04), 0 20px 70px rgba(15,35,55,.08); }}
+a {{ color: #075cca; text-decoration: none; }} a:hover {{ text-decoration: underline; }}
+.report-hero {{ margin: 0 -24px; padding: 34px 32px 28px; color: #fff; background: radial-gradient(circle at 82% 15%, rgba(20,99,255,.42), transparent 34%), linear-gradient(135deg, #071728 0%, #0c2945 58%, #12395d 100%); }}
+.hero-topline {{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }}
+.brand {{ font-weight:800; letter-spacing:.02em; }} .brand span {{ color:#65d7ff; }}
+.build-badge {{ display:inline-flex; align-items:center; gap:7px; color:#cde5f7; font-size:12px; }}
+.build-badge::before {{ content:""; width:8px; height:8px; border-radius:50%; background:#40d39c; box-shadow:0 0 0 4px rgba(64,211,156,.14); }}
+.eyebrow {{ margin:0 0 8px; color:#88cdfd; font-size:12px; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }}
+h1 {{ max-width:900px; margin:0; color:#fff; font-size:clamp(30px,4.6vw,54px); line-height:1.08; letter-spacing:-.035em; }}
+.hero-copy {{ max-width:820px; margin:15px 0 0; color:#c7d8e8; font-size:15px; }}
+.hero-meta {{ display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }}
+.meta-pill {{ display:inline-flex; padding:6px 10px; border:1px solid rgba(255,255,255,.16); border-radius:999px; color:#d8e8f5; background:rgba(255,255,255,.06); font-size:12px; }}
+.section-nav {{ position:sticky; top:0; z-index:30; display:flex; gap:6px; margin:0 -24px 22px; padding:10px 24px; overflow-x:auto; border-bottom:1px solid var(--line); background:rgba(255,255,255,.94); backdrop-filter:blur(12px); }}
+.section-nav a {{ flex:none; padding:8px 12px; border-radius:999px; color:#42566c; font-size:13px; font-weight:700; }} .section-nav a:hover {{ color:#fff; background:var(--navy); text-decoration:none; }}
+.report-tools {{ display:grid; grid-template-columns:minmax(220px,1fr) auto; gap:12px; align-items:center; margin:0 0 22px; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--soft); }}
+.report-search {{ width:100%; padding:11px 14px; border:1px solid #c7d3df; border-radius:10px; color:var(--ink); background:#fff; font:inherit; }}
+.report-search:focus {{ outline:3px solid rgba(20,99,255,.14); border-color:var(--blue); }}
+.search-status {{ color:var(--muted); font-size:12px; white-space:nowrap; }}
+h2 {{ scroll-margin-top:76px; margin:34px 0 12px; padding-top:22px; border-top:1px solid var(--line); color:#0b2742; font-size:24px; line-height:1.2; letter-spacing:-.02em; }}
+h3 {{ margin:22px 0 9px; color:#203a54; font-size:16px; }}
+section {{ scroll-margin-top:76px; margin:22px 0; padding:20px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 8px 24px rgba(15,35,55,.045); }}
+section > h2:first-child {{ margin-top:0; padding-top:0; border-top:0; }}
+.notice, .note {{ margin:12px 0; padding:12px 14px; border-radius:10px; }}
+.notice {{ background:#fff7ed; border:1px solid #fed7aa; color:#7c3412; }}
+.note {{ background:#f3f7fb; border:1px solid #dbe7f1; color:#40556b; }}
+.big-change, .no-change {{ margin:22px 0 8px; padding:18px 20px; border-radius:14px; font-size:22px; font-weight:850; letter-spacing:-.02em; }}
+.big-change {{ color:#873b0b; background:linear-gradient(135deg,#fff7ed,#ffedd5); border:1px solid #fdba74; }}
+.no-change {{ color:#086442; background:linear-gradient(135deg,#ecfdf5,#d1fae5); border:1px solid #6ee7b7; }}
+table {{ display:block; width:100%; max-width:100%; overflow-x:auto; border-collapse:separate; border-spacing:0; border:1px solid var(--line); border-radius:12px; font-size:12.5px; background:#fff; }}
+thead {{ background:#eef4f9; }} th, td {{ min-width:92px; padding:10px 11px; vertical-align:top; border:0; border-bottom:1px solid #e6edf4; text-align:left; }}
+th {{ position:sticky; top:0; z-index:2; color:#3b5269; background:#eef4f9; font-size:11px; letter-spacing:.035em; text-transform:uppercase; white-space:nowrap; }}
+tbody tr:last-child td {{ border-bottom:0; }} tbody tr:hover td {{ background:#f7faff; }} td b {{ color:#0a3156; }}
+.small {{ color:var(--muted); font-size:12px; }}
+.chart {{ border:1px solid var(--line); border-radius:14px; background:#fbfdff; padding:14px; margin:10px 0 18px; }}
+.chart-group {{ margin-bottom:14px; padding-bottom:10px; border-bottom:1px dashed #d7e1ea; }} .chart-group:last-child {{ border-bottom:0; }}
+.chart-title {{ margin-bottom:7px; font-weight:750; }}
+.bar-row {{ display:grid; grid-template-columns:minmax(190px,320px) 1fr 120px; gap:10px; align-items:center; margin:6px 0; font-size:12px; }}
+.bar-track {{ background:#e9eff5; height:10px; border-radius:999px; overflow:hidden; }} .bar {{ height:10px; border-radius:999px; }}
+.bar.buy {{ background:linear-gradient(90deg,#0caa77,#38d6a3); }} .bar.sell {{ background:linear-gradient(90deg,#bf3346,#ef6677); }} .bar.other {{ background:#708399; }}
+.bar-value {{ text-align:right; color:#40556b; font-variant-numeric:tabular-nums; }}
+.trump-highlight, .pelosi-highlight {{ font-weight:800; padding:1px 4px; border-radius:4px; }} .trump-highlight {{ background:#fef08a; color:#78350f; }} .pelosi-highlight {{ background:#dbeafe; color:#1e3a8a; }}
+.change-new {{ background:#ffedd5; color:#9a3412; font-weight:800; padding:2px 6px; border-radius:6px; }} .change-existing {{ color:var(--muted); }}
+tr.row-new td {{ background:#fff8ef; border-top:1px solid #fdba74; border-bottom:1px solid #fdba74; }}
+.is-filtered-out {{ display:none !important; }}
+.back-top {{ display:inline-block; margin-top:18px; padding:8px 12px; border-radius:999px; background:#eaf1f7; color:#334e68; font-size:12px; font-weight:700; }}
+@media (max-width:760px) {{ body {{ padding:0 14px 48px; }} .report-hero {{ margin:0 -14px; padding:26px 18px 24px; }} .section-nav {{ margin:0 -14px 18px; padding:9px 14px; }} .hero-topline {{ align-items:flex-start; flex-direction:column; gap:8px; }} .report-tools {{ grid-template-columns:1fr; }} .search-status {{ white-space:normal; }} section {{ padding:14px; border-radius:12px; }} .bar-row {{ grid-template-columns:1fr; gap:4px; margin-bottom:12px; }} .bar-value {{ text-align:left; }} h2 {{ font-size:21px; }} }}
+@media print {{ html {{ background:#fff; }} body {{ box-shadow:none; max-width:none; padding:0; }} .section-nav,.report-tools,.back-top {{ display:none; }} .report-hero {{ margin:0; print-color-adjust:exact; }} table {{ display:table; overflow:visible; }} section {{ break-inside:avoid; box-shadow:none; }} }}
 </style>
 </head>
 <body>
-<h1>Gemini-美股聪明钱_政商巨鲸行动追踪</h1>
-<p class="small">生成时间：{escape(now)}；交易时间范围：{escape(settings.scan_start_date)} 至今；正式报告目标发送时间：柏林时间每日 08:00。</p>
+<header class="report-hero" id="top">
+  <div class="hero-topline"><div class="brand">WHALE <span>INTELLIGENCE</span></div><div class="build-badge">数据质量门已启用</div></div>
+  <p class="eyebrow">US EQUITY · POLITICAL & INSTITUTIONAL FLOWS</p>
+  <h1>美股聪明钱<br>政商巨鲸行动追踪</h1>
+  <p class="hero-copy">从公开法定披露中提取真实资金行为，以标的、人物与时间为主轴，快速区分当日变化、主动买入、政界披露与机构持仓。</p>
+  <div class="hero-meta"><span class="meta-pill">生成 {escape(now)}</span><span class="meta-pill">数据窗口 {escape(settings.scan_start_date)} 至今</span><span class="meta-pill">柏林时间每日 08:00</span></div>
+</header>
+<nav class="section-nav" aria-label="报告导航"><a href="#v40-daily-changes-overview">今日变化</a><a href="#v40-active-buy-radar">主动买入</a><a href="#wis">智能评分</a><a href="#overview">结论总览</a><a href="#business">商界巨鲸</a><a href="#political">政界巨鲸</a><a href="#institutional">13F 机构</a><a href="#methodology">口径</a></nav>
+<div class="report-tools" role="search"><input class="report-search" id="report-search" type="search" placeholder="搜索股票、人物、机构或来源（例如 UBER / Pelosi）" aria-label="搜索报告表格"><span class="search-status" id="search-status">搜索将同时过滤所有表格行</span></div>
 <div class="{change_class}">{escape(change_text)}</div>
 <p class="small">变化口径：{escape(change_note)}</p>
 <p class="notice"><b>报告定位：</b>快速了解近期商界/政界巨鲸在美股及公开投资标的上的真金白银 BUY/SELL 披露。金额来自公开披露，政治期权默认按披露金额区间排序，名义敞口只作备注；本报告不构成个性化投资建议。</p>
 
-<h2>Whale Intelligence Score（V39.2）</h2>
+<h2 id="wis">Whale Intelligence Score（V39.2）</h2>
 <p class="note">评分采用“可用来源动态归一化”；缺失来源显示 N/A。机会分另受覆盖率折扣和准入门槛约束；13F 使用最近两期持仓变化，不把季度持仓快照当作实时交易。榜单最多展示 Top10。</p>
 <h3>Top10 Opportunities</h3>
 {wis_opportunities}
@@ -1317,7 +1347,7 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <h3>Top10 Most Resonant Stocks</h3>
 {wis_resonance}
 
-<h2>一、今日结论总览</h2>
+<h2 id="overview">一、今日结论总览</h2>
 <p class="note">本部分集中展示所有核心图示。图示以股票/标的为纲，同一股票的 BUY 与 SELL 放在同一图组中对比，旁边列出主要巨鲸和交易日期。</p>
 <h3>今日新增内容总览（相对上一轮成功运行）</h3>
 {new_items_overview}
@@ -1337,14 +1367,14 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <p class="small">口径：第一排序是最近两期中共同减仓/清仓该标的的机构数量，且至少2家机构同向行动；金额只作为第二排序。</p>
 {institutional_13f_decrease_concentration_chart}
 
-<h2>二、商界巨鲸行动</h2>
+<h2 id="business">二、商界巨鲸行动</h2>
 <p class="note">仅展示核心摘要与必要明细。更长的审计明细建议另存附件，不放入正式邮件正文。</p>
 <h3>商界巨鲸行动摘要</h3>
 {business_summary}
 <h3>商界巨鲸必要明细</h3>
 {business_details}
 
-<h2>三、政界巨鲸行动</h2>
+<h2 id="political">三、政界巨鲸行动</h2>
 <p class="note">Trump 作为政界巨鲸与 Pelosi、House/Senate、OGE 行政分支披露统一列示。Trump 与 Pelosi 名字保留高亮，便于快速阅读。</p>
 <h3>政界巨鲸行动摘要</h3>
 {political_summary_table}
@@ -1354,7 +1384,7 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <p class="small">该表基于当前已配置/已发现并可解析的 OGE 资料。278-T 表示交易型披露；278e/伦理协议等资产型披露如后续接入，应显示为持仓/资产而非近期交易。</p>
 {executive_assets}
 
-<h2>四、机构巨鲸 13F 持仓雷达</h2>
+<h2 id="institutional">四、机构巨鲸 13F 持仓雷达</h2>
 <p class="note">13F 是机构投资经理的季度持仓披露，不代表实时买入/卖出交易。表中的“报告期”是季度末持仓日，“披露日”是 13F 文件提交日。</p>
 <h3>13F Top50 机构采集覆盖率</h3>
 <p class="small">口径：固定目标为默认Top50机构巨鲸；少于50家时，下面所有13F Top5分析都属于“不完整样本”，不能解读为完整Top50结论。</p>
@@ -1372,7 +1402,7 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <p class="small">口径：按机构分组展示每家已成功采集机构最新一期 Top 5 持仓，避免一两家大额机构占满整张明细表。</p>
 {institutional_13f_table}
 
-<h2>五、口径说明</h2>
+<h2 id="methodology">五、口径说明</h2>
 <ul>
 <li>扫描交易日期从 {escape(settings.scan_start_date)} 起，2025 年及以前交易不进入正式正文。</li>
 <li>政治期权交易同时保留“披露金额区间”和“期权名义敞口”说明；排名默认使用披露金额区间，避免把期权名义金额与现金成交金额混排。</li>
@@ -1380,6 +1410,26 @@ tr.row-new td {{ background: #fff7ed; border-top: 2px solid #fdba74; border-bott
 <li>13F 机构巨鲸模块反映季度末持仓和披露变化，不应解读为当日交易；新增/变化表示相对上一轮数据库新出现的 13F 披露记录。</li>
 <li>公开披露存在滞后、OCR/解析误差、共同报告人、10b5-1、信托/基金会、委托账户等因素，关键交易仍建议点击原始披露复核。</li>
 </ul>
+<a class="back-top" href="#top">↑ 返回顶部</a>
+<script>
+(function () {{
+  var input = document.getElementById('report-search');
+  var status = document.getElementById('search-status');
+  if (!input || !status) return;
+  var rows = Array.prototype.slice.call(document.querySelectorAll('tbody tr'));
+  var run = function () {{
+    var query = input.value.trim().toLocaleLowerCase();
+    var visible = 0;
+    rows.forEach(function (row) {{
+      var match = !query || row.textContent.toLocaleLowerCase().indexOf(query) !== -1;
+      row.classList.toggle('is-filtered-out', !match);
+      if (match) visible += 1;
+    }});
+    status.textContent = query ? ('已在全报告中匹配 ' + visible + ' 行') : '搜索将同时过滤所有表格行';
+  }};
+  input.addEventListener('input', run);
+}})();
+</script>
 </body>
 </html>
 """
