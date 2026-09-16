@@ -11,14 +11,13 @@ from app.collectors.congress import collect_congress_trades
 from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
 from app.collectors.market_data import apply_market_context_to_scores, collect_market_snapshots
-from app.collectors.sec_13f import collect_institutional_13f_holdings, get_institutional_13f_status
-from app.collectors.oge_executive import collect_oge_executive_trades
+from app.collectors.sec_13f_v43 import collect_institutional_13f_holdings, get_institutional_13f_status
+from app.collectors.oge_executive_v42 import collect_oge_executive_trades
 from app.collectors.universe import build_company_universe, tickers_from_companies
 from app.config import settings
+from app.data_quality.repairs import normalize_institutional_13f_amounts
 from app.db import (
     fetch_political_action_summary,
-    fetch_recent_political_trades,
-    fetch_recent_trades,
     fetch_top_scores,
     fetch_trades_since,
     fetch_market_snapshots,
@@ -34,12 +33,14 @@ from app.db import (
     insert_scores,
     upsert_market_snapshots,
     upsert_trades,
-    normalize_institutional_13f_amounts,
 )
+from app.domain.trade_classification import is_primary_transaction, primary_transactions
 from app.llm.gemini_analyzer import analyze_with_gemini
 from app.intelligence import build_rankings, load_wis_config, normalize_trades, score_signals
 from app.reports.html_report import build_html_report, save_report
 from app.reports.mailer import send_report
+from app.reports.quality_gate import validate_key_political_visibility, validate_report_html
+from app.reports.v40_report import apply_v40_report_layout
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,6 +48,9 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 log = logging.getLogger("whale_gemini")
+
+
+KEY_POLITICAL_REGRESSION_TICKERS = ("UBER", "MSFT", "INTC")
 
 
 def _row_to_dict(row: Any) -> dict:
@@ -81,13 +85,49 @@ def _count_existing_trades_before_run() -> int:
         return int(row["n"] if row else 0)
 
 
+def _is_inserted_in_run(row: dict, run_started_at: str) -> bool:
+    created_at = str(row.get("created_at") or "")[:19]
+    return bool(created_at and created_at >= run_started_at[:19])
+
+
+def _is_political_row(row: dict) -> bool:
+    source = str(row.get("source") or "").upper()
+    whale_category = str(row.get("whale_category") or "").upper()
+    return source.startswith("POLITICAL") or whale_category.startswith("POLITICAL")
+
+
+def _log_key_political_report_inputs(rows: list[dict]) -> None:
+    """Make silent report-input regressions visible in Actions logs.
+
+    V46: important congressional trades were present in SQLite but disappeared
+    from HTML because the final report re-fetched only 1,000 general rows plus
+    300 political rows. The report now consumes the already-loaded full formal
+    window; this log proves the three historical regression tickers survive all
+    the way to the report input.
+    """
+    for ticker in KEY_POLITICAL_REGRESSION_TICKERS:
+        matches = [
+            row for row in rows
+            if str(row.get("ticker") or "").upper() == ticker and _is_political_row(row)
+        ]
+        buys = [row for row in matches if str(row.get("action") or "").upper() == "BUY"]
+        largest = max((float(row.get("amount_usd") or 0) for row in buys), default=0.0)
+        actors = sorted({str(row.get("whale_name") or "").strip() for row in buys if str(row.get("whale_name") or "").strip()})
+        log.info(
+            "V46 report-input audit ticker=%s political_rows=%s buy_rows=%s largest_buy_usd=%.0f actors=%s",
+            ticker,
+            len(matches),
+            len(buys),
+            largest,
+            actors[:8],
+        )
+
+
 def run_scan() -> dict:
     init_db()
     baseline_trade_count = _count_existing_trades_before_run()
-    log.info("Existing trades before collection: %s", baseline_trade_count)
+    log.info("Existing disclosures before collection: %s", baseline_trade_count)
     run_id = _start_run()
-    # UTC timestamp used by the report to mark rows inserted in this run.
-    # With V22's persisted DB cache, this is a real day-over-day comparison.
     run_started_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     report_path = None
     try:
@@ -105,34 +145,43 @@ def run_scan() -> dict:
         congress_trades = collect_congress_trades(political_target_tickers, settings.sec_user_agent, settings.lookback_days)
         log.info("Collected political trades: %s", len(congress_trades))
         oge_trades = collect_oge_executive_trades(settings.sec_user_agent, settings.lookback_days)
-        log.info("Collected OGE executive trades: %s", len(oge_trades))
+        log.info("Collected OGE executive disclosures: %s", len(oge_trades))
         institutional_13f_rows = collect_institutional_13f_holdings(settings.sec_user_agent, settings.lookback_days)
         log.info("Collected institutional 13F holdings: %s", len(institutional_13f_rows))
-        trades = sec_trades + congress_trades + oge_trades + institutional_13f_rows
-        log.info("Collected normalized trades: %s", len(trades))
+        disclosures = sec_trades + congress_trades + oge_trades + institutional_13f_rows
+        log.info("Collected normalized disclosures: %s", len(disclosures))
 
-        new_count = upsert_trades(trades)
-        log.info("Inserted new trades: %s", new_count)
+        new_disclosure_count = upsert_trades(disclosures)
+        log.info("Inserted new disclosures: %s", new_disclosure_count)
         repaired_13f_count = normalize_institutional_13f_amounts()
         if repaired_13f_count:
-            log.info("Repaired persisted institutional 13F amount rows: %s", repaired_13f_count)
+            log.info("V43 repaired persisted institutional 13F dollar rows: %s", repaired_13f_count)
 
-        # V18 formal report/scoring window starts at SCAN_START_DATE (default 2026-01-01).
-        # Use the DB window after inserting fresh rows, so daily reports reflect the
-        # full 2026-to-date activity instead of only the current collector lookback.
-        scoring_base = [_row_to_dict(r) for r in fetch_trades_since(settings.scan_start_date, limit=50000)]
-        if not scoring_base:
-            scoring_base = [t for t in trades if str(t.get("trade_date") or t.get("filing_date") or "")[:10] >= settings.scan_start_date]
+        # Single formal reporting/scoring window. Do not re-fetch a smaller
+        # subset later for HTML: that previously dropped valid older Congress
+        # transactions (including UBER/MSFT/INTC large BUY disclosures).
+        all_window_rows = [_row_to_dict(r) for r in fetch_trades_since(settings.scan_start_date, limit=50000)]
+        if not all_window_rows:
+            all_window_rows = [
+                t for t in disclosures
+                if str(t.get("trade_date") or t.get("filing_date") or "")[:10] >= settings.scan_start_date
+            ]
+        scoring_base = primary_transactions(all_window_rows)
+        new_primary_trade_count = sum(
+            1 for row in all_window_rows
+            if is_primary_transaction(row) and _is_inserted_in_run(row, run_started_at)
+        )
+        log.info(
+            "V46 classification: report_disclosures=%s primary_transactions=%s new_primary_transactions=%s",
+            len(all_window_rows),
+            len(scoring_base),
+            new_primary_trade_count,
+        )
+
         consensus_rows = build_consensus_scores(scoring_base)
         scored = score_opportunities(consensus_rows)
 
-        # V39.0 unified Whale Intelligence Score (WIS). This runs in parallel
-        # with the legacy opportunity score so existing report sections remain
-        # backward compatible while the new Top10 rankings are introduced.
         wis_config = load_wis_config()
-        # 13F directional signals require two adjacent report periods. The prior
-        # quarter can predate SCAN_START_DATE, so merge the persisted 13F history
-        # explicitly instead of scoring only the current-year transaction window.
         wis_13f_history = [_row_to_dict(r) for r in fetch_institutional_13f_holdings("1900-01-01", limit=20000)]
         wis_input_by_source_id = {str(r.get("source_id") or f"row:{i}"): r for i, r in enumerate(scoring_base)}
         for i, row in enumerate(wis_13f_history):
@@ -141,8 +190,7 @@ def run_scan() -> dict:
         wis_scores = score_signals(wis_signals, wis_config)
         wis_rankings = build_rankings(wis_scores, wis_config.top_n)
         log.info("WIS generated: signals=%s tickers=%s", len(wis_signals), len(wis_scores))
-        # Pull market/valuation/sentiment context for the highest-interest tickers,
-        # then apply a small, transparent adjustment to opportunity scores.
+
         candidate_symbols = [row["ticker"] for row in sorted(scored, key=lambda r: r.get("opportunity_score", 0), reverse=True)]
         market_snapshots = collect_market_snapshots(candidate_symbols)
         market_new_count = upsert_market_snapshots(market_snapshots)
@@ -155,8 +203,14 @@ def run_scan() -> dict:
         insert_scores(scored)
 
         top_scores = scored if scored else [_row_to_dict(r) for r in fetch_top_scores(limit=50)]
-        recent_trades = [_row_to_dict(r) for r in fetch_trades_since(settings.scan_start_date, limit=1000)]
-        political_recent_trades = [_row_to_dict(r) for r in fetch_recent_political_trades(limit=300)]
+
+        # V46 merge gate: the final HTML consumes exactly the same complete
+        # primary transaction window used for scoring. The former 1000-row +
+        # 300-political-row re-fetch silently truncated historical large BUYs.
+        recent_trades = list(scoring_base)
+        political_recent_trades = [row for row in recent_trades if _is_political_row(row)]
+        _log_key_political_report_inputs(recent_trades)
+
         political_summary = [_row_to_dict(r) for r in fetch_political_action_summary()]
         market_context = [_row_to_dict(r) for r in fetch_market_snapshots(limit=50)]
         trump_oge_trades = [_row_to_dict(r) for r in fetch_trump_oge_trades(limit=500)]
@@ -166,38 +220,35 @@ def run_scan() -> dict:
         institutional_13f_status = get_institutional_13f_status()
 
         buy_signal_tickers = [str(r.get("ticker") or "") for r in top_scores if float(r.get("buy_amount") or 0) > 0]
-        # Include BUY-radar tickers in SELL evidence so related SELL rows (for
-        # example TSLA) remain auditable even when they do not make the global
-        # sell Top N by amount/opportunity score.
         sell_signal_tickers = sorted({
             str(r.get("ticker") or "")
             for r in top_scores
             if float(r.get("sell_amount") or 0) > 0
             and (str(r.get("signal_label", "")).startswith("减持") or float(r.get("buy_amount") or 0) > 0)
         })
-        buy_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(buy_signal_tickers, "BUY", settings.lookback_days, limit=160)]
-        sell_evidence = [_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(sell_signal_tickers, "SELL", settings.lookback_days, limit=5000)]
-        core_buy_trades = [_row_to_dict(r) for r in fetch_core_trades_by_action("BUY", settings.lookback_days, limit=120)]
-        core_sell_trades = [_row_to_dict(r) for r in fetch_core_trades_by_action("SELL", settings.lookback_days, limit=1000)]
+        buy_evidence = primary_transactions([_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(buy_signal_tickers, "BUY", settings.lookback_days, limit=160)])
+        sell_evidence = primary_transactions([_row_to_dict(r) for r in fetch_trade_evidence_for_tickers(sell_signal_tickers, "SELL", settings.lookback_days, limit=5000)])
+        core_buy_trades = primary_transactions([_row_to_dict(r) for r in fetch_core_trades_by_action("BUY", settings.lookback_days, limit=120)])
+        core_sell_trades = primary_transactions([_row_to_dict(r) for r in fetch_core_trades_by_action("SELL", settings.lookback_days, limit=1000)])
         noncore_trades = [_row_to_dict(r) for r in fetch_noncore_recent_trades(settings.lookback_days, limit=100)]
 
-        # Ensure political trades are visible even when recent SEC Form 4 rows dominate
-        # the generic recent-trades query.
-        seen_source_ids = {str(t.get("source_id") or "") for t in recent_trades}
-        for t in political_recent_trades:
-            sid = str(t.get("source_id") or "")
-            if sid and sid not in seen_source_ids:
-                recent_trades.append(t)
-                seen_source_ids.add(sid)
-        log.info("Recent report rows: total=%s political=%s buy_evidence=%s sell_evidence=%s noncore=%s political_summary=%s", len(recent_trades), len(political_recent_trades), len(buy_evidence), len(sell_evidence), len(noncore_trades), political_summary)
+        log.info(
+            "Recent transaction rows: total=%s political=%s buy_evidence=%s sell_evidence=%s noncore=%s political_summary=%s",
+            len(recent_trades),
+            len(political_recent_trades),
+            len(buy_evidence),
+            len(sell_evidence),
+            len(noncore_trades),
+            political_summary,
+        )
 
-        ai_recent_context = (core_buy_trades[:40] + core_sell_trades[:40] + political_recent_trades[:40] + trump_oge_trades[:40])
+        ai_recent_context = core_buy_trades[:40] + core_sell_trades[:40] + political_recent_trades[:40] + primary_transactions(trump_oge_trades)[:40]
         ai_analysis = analyze_with_gemini(top_scores, ai_recent_context)
         html = build_html_report(
             top_scores,
             recent_trades,
             ai_analysis,
-            new_trade_count=new_count,
+            new_trade_count=new_primary_trade_count,
             political_summary=political_summary,
             market_context=market_context,
             buy_evidence=buy_evidence,
@@ -214,12 +265,24 @@ def run_scan() -> dict:
             baseline_trade_count=baseline_trade_count,
             wis_rankings=wis_rankings,
         )
+        html = apply_v40_report_layout(
+            html,
+            recent_trades,
+            new_since=run_started_at if baseline_trade_count > 0 else None,
+        )
+
+        # Release gates run before the report is saved or any email is sent.
+        # This makes Development Preview and SEND_EMAIL=false runs just as strict
+        # as production delivery.
+        validate_report_html(html)
+        validate_key_political_visibility(html, recent_trades)
+
         path = save_report(html)
         report_path = str(path)
-        log.info("Report saved: %s", report_path)
+        log.info("Report saved after V46 release gates: %s", report_path)
 
         if settings.send_email:
-            daily_status = "新增" if new_count > 0 else "无新增"
+            daily_status = "新增" if new_primary_trade_count > 0 else "无新增"
             subject = f"Gemini-美股聪明钱_政商巨鲸行动追踪 {datetime.now().strftime('%Y-%m-%d')}（{daily_status}）"
             sent = send_report(subject, html)
             if sent:
@@ -232,8 +295,14 @@ def run_scan() -> dict:
         else:
             log.info("SEND_EMAIL=false; email not sent")
 
-        _finish_run(run_id, "SUCCESS", new_count, report_path)
-        return {"status": "SUCCESS", "new_trade_count": new_count, "report_path": report_path}
+        notes = f"new_disclosures={new_disclosure_count}; new_primary_transactions={new_primary_trade_count}"
+        _finish_run(run_id, "SUCCESS", new_primary_trade_count, report_path, notes)
+        return {
+            "status": "SUCCESS",
+            "new_trade_count": new_primary_trade_count,
+            "new_disclosure_count": new_disclosure_count,
+            "report_path": report_path,
+        }
     except Exception as exc:  # noqa: BLE001
         log.exception("Scan failed")
         _finish_run(run_id, "FAILED", 0, report_path, str(exc))

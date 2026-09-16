@@ -1,0 +1,60 @@
+name: V43 Live Release Smoke
+
+on:
+  push:
+    branches:
+      - feature/v40-foundation
+    paths:
+      - "app/collectors/oge_executive_v42.py"
+      - "app/collectors/oge_asset_candidates.py"
+      - "app/collectors/sec_13f_v43.py"
+      - "app/data_quality/**"
+      - "app/domain/asset_quality.py"
+      - "app/domain/asset_semantics.py"
+      - "app/reports/v40_oge.py"
+      - "app/reports/v40_overview.py"
+      - "app/reports/v40_report.py"
+      - "app/reports/quality_gate.py"
+      - "scripts/v43_live_release_smoke.py"
+      - ".github/workflows/v43_live_release_smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONPATH: .
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  SEND_EMAIL: "false"
+  FORCE_SEND_EMAIL: "false"
+  ENABLE_GEMINI: "false"
+  ENABLE_MARKET_DATA: "false"
+  ENABLE_POLITICAL_TRADES: "false"
+  ENABLE_OGE_EXECUTIVE_TRADES: "true"
+  ENABLE_OGE_ASSET_DISCLOSURES: "true"
+  ENABLE_OGE_AUTO_DISCOVERY: "false"
+  OGE_SEED_CABINET_REPORTS_ENABLED: "true"
+  OGE_MAX_REPORTS: "8"
+  ENABLE_INSTITUTIONAL_13F: "true"
+  INSTITUTIONAL_13F_WATCHLIST: "State Street Corp|93751|State Street|Large diversified asset manager"
+  INSTITUTIONAL_13F_MAX_MANAGERS: "1"
+  INSTITUTIONAL_13F_FILINGS_PER_MANAGER: "1"
+  INSTITUTIONAL_13F_MAX_HOLDINGS_PER_FILING: "20"
+  SEC_USER_AGENT: "WhaleIntelligence release-smoke contact@example.com"
+
+jobs:
+  live-release-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run live OGE and 13F release smoke
+        run: python scripts/v43_live_release_smoke.py

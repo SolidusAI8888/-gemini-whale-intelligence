@@ -39,6 +39,27 @@ def test_trump_and_pelosi_highlight_does_not_rewrite_css_selector():
     assert '<span class="pelosi-highlight">Nancy Pelosi</span>' in html
 
 
+def test_report_has_workspace_navigation_search_and_responsive_fallbacks():
+    html = build_html_report(
+        top_scores=[],
+        recent_trades=[
+            {"ticker":"UBER","action":"BUY","transaction_code":"P","whale_name":"Nancy Pelosi","source":"POLITICAL_HOUSE","trade_date":"2026-05-29","amount_usd":750000},
+        ],
+        new_trade_count=1,
+        baseline_trade_count=10,
+    )
+
+    assert 'class="report-hero"' in html
+    assert 'class="section-nav"' in html
+    assert 'id="report-search"' in html
+    assert 'href="#political"' in html
+    assert 'id="institutional"' in html
+    assert "@media (max-width:760px)" in html
+    assert "@media print" in html
+    assert "is-filtered-out" in html
+    assert "UBER" in html
+
+
 def test_new_rows_are_orange_and_oge_assets_excluded_from_political_details():
     html = build_html_report(
         top_scores=[],
