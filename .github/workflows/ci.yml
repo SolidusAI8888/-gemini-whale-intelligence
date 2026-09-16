@@ -50,3 +50,27 @@ jobs:
 
       - name: Run test suite
         run: python -m pytest -q
+
+  site:
+    name: V48 website build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install website dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Build V48 website
+        working-directory: site
+        run: npm run build

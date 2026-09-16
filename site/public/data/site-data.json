@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-16T13:27:03Z",
+  "principles": {
+    "actions_only": true,
+    "opinions_included": false,
+    "institution_person_separation": true
+  },
+  "core_assets": [
+    {
+      "ticker": "BTC",
+      "market": null
+    },
+    {
+      "ticker": "MSTR",
+      "market": null
+    },
+    {
+      "ticker": "NVDA",
+      "market": null
+    },
+    {
+      "ticker": "TSLA",
+      "market": null
+    },
+    {
+      "ticker": "SPCX",
+      "market": null
+    },
+    {
+      "ticker": "GOOG",
+      "market": null
+    },
+    {
+      "ticker": "PLTR",
+      "market": null
+    },
+    {
+      "ticker": "ORCL",
+      "market": null
+    },
+    {
+      "ticker": "HOOD",
+      "market": null
+    },
+    {
+      "ticker": "INTC",
+      "market": null
+    },
+    {
+      "ticker": "MU",
+      "market": null
+    },
+    {
+      "ticker": "AAPL",
+      "market": null
+    },
+    {
+      "ticker": "AMZN",
+      "market": null
+    },
+    {
+      "ticker": "AMD",
+      "market": null
+    },
+    {
+      "ticker": "GLW",
+      "market": null
+    },
+    {
+      "ticker": "MRVL",
+      "market": null
+    },
+    {
+      "ticker": "MSFT",
+      "market": null
+    },
+    {
+      "ticker": "UBER",
+      "market": null
+    },
+    {
+      "ticker": "AVGO",
+      "market": null
+    },
+    {
+      "ticker": "RKLB",
+      "market": null
+    },
+    {
+      "ticker": "PURR",
+      "market": null
+    }
+  ],
+  "events": []
+}

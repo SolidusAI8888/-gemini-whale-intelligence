@@ -60,6 +60,17 @@ DRY_RUN=true
 
 Gemini 只作为分析层。核心交易事实仍来自 SEC、国会披露、13F、13D/13G 等权威公开记录。
 
+## V48 Website
+
+V48 adds the new website product under `site/`. It follows two non-negotiable rules: only verified actions are shown, and institutional actions are never presented as personal trades by an institution's chairman, CEO, CFO, CIO, or other key people. See `docs/V48_WEBSITE_FOUNDATION.md`.
+
+```bash
+python -m app.site_data
+cd site
+npm install
+npm run dev
+```
+
 ## V5: Political Whale Signals
 
 V5 adds a political disclosure module so the report no longer relies only on SEC Form 4 corporate insiders.
