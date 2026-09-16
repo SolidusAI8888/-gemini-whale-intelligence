@@ -264,6 +264,34 @@ def upsert_market_snapshots(rows: Iterable[Mapping[str, Any]]) -> int:
     with get_conn() as conn:
         before = conn.total_changes
         conn.executemany(sql, data)
+        history_rows = []
+        for row in data:
+            ticker = str(row.get("ticker") or "").upper().strip()
+            history = row.get("price_history") or []
+            if not ticker or not isinstance(history, list):
+                continue
+            for point in history:
+                if not isinstance(point, Mapping):
+                    continue
+                day = str(point.get("date") or "")[:10]
+                try:
+                    close = float(point.get("close") or 0)
+                except (TypeError, ValueError):
+                    close = 0
+                if day and close > 0:
+                    history_rows.append((ticker, day, close, "alpha_daily"))
+        if history_rows:
+            conn.executemany(
+                """
+                INSERT INTO market_price_history (ticker, price_date, close, source, updated_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(ticker, price_date) DO UPDATE SET
+                    close=excluded.close,
+                    source=excluded.source,
+                    updated_at=CURRENT_TIMESTAMP
+                """,
+                history_rows,
+            )
         conn.commit()
         return conn.total_changes - before
 

@@ -73,4 +73,4 @@ jobs:
 
       - name: Build V48 website
         working-directory: site
-        run: npm run build
+        run: npm run lint && npm run build

@@ -85,3 +85,15 @@ CREATE TABLE IF NOT EXISTS market_snapshots (
 );
 
 CREATE INDEX IF NOT EXISTS idx_market_snapshots_updated ON market_snapshots(updated_at);
+
+CREATE TABLE IF NOT EXISTS market_price_history (
+    ticker TEXT NOT NULL,
+    price_date TEXT NOT NULL,
+    close REAL NOT NULL,
+    source TEXT NOT NULL DEFAULT 'alpha_daily',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (ticker, price_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_market_price_history_ticker_date
+ON market_price_history(ticker, price_date);

@@ -23,4 +23,12 @@ V48 changes the primary product from a generated email/report into a multi-page 
 
 Run `python -m app.site_data` after a scan to create `site/public/data/site-data.json`. The payload contains the fixed core universe, evidence-gated transactions, derived 13F snapshot changes, source URLs, public dates, occurrence dates, disclosure lag, and institution/person attribution fields.
 
-The current local site uses historical regression fixtures when a production database is not present. It labels that state as a product preview and does not present the fixture values as a live feed.
+The current local site uses historical regression fixtures when a production database is not present. It labels that state as a historical regression sample and never presents the fixture values as live market data.
+
+## V49 production-data integration
+
+- The site fetches `site/public/data/site-data.json` and switches to production mode only when the payload contains real actions, holdings, or market snapshots.
+- The Alpha Vantage daily series is persisted in `market_price_history`; asset pages never manufacture a price curve from a decorative sparkline.
+- Chart pins include primary transactions and evidence-based 13F changes only. A first observed 13F or OGE holding snapshot is shown under current holdings, not mislabeled as a trade.
+- Action concentration and current-holding concentration are separate products. The former ranks independent actors, source diversity, evidence and directional agreement; the latter counts the latest disclosed holders and reported value.
+- Daily and development workflows export the website payload after a successful verified scan and retain it with the run artifact. Site publication remains a separate controlled release step.

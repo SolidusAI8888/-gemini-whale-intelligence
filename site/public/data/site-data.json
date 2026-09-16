@@ -1,6 +1,7 @@
 {
-  "schema_version": 1,
-  "generated_at": "2026-09-16T13:27:03Z",
+  "schema_version": 2,
+  "generated_at": "2026-09-16T15:15:03Z",
+  "mode": "empty",
   "principles": {
     "actions_only": true,
     "opinions_included": false,
@@ -9,88 +10,118 @@
   "core_assets": [
     {
       "ticker": "BTC",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "MSTR",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "NVDA",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "TSLA",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "SPCX",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "GOOG",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "PLTR",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "ORCL",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "HOOD",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "INTC",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "MU",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "AAPL",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "AMZN",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "AMD",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "GLW",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "MRVL",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "MSFT",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "UBER",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "AVGO",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "RKLB",
-      "market": null
+      "market": null,
+      "price_history": []
     },
     {
       "ticker": "PURR",
-      "market": null
+      "market": null,
+      "price_history": []
     }
   ],
-  "events": []
+  "events": [],
+  "holdings": [],
+  "concentration": [],
+  "holding_concentration": [],
+  "metrics": {
+    "event_count": 0,
+    "holding_count": 0,
+    "priced_asset_count": 0,
+    "history_asset_count": 0
+  }
 }

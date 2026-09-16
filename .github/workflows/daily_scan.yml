@@ -225,6 +225,9 @@ jobs:
           FORCE_SEND_EMAIL: 'true'
           SEND_EMAIL: 'true'
         run: python -m app.main
+      - name: Export website data from the verified scan database
+        if: success() && steps.berlin_gate.outputs.run == 'true'
+        run: python -m app.site_data
       - name: Backup scheduled SMTP delivery if app did not mark email sent
         if: success() && steps.berlin_gate.outputs.run == 'true' && steps.berlin_gate.outputs.scheduled_daily == 'true'
         env:
@@ -302,6 +305,7 @@ jobs:
             data/reports/*.html
             data/whale.db
             data/last_email_date.txt
+            site/public/data/site-data.json
           if-no-files-found: ignore
       - name: Save persistent scan state
         if: always() && steps.berlin_gate.outputs.run == 'true' && hashFiles('data/whale.db') != ''

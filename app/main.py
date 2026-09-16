@@ -191,7 +191,12 @@ def run_scan() -> dict:
         wis_rankings = build_rankings(wis_scores, wis_config.top_n)
         log.info("WIS generated: signals=%s tickers=%s", len(wis_signals), len(wis_scores))
 
-        candidate_symbols = [row["ticker"] for row in sorted(scored, key=lambda r: r.get("opportunity_score", 0), reverse=True)]
+        # Website core assets get first claim on the bounded market-data budget;
+        # scored non-core candidates fill any remaining slots.
+        from app.site_data import CORE_ASSETS
+        candidate_symbols = list(CORE_ASSETS) + [
+            row["ticker"] for row in sorted(scored, key=lambda r: r.get("opportunity_score", 0), reverse=True)
+        ]
         market_snapshots = collect_market_snapshots(candidate_symbols)
         market_new_count = upsert_market_snapshots(market_snapshots)
         log.info("Market snapshots upserted: %s", market_new_count)

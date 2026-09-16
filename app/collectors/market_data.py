@@ -119,6 +119,12 @@ def _alpha_daily_technical(symbol: str) -> dict[str, Any]:
         "ret_60d": pct_from(60),
         "sma20": sma20,
         "sma50": sma50,
+        # Keep the source dates and closes so the website can draw a real
+        # price/action timeline. This is never synthesized from a sparkline.
+        "price_history": [
+            {"date": day, "close": close}
+            for day, close in reversed(points)
+        ],
     }
 
 
