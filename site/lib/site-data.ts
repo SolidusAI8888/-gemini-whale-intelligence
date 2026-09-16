@@ -1,6 +1,6 @@
 import { assetCatalog, regressionEvents, type ActionKind, type CoreAsset, type TradeEvent } from '@/lib/whale-data';
 
-type RawEvent = { id?: string; ticker?: string; action?: string; actor?: string; organization?: string; role?: string; responsible_people?: string[]; amount_usd?: number; shares?: number; occurred_at?: string; published_at?: string; lag_days?: number | null; source?: string; source_url?: string; evidence_grade?: string };
+type RawEvent = { id?: string; ticker?: string; action?: string; actor?: string; organization?: string; role?: string; responsible_people?: string[]; amount_usd?: number; amount_display?: string | null; shares?: number; occurred_at?: string; published_at?: string; lag_days?: number | null; source?: string; source_url?: string; evidence_grade?: string };
 type RawAsset = { ticker?: string; market?: Record<string, unknown> | null; price_history?: Array<{ date?: string; close?: number }> };
 type RawConcentration = { ticker?: string; score?: number; actor_count?: number; group_count?: number; net_amount_usd?: number };
 export type SitePayload = { schema_version?: number; generated_at?: string; mode?: string; core_assets?: RawAsset[]; events?: RawEvent[]; holdings?: RawEvent[]; concentration?: RawConcentration[]; holding_concentration?: Array<{ ticker?: string; holder_count?: number; source_count?: number; reported_value_usd?: number }> };
@@ -16,7 +16,7 @@ function mapEvent(raw: RawEvent): TradeEvent | null {
   const action = String(raw.action || '').toUpperCase() as ActionKind; const ticker = String(raw.ticker || '').toUpperCase();
   if (!actions.has(action) || !ticker) return null;
   const amountUsd = numberValue(raw.amount_usd) || 0;
-  return { id: String(raw.id || `${ticker}-${raw.published_at || raw.occurred_at || 'event'}`), ticker, action, actor: String(raw.actor || 'Unknown filer'), organization: String(raw.organization || ''), role: String(raw.role || ''), responsiblePeople: Array.isArray(raw.responsible_people) ? raw.responsible_people.map(String) : [], amount: formatMoney(amountUsd), amountUsd, instrument: raw.shares ? `${Number(raw.shares).toLocaleString('en-US')} shares` : '申报证券', occurredAt: String(raw.occurred_at || ''), publishedAt: String(raw.published_at || ''), lagDays: numberValue(raw.lag_days), source: String(raw.source || 'Public filing'), sourceUrl: String(raw.source_url || ''), evidence: raw.evidence_grade === 'A' ? 'A' : 'B' };
+  return { id: String(raw.id || `${ticker}-${raw.published_at || raw.occurred_at || 'event'}`), ticker, action, actor: String(raw.actor || 'Unknown filer'), organization: String(raw.organization || ''), role: String(raw.role || ''), responsiblePeople: Array.isArray(raw.responsible_people) ? raw.responsible_people.map(String) : [], amount: String(raw.amount_display || formatMoney(amountUsd)), amountUsd, instrument: raw.shares ? `${Number(raw.shares).toLocaleString('en-US')} shares` : '申报证券', occurredAt: String(raw.occurred_at || ''), publishedAt: String(raw.published_at || ''), lagDays: numberValue(raw.lag_days), source: String(raw.source || 'Public filing'), sourceUrl: String(raw.source_url || ''), evidence: raw.evidence_grade === 'A' ? 'A' : 'B' };
 }
 
 function regressionView(): SiteViewData {

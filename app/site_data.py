@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import UTC, date, datetime
 import json
 from pathlib import Path
+import re
 from typing import Any, Iterable, Mapping
 
 from app.db import get_conn, init_db
@@ -79,6 +80,12 @@ def _event_from_row(row: Mapping[str, Any]) -> dict[str, Any]:
         actor, organization, responsible_people = _institution_identity(row)
         attribution = "institution_not_person"
     owner = str(raw.get("owner") or raw.get("ownership") or raw.get("owner_type") or "").strip()
+    raw_text = " ".join(str(value or "") for value in raw.values())
+    amount_match = re.search(
+        r"\$\s*[\d,]+(?:\.\d+)?\s*(?:-|–|—|to)\s*\$?\s*[\d,]+(?:\.\d+)?",
+        raw_text,
+        re.IGNORECASE,
+    )
     return {
         "id": str(row.get("source_id") or ""),
         "ticker": str(row.get("ticker") or "").upper(),
@@ -90,6 +97,7 @@ def _event_from_row(row: Mapping[str, Any]) -> dict[str, Any]:
         "ownership": owner or None,
         "attribution": attribution,
         "amount_usd": float(row.get("amount_usd") or 0),
+        "amount_display": amount_match.group(0).replace(" ", "") if amount_match else None,
         "shares": float(row.get("shares") or 0),
         "price": float(row.get("price") or 0),
         "occurred_at": occurred,

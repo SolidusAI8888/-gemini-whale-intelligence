@@ -1,0 +1,106 @@
+from __future__ import annotations
+
+from datetime import UTC, datetime
+import logging
+from typing import Any, Iterable
+
+import requests
+
+from app.db import get_conn, init_db
+from app.site_data import CORE_ASSETS
+
+log = logging.getLogger(__name__)
+
+YAHOO_SYMBOLS = {
+    "BTC": "BTC-USD",
+    # SPCX is the user's private SpaceX watch item, not the similarly named ETF.
+    # PURR has no unambiguous Yahoo instrument and remains intentionally blank.
+}
+NO_PUBLIC_MARKET_SYMBOL = {"SPCX", "PURR"}
+
+
+def parse_chart_payload(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    results = ((payload.get("chart") or {}).get("result") or [])
+    if not results:
+        return [], None
+    result = results[0]
+    timestamps = result.get("timestamp") or []
+    closes = (((result.get("indicators") or {}).get("quote") or [{}])[0].get("close") or [])
+    points = []
+    for timestamp, close in zip(timestamps, closes):
+        if close is None:
+            continue
+        points.append({
+            "date": datetime.fromtimestamp(int(timestamp), UTC).date().isoformat(),
+            "close": round(float(close), 6),
+        })
+    meta = result.get("meta") or {}
+    price = meta.get("regularMarketPrice")
+    if price is None and points:
+        price = points[-1]["close"]
+    change_pct = None
+    if len(points) >= 2 and points[-2]["close"]:
+        change_pct = (float(points[-1]["close"]) / float(points[-2]["close"]) - 1) * 100
+    market = None if price is None else {
+        "price": float(price),
+        "change_pct": change_pct,
+        "data_sources": "yahoo_chart",
+        "updated_at": datetime.now(UTC).replace(microsecond=0).isoformat(),
+    }
+    return points, market
+
+
+def refresh_site_market_history(tickers: Iterable[str] = CORE_ASSETS, range_name: str = "1y") -> tuple[int, int]:
+    init_db()
+    priced = 0
+    point_count = 0
+    with get_conn() as conn:
+        for ticker in tickers:
+            ticker = str(ticker).upper()
+            if ticker in NO_PUBLIC_MARKET_SYMBOL:
+                continue
+            symbol = YAHOO_SYMBOLS.get(ticker, ticker)
+            try:
+                response = requests.get(
+                    f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}",
+                    params={"range": range_name, "interval": "1d", "events": "history"},
+                    headers={"User-Agent": "Mozilla/5.0 WhaleIntelligence/1.0"},
+                    timeout=30,
+                )
+                response.raise_for_status()
+                points, market = parse_chart_payload(response.json())
+            except Exception as exc:  # noqa: BLE001 - one unsupported symbol must not abort all assets
+                log.warning("Site market history unavailable for %s: %s", ticker, exc)
+                continue
+            if market:
+                conn.execute(
+                    """
+                    INSERT INTO market_snapshots (ticker, price, change_pct, data_sources, updated_at)
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(ticker) DO UPDATE SET
+                        price=excluded.price,
+                        change_pct=excluded.change_pct,
+                        data_sources=excluded.data_sources,
+                        updated_at=CURRENT_TIMESTAMP
+                    """,
+                    (ticker, market["price"], market["change_pct"], market["data_sources"]),
+                )
+                priced += 1
+            for point in points:
+                conn.execute(
+                    """
+                    INSERT INTO market_price_history (ticker, price_date, close, source, updated_at)
+                    VALUES (?, ?, ?, 'yahoo_chart', CURRENT_TIMESTAMP)
+                    ON CONFLICT(ticker, price_date) DO UPDATE SET
+                        close=excluded.close, source=excluded.source, updated_at=CURRENT_TIMESTAMP
+                    """,
+                    (ticker, point["date"], point["close"]),
+                )
+            point_count += len(points)
+        conn.commit()
+    return priced, point_count
+
+
+if __name__ == "__main__":
+    prices, points = refresh_site_market_history()
+    print(f"priced_assets={prices} price_points={points}")
