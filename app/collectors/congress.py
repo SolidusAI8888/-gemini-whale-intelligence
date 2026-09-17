@@ -32,6 +32,7 @@ import xml.etree.ElementTree as ET
 import requests
 
 from app.config import settings
+from app.collectors.public_filings_congress import collect_public_filings_congress_trades
 
 log = logging.getLogger(__name__)
 
@@ -645,7 +646,13 @@ def collect_congress_trades(target_tickers: Iterable[str] | None = None, user_ag
     days = lookback_days or settings.lookback_days
     trades: list[dict] = []
     provider = settings.political_provider.lower().strip()
-    if provider in {"auto", "official_house", "house"}:
+    if provider == "auto":
+        try:
+            trades.extend(collect_public_filings_congress_trades(days, ua, tickers))
+        except Exception as exc:  # noqa: BLE001 - official House remains the fallback
+            log.warning("Public Filings Congress normalization failed; falling back to House Clerk: %s", exc)
+            trades.extend(collect_house_trades_official(tickers, ua, days))
+    if provider in {"official_house", "house"}:
         trades.extend(collect_house_trades_official(tickers, ua, days))
     if provider in {"auto", "fmp"}:
         trades.extend(collect_fmp_congress_trades(tickers, days))
