@@ -20,6 +20,11 @@ CORE_ASSETS = (
 )
 
 
+def _is_display_ticker(value: object) -> bool:
+    ticker = str(value or "").upper().strip()
+    return bool(re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,9}", ticker)) and not ticker.startswith("OGE-")
+
+
 def _dict(row: Any) -> dict[str, Any]:
     return {key: row[key] for key in row.keys()} if hasattr(row, "keys") else dict(row)
 
@@ -201,8 +206,9 @@ def _current_holdings(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]
 def _concentration(events: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
     groups: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for event in events:
-        if event.get("action") in {"BUY", "SELL", "NEW", "ADD", "REDUCE", "EXIT"}:
-            groups[str(event.get("ticker") or "")].append(event)
+        ticker = str(event.get("ticker") or "")
+        if _is_display_ticker(ticker) and event.get("action") in {"BUY", "SELL", "NEW", "ADD", "REDUCE", "EXIT"}:
+            groups[ticker].append(event)
     aggregates = []
     positive = {"BUY", "NEW", "ADD"}
     negative = {"SELL", "REDUCE", "EXIT"}
@@ -264,7 +270,9 @@ def _concentration(events: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
 def _holding_concentration(holdings: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
     groups: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for holding in holdings:
-        groups[str(holding.get("ticker") or "")].append(holding)
+        ticker = str(holding.get("ticker") or "")
+        if _is_display_ticker(ticker):
+            groups[ticker].append(holding)
     output = [{
         "ticker": ticker,
         "holder_count": len({str(item.get("actor") or "") for item in items}),

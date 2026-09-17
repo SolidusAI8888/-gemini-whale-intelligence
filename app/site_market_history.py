@@ -13,10 +13,9 @@ log = logging.getLogger(__name__)
 
 YAHOO_SYMBOLS = {
     "BTC": "BTC-USD",
-    # SPCX is the user's private SpaceX watch item, not the similarly named ETF.
     # PURR has no unambiguous Yahoo instrument and remains intentionally blank.
 }
-NO_PUBLIC_MARKET_SYMBOL = {"SPCX", "PURR"}
+NO_PUBLIC_MARKET_SYMBOL = {"PURR"}
 
 
 def parse_chart_payload(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:

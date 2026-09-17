@@ -9,7 +9,7 @@ export type TradeEvent = {
 
 export const assetCatalog = [
   ['BTC', 'Bitcoin', 'Crypto'], ['MSTR', 'Strategy', 'Equity'], ['NVDA', 'NVIDIA', 'Equity'], ['TSLA', 'Tesla', 'Equity'],
-  ['SPCX', 'SpaceX', 'Private'], ['GOOG', 'Alphabet', 'Equity'], ['PLTR', 'Palantir', 'Equity'], ['ORCL', 'Oracle', 'Equity'],
+  ['SPCX', 'SpaceX', 'Equity'], ['GOOG', 'Alphabet', 'Equity'], ['PLTR', 'Palantir', 'Equity'], ['ORCL', 'Oracle', 'Equity'],
   ['HOOD', 'Robinhood', 'Equity'], ['INTC', 'Intel', 'Equity'], ['MU', 'Micron', 'Equity'], ['AAPL', 'Apple', 'Equity'],
   ['AMZN', 'Amazon', 'Equity'], ['AMD', 'AMD', 'Equity'], ['GLW', 'Corning', 'Equity'], ['MRVL', 'Marvell', 'Equity'],
   ['MSFT', 'Microsoft', 'Equity'], ['UBER', 'Uber', 'Equity'], ['AVGO', 'Broadcom', 'Equity'], ['RKLB', 'Rocket Lab', 'Equity'], ['PURR', 'Purr', 'Equity'],
