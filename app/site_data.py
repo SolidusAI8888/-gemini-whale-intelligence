@@ -112,7 +112,16 @@ def _event_from_row(row: Mapping[str, Any]) -> dict[str, Any]:
 def _transaction_event(row: Mapping[str, Any]) -> dict[str, Any] | None:
     if not is_primary_transaction(row):
         return None
-    return _event_from_row(row)
+    event = _event_from_row(row)
+    # Option-expiry dates occasionally appear in congressional disclosure text
+    # and must never be mistaken for transaction dates. A trade cannot occur
+    # after the filing was already public, so fail closed on that impossible
+    # chronology instead of pinning a future event to the price chart.
+    occurred = event.get("occurred_at") or ""
+    published = event.get("published_at") or ""
+    if occurred and published and occurred > published:
+        return None
+    return event
 
 
 def _holding_changes(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:

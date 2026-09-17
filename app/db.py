@@ -50,23 +50,18 @@ def upsert_trades(trades: Iterable[Mapping[str, Any]]) -> int:
 
 
 def normalize_institutional_13f_amounts() -> int:
-    """Repair persisted SEC 13F rows that were cached with a 1000x error.
+    """Repair persisted SEC 13F values using the filing-date unit rule.
 
-    SEC 13F information-table ``value`` is reported in thousands of dollars.
-    Correct display value is therefore ``value_reported * 1000`` exactly once.
-
-    V27/V28/V29 runs may have inserted rows into the persistent GitHub cache
-    where ``amount_usd`` is 1000x too large.  Because trades are de-duplicated
-    by ``source_id`` using INSERT OR IGNORE, a later fixed collector will not
-    overwrite those old rows.  This repair recalculates existing 13F rows from
-    ``raw_json.value_reported`` when available and falls back to a conservative
-    heuristic for legacy rows without raw values.
+    Form 13F values were reported in thousands before 2023-01-03 and in whole
+    dollars for filings made on or after that date.  Older cached rows in this
+    project multiplied modern values by 1000; this repair is idempotent and
+    also rewrites their unit metadata for future exports.
     """
     repaired = 0
     with get_conn() as conn:
         rows = conn.execute(
             """
-            SELECT id, amount_usd, raw_json
+            SELECT id, amount_usd, filing_date, trade_date, raw_json
             FROM trades
             WHERE source = 'INSTITUTIONAL_13F'
             """
@@ -77,6 +72,7 @@ def normalize_institutional_13f_amounts() -> int:
                 continue
 
             expected: float | None = None
+            raw: dict[str, Any] = {}
             raw_text = row["raw_json"] or ""
             if raw_text:
                 try:
@@ -86,9 +82,13 @@ def normalize_institutional_13f_amounts() -> int:
                         reported = raw.get("value_thousands_usd")
                     if reported is not None:
                         reported_value = float(str(reported).replace(",", ""))
-                        unit = str(raw.get("value_unit") or "thousands_usd").lower()
-                        if unit in {"usd", "usd_normalized", "dollars"}:
+                        filing_date = str(row["filing_date"] or raw.get("filing_date") or "")[:10]
+                        unit = str(raw.get("value_unit") or "").lower()
+                        if filing_date >= "2023-01-03" or unit in {"usd", "usd_normalized", "dollars"}:
                             expected = reported_value
+                            raw["value_unit"] = "usd"
+                            raw["value_dollars"] = reported_value
+                            raw.pop("value_thousands_usd", None)
                         else:
                             expected = reported_value * 1000.0
                 except Exception:  # noqa: BLE001 - repair should never abort the scan
@@ -105,10 +105,7 @@ def normalize_institutional_13f_amounts() -> int:
                 continue
             # Avoid churn from tiny float differences.
             if abs(current - expected) > max(1.0, expected * 0.000001):
-                conn.execute(
-                    "UPDATE trades SET amount_usd = ? WHERE id = ?",
-                    (expected, row["id"]),
-                )
+                conn.execute("UPDATE trades SET amount_usd = ?, raw_json = ? WHERE id = ?", (expected, json.dumps(raw, ensure_ascii=False), row["id"]))
                 repaired += 1
         conn.commit()
     return repaired

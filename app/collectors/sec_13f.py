@@ -239,9 +239,9 @@ def _parse_info_table(xml_bytes: bytes, whale: InstitutionalWhale, filing: dict,
         issuer = _txt(table, "nameOfIssuer")
         cusip = _txt(table, "cusip")
         ticker = _infer_ticker(issuer, _txt(table, "ticker"), cusip)
-        value_thousands = 0.0
+        value_reported = 0.0
         try:
-            value_thousands = float((_txt(table, "value") or "0").replace(",", ""))
+            value_reported = float((_txt(table, "value") or "0").replace(",", ""))
         except Exception:  # noqa: BLE001
             pass
         shares = 0.0
@@ -249,16 +249,15 @@ def _parse_info_table(xml_bytes: bytes, whale: InstitutionalWhale, filing: dict,
             shares = float((_txt(table, "sshPrnamt") or "0").replace(",", ""))
         except Exception:  # noqa: BLE001
             pass
-        # SEC 13F information-table <value> is reported in thousands of USD.
-        # Convert exactly once.  Earlier versions tried to guess when values
-        # were already dollars and this allowed old cached rows to remain 1000x
-        # too large.  Keep the raw reported value in raw_json for repair/audit.
-        amount = value_thousands * 1000
-        value_unit = "thousands_usd"
+        filing_date = str(filing.get("filing_date") or "")[:10]
+        # SEC changed Form 13F's value field from thousands of dollars to the
+        # nearest dollar for filings made on or after 2023-01-03.
+        modern_dollars = filing_date >= "2023-01-03"
+        amount = value_reported if modern_dollars else value_reported * 1000
+        value_unit = "usd" if modern_dollars else "thousands_usd"
         if amount <= 0 and shares <= 0:
             continue
         report_date = str(filing.get("report_date") or "")[:10]
-        filing_date = str(filing.get("filing_date") or "")[:10]
         source_id = f"13F:{whale.cik}:{filing.get('accession')}:{cusip or issuer}:{ticker}"
         raw = {
             "report_type": "13F-HR",
@@ -269,9 +268,10 @@ def _parse_info_table(xml_bytes: bytes, whale: InstitutionalWhale, filing: dict,
             "cusip": cusip,
             "titleOfClass": _txt(table, "titleOfClass"),
             "putCall": _txt(table, "putCall"),
-            "value_reported": value_thousands,
+            "value_reported": value_reported,
             "value_unit": value_unit,
-            "value_thousands_usd": value_thousands if value_unit == "thousands_usd" else None,
+            "value_thousands_usd": value_reported if value_unit == "thousands_usd" else None,
+            "value_dollars": value_reported if value_unit == "usd" else None,
             "share_amount": shares,
             "report_period": report_date,
             "filing_date": filing_date,

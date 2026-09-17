@@ -51,6 +51,16 @@ def test_v48_public_date_and_lag_are_first_class_fields():
     assert event["lag_days"] == 25
 
 
+def test_v50_impossible_future_transaction_date_is_not_charted():
+    payload = build_site_payload([{
+        "source_id": "house-option-expiry", "ticker": "MSFT", "source": "POLITICAL_HOUSE",
+        "action": "BUY", "transaction_code": "P", "whale_name": "Example filer",
+        "whale_category": "Political:House", "amount_usd": 750_000,
+        "trade_date": "2026-10-16", "filing_date": "2026-09-14", "raw_json": {},
+    }])
+    assert payload["events"] == []
+
+
 def test_v49_holding_snapshots_are_not_chart_pins_and_have_their_own_concentration():
     rows = [{
         "source_id": "13f-msft-q1", "ticker": "MSFT", "source": "INSTITUTIONAL_13F",
