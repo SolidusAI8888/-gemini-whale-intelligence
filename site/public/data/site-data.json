@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-09-17T12:12:10Z",
+  "generated_at": "2026-09-17T14:39:30Z",
   "mode": "production",
   "principles": {
     "actions_only": true,
@@ -92377,6 +92377,1138 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1697748/000110465926096910/infotable.xml",
       "evidence_grade": "B"
+    }
+  ],
+  "whale_universe": [
+    {
+      "name": "Donald J. Trump",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "President of the United States",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Scott Bessent",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of the Treasury",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Todd Blanche",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Attorney General",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Doug Burgum",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of the Interior",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Jay Clayton",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Director of National Intelligence",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Doug Collins",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Veterans Affairs",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Sean Duffy",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Transportation",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Jamieson Greer",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "United States Trade Representative",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Pete Hegseth",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of War",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Robert F. Kennedy, Jr.",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Health and Human Services",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Kelly Loeffler",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Administrator of the Small Business Administration",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Howard Lutnick",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Commerce",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Linda McMahon",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Education",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Markwayne Mullin",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Homeland Security",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "John Ratcliffe",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Director of the Central Intelligence Agency",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Brooke Rollins",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Agriculture",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Marco Rubio",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of State",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Keith E. Sonderling",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Acting Secretary of Labor",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Scott Turner",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Housing and Urban Development",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Russ Vought",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Director of the Office of Management and Budget",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Chris Wright",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Secretary of Energy",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Lee Zeldin",
+      "category": "行政部门",
+      "weight": 1.0,
+      "source": "OGE",
+      "role": "Administrator of the Environmental Protection Agency",
+      "source_url": "https://www.whitehouse.gov/administration/cabinet/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Alan Armstrong",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Richard Blumenthal",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "John Boozman",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "David H. McCormick",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Thomas H. Tuberville",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Sheldon Whitehouse",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "John Fetterman",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Shelley M. Capito",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "John R. Curtis",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Katie Britt",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Rick Scott",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Angus S. King",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Gary C. Peters",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "John W. Hickenlooper",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Tina Smith",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Cory A. Booker",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Jerry Moran",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Bernie Moreno",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Lindsey Graham",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Mark R. Warner",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Timothy P. Sheehy",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "A. Mitchell McConnell",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Susan M. Collins",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "James Banks",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "William F. Hagerty",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Christopher A. Coons",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "M. Michael Rounds",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Ron L. Wyden",
+      "category": "政界巨鲸",
+      "weight": 1.0,
+      "source": "Congress PTR",
+      "role": "U.S. Senate · active PTR filer",
+      "source_url": "https://efdsearch.senate.gov/search/home/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Michael J. Saylor",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MSTR · Executive Chairman",
+      "ticker": "MSTR",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Phong Le",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MSTR · President & CEO",
+      "ticker": "MSTR",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Andrew Kang",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MSTR · CFO",
+      "ticker": "MSTR",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Stephen C. Neal",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "NVDA · Lead Independent Director",
+      "ticker": "NVDA",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Jensen Huang",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "NVDA · Founder, President & CEO",
+      "ticker": "NVDA",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Colette Kress",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "NVDA · CFO",
+      "ticker": "NVDA",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Robyn Denholm",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "TSLA · Board Chair",
+      "ticker": "TSLA",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Elon Musk",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "TSLA · CEO",
+      "ticker": "TSLA",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Vaibhav Taneja",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "TSLA · CFO",
+      "ticker": "TSLA",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Elon Musk",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "SPCX · Chairman & CEO",
+      "ticker": "SPCX",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Bret Johnsen",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "SPCX · CFO",
+      "ticker": "SPCX",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "John L. Hennessy",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "GOOG · Board Chair",
+      "ticker": "GOOG",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Sundar Pichai",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "GOOG · CEO",
+      "ticker": "GOOG",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Anat Ashkenazi",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "GOOG · CFO",
+      "ticker": "GOOG",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Peter Thiel",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "PLTR · Chairman",
+      "ticker": "PLTR",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Alexander Karp",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "PLTR · CEO",
+      "ticker": "PLTR",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "David Glazer",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "PLTR · CFO",
+      "ticker": "PLTR",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Lawrence J. Ellison",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "ORCL · Chairman & CTO",
+      "ticker": "ORCL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Clay Magouyrk",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "ORCL · Co-CEO",
+      "ticker": "ORCL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Mike Sicilia",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "ORCL · Co-CEO",
+      "ticker": "ORCL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Hilary Maxson",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "ORCL · CFO",
+      "ticker": "ORCL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Vlad Tenev",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "HOOD · Chairman & CEO",
+      "ticker": "HOOD",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Shiv Verma",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "HOOD · CFO",
+      "ticker": "HOOD",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Frank D. Yeary",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "INTC · Board Chair",
+      "ticker": "INTC",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Lip-Bu Tan",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "INTC · CEO",
+      "ticker": "INTC",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "David Zinsner",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "INTC · CFO",
+      "ticker": "INTC",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Sanjay Mehrotra",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MU · Chairman & CEO",
+      "ticker": "MU",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Mark Murphy",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MU · CFO",
+      "ticker": "MU",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Arthur D. Levinson",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AAPL · Board Chair",
+      "ticker": "AAPL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Tim Cook",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AAPL · CEO",
+      "ticker": "AAPL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Kevan Parekh",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AAPL · CFO",
+      "ticker": "AAPL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Jeffrey P. Bezos",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AMZN · Executive Chair",
+      "ticker": "AMZN",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Andy Jassy",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AMZN · President & CEO",
+      "ticker": "AMZN",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Brian Olsavsky",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AMZN · CFO",
+      "ticker": "AMZN",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Lisa Su",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AMD · Chair & CEO",
+      "ticker": "AMD",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Jean Hu",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AMD · CFO",
+      "ticker": "AMD",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Wendell P. Weeks",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "GLW · Chairman & CEO",
+      "ticker": "GLW",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Edward A. Schlesinger",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "GLW · CFO",
+      "ticker": "GLW",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Matt Murphy",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MRVL · Chairman & CEO",
+      "ticker": "MRVL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Willem Meintjes",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MRVL · CFO",
+      "ticker": "MRVL",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Satya Nadella",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MSFT · Chairman & CEO",
+      "ticker": "MSFT",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Amy Hood",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "MSFT · CFO",
+      "ticker": "MSFT",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Ronald D. Sugar",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "UBER · Independent Chair",
+      "ticker": "UBER",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Dara Khosrowshahi",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "UBER · CEO",
+      "ticker": "UBER",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Prashanth Mahendra-Rajah",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "UBER · CFO",
+      "ticker": "UBER",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Harry L. You",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AVGO · Chairman",
+      "ticker": "AVGO",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Hock E. Tan",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AVGO · President & CEO",
+      "ticker": "AVGO",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Amie Thuener",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "AVGO · CFO",
+      "ticker": "AVGO",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Peter Beck",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "RKLB · Chairman, President & CEO",
+      "ticker": "RKLB",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Adam Spice",
+      "category": "公司关键人员",
+      "weight": 1.0,
+      "source": "SEC Form 4",
+      "role": "RKLB · CFO",
+      "ticker": "RKLB",
+      "source_url": "https://www.sec.gov/edgar/search/",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Vanguard Group",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "BlackRock",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "State Street Corp",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "FMR LLC",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Capital Research Global Investors",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "JPMorgan Asset Management",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Morgan Stanley Investment Management",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Goldman Sachs Asset Management",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Geode Capital Management",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Wellington Management Group",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "T. Rowe Price Associates",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Invesco",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Northern Trust",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "UBS Asset Management",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Bank of America Corp",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Charles Schwab Investment Management",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Dimensional Fund Advisors",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Norges Bank Investment Management",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Legal & General Investment Management",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
+    },
+    {
+      "name": "Franklin Resources",
+      "category": "重点机构",
+      "weight": 0.9,
+      "source": "SEC 13F",
+      "role": "TOP20 institution tracking baseline",
+      "source_url": "https://www.sec.gov/divisions/investment/13ffaq",
+      "tracking_status": "scope_only"
     }
   ],
   "concentration": [

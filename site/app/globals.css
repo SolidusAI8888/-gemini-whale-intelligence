@@ -83,3 +83,16 @@ html,body{background:var(--v52-bg)!important;color:var(--v52-text)}
 @media(max-width:560px){.asset-rank-strip{grid-template-columns:1fr 1fr}.actor-filter-list{max-height:120px}.whale-pool-hero,.whale-groups,.whale-weight-method{margin-left:16px;margin-right:16px}.whale-pool-hero{padding-top:25px}.whale-card summary{grid-template-columns:34px minmax(0,1fr) 46px 14px}.whale-count{display:none}.whale-holdings{padding-left:14px}.whale-holdings>a{grid-template-columns:50px 1fr}.whale-holdings>a small{grid-column:1/-1}}
 .whale-holding-row{display:grid;grid-template-columns:60px 1fr auto;gap:8px;padding:8px 0;border-top:1px solid #24303a}.whale-holding-row strong{color:#8ab8ff}.whale-holding-row span{font-size:12px}.whale-holding-row small{color:#82939e;font-size:10px}
 @media(max-width:560px){.whale-holding-row{grid-template-columns:50px 1fr}.whale-holding-row small{grid-column:1/-1}}
+
+/* V54: three linked concentration ranks and equal-height whale/holding panes. */
+.trade-date-mode{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;color:#bfe9dd;border:1px solid #285548;background:#142c26;border-radius:7px;font-size:12px;font-weight:750}
+.asset-rank-strip{grid-template-columns:repeat(3,1fr)}
+.asset-rank-strip>a{min-width:0;display:grid;grid-template-columns:1fr auto;gap:3px 6px;padding:10px;color:inherit;border-right:1px solid var(--v52-line);transition:background .15s}
+.asset-rank-strip>a:last-child{border-right:0}.asset-rank-strip>a:hover{background:#182631}
+.asset-rank-strip>a small{overflow:hidden;color:#95a4ae;font-size:10px;white-space:nowrap;text-overflow:ellipsis}.asset-rank-strip>a strong{grid-row:1/3;grid-column:2;color:#8ab8ff;font-size:19px}.asset-rank-strip>a span{overflow:hidden;color:#c0cbd2;font-size:9px;white-space:nowrap;text-overflow:ellipsis}
+.actor-filter{min-height:0;display:flex;flex:1;flex-direction:column;padding-bottom:8px}.actor-filter-list{max-height:none;min-height:0;align-content:flex-start;flex:1;overflow-y:auto}
+.holding-snapshot{min-height:0;display:flex;flex:1;flex-direction:column}.holding-snapshot .right-scroll{min-height:0;flex:1}
+.whale-group header>b{display:flex;flex-direction:column;gap:2px}.whale-group header>b small{color:#8eb6a9;font-size:8px;font-weight:650;white-space:nowrap}
+.whale-source{display:inline-flex!important;width:max-content;margin-top:10px;padding:6px 9px!important;color:#9bc5ff!important;border:1px solid #2c4765!important;border-radius:6px;font-size:10px}
+.analysis-panel{scroll-margin-top:14px}
+@media(max-width:560px){.asset-rank-strip{grid-template-columns:1fr}.asset-rank-strip>a{border-right:0;border-bottom:1px solid var(--v52-line)}.asset-rank-strip>a:last-child{border-bottom:0}.actor-filter,.holding-snapshot{min-height:260px}}

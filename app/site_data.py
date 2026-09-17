@@ -11,6 +11,7 @@ from typing import Any, Iterable, Mapping
 from app.db import get_conn, init_db
 from app.collectors.sec_13f import CUSIP_TICKER_HINTS, ISSUER_TICKER_HINTS
 from app.domain.trade_classification import is_asset_or_holding_disclosure, is_primary_transaction
+from app.whale_universe import declared_whale_universe
 
 
 CORE_ASSETS = (
@@ -339,6 +340,7 @@ def build_site_payload(
         ],
         "events": events,
         "holdings": current_holdings,
+        "whale_universe": declared_whale_universe(),
         "concentration": _concentration(events),
         "holding_concentration": _holding_concentration(current_holdings),
         "metrics": {
