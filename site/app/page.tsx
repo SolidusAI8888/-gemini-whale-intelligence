@@ -1,5 +1,5 @@
 import { WhaleDashboard } from '@/components/whale-dashboard';
 
 export default function Home() {
-  return <WhaleDashboard />;
+  return <WhaleDashboard initialTicker="UBER" />;
 }

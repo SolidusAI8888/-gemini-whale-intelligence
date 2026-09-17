@@ -1,46 +1,81 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Activity, ArrowDownRight, ArrowUpRight, Building2, Clock3, DatabaseZap, Landmark, Search, ShieldCheck } from 'lucide-react';
-import { Line, LineChart } from 'recharts';
+import { Activity, BarChart3, CalendarClock, ExternalLink, Search, ShieldCheck, TrendingDown, TrendingUp } from 'lucide-react';
+import { CartesianGrid, Line, LineChart, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useSiteData } from '@/lib/use-site-data';
-import type { ActionKind } from '@/lib/whale-data';
+import type { ActionKind, TradeEvent } from '@/lib/whale-data';
 
-const actionMeta: Record<ActionKind, { label: string; className: string }> = {
-  BUY: { label: '买入', className: 'action-add' }, SELL: { label: '卖出', className: 'action-reduce' }, NEW: { label: '新建仓', className: 'action-new' }, ADD: { label: '加仓', className: 'action-add' }, REDUCE: { label: '减仓', className: 'action-reduce' }, EXIT: { label: '清仓', className: 'action-exit' },
-};
-function MiniSpark({ values, positive }: { values: number[]; positive: boolean }) { const data = values.map((value, index) => ({ index, value })); return <LineChart width={105} height={28} data={data} margin={{ top: 2, right: 1, bottom: 2, left: 1 }}><Line type="monotone" dataKey="value" stroke={positive ? '#42d7a4' : '#ff6b6b'} strokeWidth={1.8} dot={false} isAnimationActive={false} /></LineChart>; }
-function Brand() { return <div className="brand-lockup"><span className="brand-mark"><Activity size={18} /></span><span><strong>WHALE</strong><em>INTELLIGENCE</em></span></div>; }
-function dateOnly(value: string | null) { return value ? value.slice(0, 10) : '等待生产扫描'; }
+const labels: Record<ActionKind, string> = { BUY: '买入', SELL: '卖出', NEW: '新建仓', ADD: '加仓', REDUCE: '减仓', EXIT: '清仓' };
+const shortLabels: Record<ActionKind, string> = { BUY: '买', SELL: '卖', NEW: '新', ADD: '加', REDUCE: '减', EXIT: '清' };
+const colors: Record<ActionKind, string> = { BUY: '#12b886', SELL: '#f59f00', NEW: '#12b886', ADD: '#228be6', REDUCE: '#f59f00', EXIT: '#fa5252' };
+const positive = new Set<ActionKind>(['BUY', 'NEW', 'ADD']);
 
-export function WhaleDashboard() {
+function dateOnly(value: string | null) { return value ? value.slice(0, 10) : '等待更新'; }
+
+function EventCard({ event }: { event: TradeEvent }) {
+  const isPositive = positive.has(event.action);
+  return <article className={`terminal-event ${isPositive ? 'positive' : 'negative'}`}>
+    <div className="terminal-event-head"><time>{event.publishedAt || event.occurredAt || '日期未知'}</time><span style={{ color: colors[event.action] }}>{labels[event.action]}</span></div>
+    <div className="terminal-event-title"><span className="event-direction">{isPositive ? <TrendingUp size={15} /> : <TrendingDown size={15} />}</span><strong>{event.actor}</strong><b>{event.amount}</b></div>
+    <p>{event.organization || event.role || event.source}</p>
+    <div className="terminal-event-meta"><span>发生 {event.occurredAt || '未披露'}</span><span>延迟 {event.lagDays === null ? '未知' : `${event.lagDays}天`}</span><em>{event.evidence}级证据</em>{event.sourceUrl && <a href={event.sourceUrl} target="_blank" rel="noreferrer" aria-label="打开原始披露"><ExternalLink size={13} /></a>}</div>
+  </article>;
+}
+
+export function WhaleDashboard({ initialTicker = 'UBER' }: { initialTicker?: string }) {
   const { data, loading, failed } = useSiteData();
-  const [query, setQuery] = useState(''); const [filter, setFilter] = useState<'ALL' | ActionKind>('ALL'); const [eventLimit, setEventLimit] = useState(30);
-  const assets = useMemo(() => { const q = query.trim().toUpperCase(); return q ? data.assets.filter((asset) => asset.ticker.includes(q) || asset.name.toUpperCase().includes(q)) : data.assets; }, [data.assets, query]);
-  const coreTickers = useMemo(() => new Set(data.assets.map((asset) => asset.ticker)), [data.assets]);
-  const filteredEvents = filter === 'ALL' ? data.events : data.events.filter((event) => event.action === filter); const events = filteredEvents.slice(0, eventLimit);
-  const maxLag = data.events.reduce((maximum, event) => Math.max(maximum, event.lagDays || 0), 0);
+  const [selectedTicker, setSelectedTicker] = useState(initialTicker);
+  const [query, setQuery] = useState('');
+  const [timeMode, setTimeMode] = useState<'PUBLIC' | 'OCCURRED'>('PUBLIC');
+  const [actionFilter, setActionFilter] = useState<'ALL' | 'POSITIVE' | 'NEGATIVE'>('ALL');
+  const [rightTab, setRightTab] = useState<'EVENTS' | 'HOLDINGS'>('EVENTS');
 
-  return <main className="app-shell">
-    <header className="topbar"><Brand /><nav aria-label="主导航"><a className="active" href="#overview">行动雷达</a><a href="#core-assets">核心标的</a><a href="#concentration">集中度</a><a href="#holdings">当前持仓</a><a href="#evidence">证据库</a></nav><div className="freshness"><span className={data.mode === 'production' ? '' : 'sample-dot'} />数据生成 {dateOnly(data.generatedAt)}</div></header>
+  const asset = data.assets.find((item) => item.ticker === selectedTicker) || data.assets[0];
+  const filteredAssets = useMemo(() => { const text = query.trim().toUpperCase(); return text ? data.assets.filter((item) => item.ticker.includes(text) || item.name.toUpperCase().includes(text)) : data.assets; }, [data.assets, query]);
+  const allEvents = data.events.filter((event) => event.ticker === asset.ticker);
+  const visibleEvents = allEvents.filter((event) => actionFilter === 'ALL' || (actionFilter === 'POSITIVE' ? positive.has(event.action) : !positive.has(event.action)));
+  const holdings = data.holdings.filter((event) => event.ticker === asset.ticker);
+  const series = asset.priceHistory;
+  const markers = series.length ? visibleEvents.flatMap((event) => { const target = timeMode === 'PUBLIC' ? event.publishedAt : event.occurredAt; if (!target || target < series[0].date || target > series[series.length - 1].date) return []; const nearest = series.reduce((best, row) => Math.abs(Date.parse(row.date) - Date.parse(target)) < Math.abs(Date.parse(best.date) - Date.parse(target)) ? row : best, series[0]); return [{ ...event, pointDate: nearest.date, pointPrice: nearest.close }]; }) : [];
 
-    <output className={`data-banner ${data.mode}`}><strong>{data.mode === 'production' ? '生产数据' : '历史回归样本'}</strong><span>{loading ? '正在读取最新扫描结果…' : data.mode === 'production' ? '以下行动、持仓与行情来自当前生产导出。' : '本地生产数据库为空；仅展示 UBER / MSFT / INTC 可见性回归样本。样本不代表实时行情或投资建议。'}</span>{failed && <em>数据文件读取失败</em>}</output>
+  function selectTicker(ticker: string) {
+    setSelectedTicker(ticker);
+    if (typeof window !== 'undefined') window.history.replaceState({}, '', `/assets/${ticker}`);
+  }
 
-    <section className="control-deck" id="overview"><div><p className="eyebrow">ACTION-ONLY MARKET INTELLIGENCE</p><h1>巨鲸做了什么，市场何时知道</h1><p className="subhead">只展示可验证交易、持仓及其变化。机构行为、个人行为、配偶及关联账户严格分开；没有交易就不收录观点。</p></div><div className="status-cards" aria-label="数据状态"><div><ShieldCheck size={17} /><span><b>A/B</b>证据门槛</span></div><div><Clock3 size={17} /><span><b>{maxLag || '—'}{maxLag ? '天' : ''}</b>最长披露延迟</span></div><div><DatabaseZap size={17} /><span><b>{data.assets.length}</b>核心标的</span></div></div></section>
+  return <main className="terminal-shell">
+    <header className="terminal-header">
+      <div className="terminal-brand"><span><Activity size={17} /></span><div><strong>WHALE INTELLIGENCE</strong><small>只看行动，不看观点</small></div></div>
+      <div className="terminal-header-asset"><strong>{asset.ticker}</strong><span>{asset.name}</span><b>{asset.price === null ? '行情待接入' : `$${asset.price.toLocaleString('en-US')}`}</b>{asset.change !== null && <em className={asset.change >= 0 ? 'up' : 'down'}>{asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)}%</em>}</div>
+      <div className="terminal-status"><span className={data.mode === 'production' ? '' : 'sample'} /><div><strong>{data.mode === 'production' ? '生产数据' : '回归样本'}</strong><small>更新 {dateOnly(data.generatedAt)}</small></div></div>
+    </header>
 
-    <section className="workspace-grid">
-      <section className="panel asset-panel" id="core-assets"><div className="panel-heading"><div><p className="kicker">CORE UNIVERSE</p><h2>核心标的</h2></div><label className="searchbox"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索代码" /></label></div>
-        <div className="asset-grid">{assets.map((asset) => { const values = asset.priceHistory.slice(-30).map((point) => point.close); const change = asset.change; return <a className="asset-card" href={`/assets/${asset.ticker}`} key={asset.ticker}><div className="asset-top"><span className="ticker">{asset.ticker}</span><span className="signal-count">{asset.signals} 条行动</span></div><p>{asset.name}</p><div className="asset-metrics"><strong>{asset.price === null ? '—' : `$${asset.price.toLocaleString('en-US')}`}</strong>{change === null ? <span className="muted-change">行情待接入</span> : <span className={change >= 0 ? 'up' : 'down'}>{change >= 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{Math.abs(change).toFixed(2)}%</span>}</div><div className="spark">{values.length > 1 ? <MiniSpark values={values} positive={(change || 0) >= 0} /> : <span className="no-spark">暂无真实价格历史</span>}</div><span className="asset-open">查看价格 × 巨鲸行动 <ArrowUpRight size={12} /></span></a>; })}</div>
+    <section className="terminal-workspace">
+      <aside className="terminal-left">
+        <a className="analysis-entry" href="/analysis"><BarChart3 size={16} /><span><strong>集中度分析</strong><small>行动 × 持仓交叉视图</small></span><b>→</b></a>
+        <div className="terminal-left-title"><span>核心标的</span><b>{data.assets.length}</b></div>
+        <label className="terminal-search"><Search size={14} /><input aria-label="搜索核心标的" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索标的" /></label>
+        <nav className="ticker-list" aria-label="核心标的列表">{filteredAssets.map((item) => <button aria-label={`查看 ${item.ticker} 价格与巨鲸行动`} className={item.ticker === asset.ticker ? 'selected' : ''} onClick={() => selectTicker(item.ticker)} key={item.ticker}><span><strong>{item.ticker}</strong><small>{item.name}</small></span><span className="ticker-side"><b>{item.signals}</b><small>{item.kind}</small></span></button>)}</nav>
+        <div className="terminal-left-foot"><ShieldCheck size={13} /><span>仅收录可验证行动</span></div>
+      </aside>
+
+      <section className="terminal-center">
+        <div className="chart-toolbar">
+          <div><p>PRICE × VERIFIED ACTIONS</p><h1>{asset.ticker} 价格行动图</h1></div>
+          <div className="toolbar-controls"><div className="segmented"><button className={timeMode === 'PUBLIC' ? 'active' : ''} onClick={() => setTimeMode('PUBLIC')}>公众获知日</button><button className={timeMode === 'OCCURRED' ? 'active' : ''} onClick={() => setTimeMode('OCCURRED')}>交易发生日</button></div></div>
+        </div>
+        <div className="market-strip"><div><small>现价</small><strong>{asset.price === null ? '—' : `$${asset.price.toLocaleString('en-US')}`}</strong></div><div><small>今日涨跌</small><strong className={(asset.change || 0) >= 0 ? 'up' : 'down'}>{asset.change === null ? '—' : `${asset.change >= 0 ? '+' : ''}${asset.change.toFixed(2)}%`}</strong></div><div><small>历史价格</small><strong>{series.length ? `${series.length} 日` : '待接入'}</strong></div><div><small>可验证行动</small><strong>{allEvents.length} 条</strong></div><span>{loading ? '正在读取最新数据…' : failed ? '数据读取失败' : `${series[0]?.date || '—'} → ${series.at(-1)?.date || '—'}`}</span></div>
+        <div className="chart-filter-row"><div className="action-legend"><span><i className="buy" />买入/新建</span><span><i className="add" />加仓</span><span><i className="sell" />卖出/减仓</span><span><i className="exit" />清仓</span></div><div className="segmented compact"><button className={actionFilter === 'ALL' ? 'active' : ''} onClick={() => setActionFilter('ALL')}>全部</button><button className={actionFilter === 'POSITIVE' ? 'active' : ''} onClick={() => setActionFilter('POSITIVE')}>买入</button><button className={actionFilter === 'NEGATIVE' ? 'active' : ''} onClick={() => setActionFilter('NEGATIVE')}>卖出</button></div></div>
+        <div className="terminal-chart">{series.length > 1 ? <ResponsiveContainer width="100%" height="100%"><LineChart data={series} margin={{ top: 38, right: 24, bottom: 10, left: 2 }}><CartesianGrid vertical={false} stroke="rgba(105,128,145,.14)" /><XAxis dataKey="date" tick={{ fill: '#71808a', fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={44} /><YAxis dataKey="close" domain={['auto', 'auto']} orientation="right" tick={{ fill: '#71808a', fontSize: 10 }} tickLine={false} axisLine={false} width={58} /><Tooltip contentStyle={{ background: '#fff', border: '1px solid #dfe5e8', borderRadius: 7, fontSize: 11 }} labelStyle={{ color: '#60707a' }} formatter={(value) => [`$${Number(value).toLocaleString('en-US')}`, '收盘价']} /><Line type="monotone" dataKey="close" stroke="#1570ef" strokeWidth={2.4} dot={false} isAnimationActive={false} />{markers.map((event) => <ReferenceDot key={event.id} x={event.pointDate} y={event.pointPrice} r={7} fill={colors[event.action]} stroke="#fff" strokeWidth={2.5} label={{ value: shortLabels[event.action], position: 'top', fill: colors[event.action], fontSize: 10, fontWeight: 800 }} />)}</LineChart></ResponsiveContainer> : <div className="terminal-chart-empty"><CalendarClock size={30} /><strong>暂无可验证历史价格</strong><p>不会使用模拟曲线。真实行情接入后，巨鲸行动会自动钉在对应日期。</p></div>}</div>
+        <footer className="chart-footnote"><ShieldCheck size={14} /><span>{timeMode === 'PUBLIC' ? '当前为可跟随视图：行动只在披露公开后出现，避免回看偏差。' : '当前为事实回溯视图：展示实际交易日期，不代表当时公众已经知情。'}</span></footer>
       </section>
-      <aside className="panel concentration-panel" id="concentration"><div className="panel-heading compact"><div><p className="kicker">CROSS-GROUP</p><h2>行动集中度</h2></div><span className="window-pill">动态</span></div><p className="panel-note">按独立行动主体、披露来源、证据等级与方向一致性综合排序。</p><div className="rank-list">{data.concentration.length ? data.concentration.map((row, index) => { const content = <><span className="rank">{String(index + 1).padStart(2, '0')}</span><div><strong>{row.ticker}</strong><small>{row.buyers} 个主体 · {row.groups} 类来源</small></div><div className="score"><b>{row.score}</b><small>{row.net}</small></div><span className="score-bar"><i style={{ width: `${row.score}%` }} /></span></>; return coreTickers.has(row.ticker) ? <a href={`/assets/${row.ticker}`} className="rank-row" key={row.ticker}>{content}</a> : <div className="rank-row" key={row.ticker}>{content}</div>; }) : <div className="mini-empty">暂无足够行动记录</div>}</div><div className="method-strip"><ShieldCheck size={16} /><span>言论、传闻和无法验证的媒体推断不计分</span></div></aside>
-    </section>
 
-    <section className="panel holdings-panel" id="holdings"><div className="panel-heading"><div><p className="kicker">LATEST DISCLOSED POSITIONS</p><h2>当前持仓集中度</h2></div><span className="window-pill">最新可见快照</span></div><p className="panel-note">13F 与政府财产披露是快照，不等于当天交易；只按申报主体归因。</p><div className="holding-grid">{data.holdingConcentration.length ? data.holdingConcentration.map((row) => { const content = <><strong>{row.ticker}</strong><span>{row.holderCount} 个申报主体</span><span>{row.sourceCount} 类披露</span><b>{row.value}</b></>; return coreTickers.has(row.ticker) ? <a href={`/assets/${row.ticker}`} key={row.ticker}>{content}</a> : <div className="holding-row" key={row.ticker}>{content}</div>; }) : <div className="mini-empty wide">当前数据中暂无可展示的持仓集中度快照</div>}</div></section>
-
-    <section className="panel evidence-panel" id="evidence"><div className="panel-heading evidence-heading"><div><p className="kicker">VERIFIED ACTIONS</p><h2>最新可验证行动</h2></div><fieldset className="filter-row" aria-label="行动筛选">{(['ALL', 'BUY', 'SELL', 'NEW', 'ADD', 'REDUCE', 'EXIT'] as const).map((item) => <button className={filter === item ? 'selected' : ''} onClick={() => setFilter(item)} key={item}>{item === 'ALL' ? '全部' : actionMeta[item].label}</button>)}</fieldset></div>
-      <div className="evidence-table-wrap"><table className="evidence-table"><thead><tr><th>公开日期</th><th>标的 / 行动</th><th>实际交易主体</th><th>关联机构 / 身份</th><th>金额 / 工具</th><th>披露延迟</th><th>证据</th></tr></thead><tbody>{events.map((event) => <tr key={event.id}><td><strong>{event.publishedAt || '—'}</strong><small>发生 {event.occurredAt || '未披露'}</small></td><td>{coreTickers.has(event.ticker) ? <a href={`/assets/${event.ticker}`} className="event-ticker">{event.ticker}</a> : <span className="event-ticker">{event.ticker}</span>}<span className={`action-tag ${actionMeta[event.action].className}`}>{actionMeta[event.action].label}</span></td><td><strong>{event.actor}</strong><small>{event.instrument}</small></td><td><span className="identity"><Landmark size={14} />{event.organization || '—'}</span><small>{event.role || event.responsiblePeople.join('、')}</small></td><td><strong>{event.amount}</strong><small>{event.source}</small></td><td><span className="lag"><Clock3 size={14} />{event.lagDays === null ? '未知' : `${event.lagDays} 天`}</span></td><td><span className={`evidence-grade grade-${event.evidence.toLowerCase()}`}>{event.evidence}</span></td></tr>)}</tbody></table></div>
-      {filteredEvents.length > events.length && <button className="load-more" onClick={() => setEventLimit((current) => current + 30)}>再显示 30 条 · 尚有 {filteredEvents.length - events.length} 条</button>}
-      <footer className="table-footer"><span><Building2 size={14} />机构申报只归因于机构；关键岗位人员不会被错误标记为个人买入。</span><span>{data.mode === 'production' ? '生产扫描结果' : '历史回归样本，不是实时数据'}</span></footer>
+      <aside className="terminal-right">
+        <div className="right-tabs"><button className={rightTab === 'EVENTS' ? 'active' : ''} onClick={() => setRightTab('EVENTS')}>行动流水 <b>{allEvents.length}</b></button><button className={rightTab === 'HOLDINGS' ? 'active' : ''} onClick={() => setRightTab('HOLDINGS')}>当前持仓 <b>{holdings.length}</b></button></div>
+        <div className="right-heading"><div><strong>{asset.ticker} 巨鲸行动</strong><small>{rightTab === 'EVENTS' ? '按公开日期倒序 · 点击证据图标查看原始披露' : '最新可见申报快照 · 不等于当天交易'}</small></div><span>{timeMode === 'PUBLIC' ? '可跟随' : '回溯'}</span></div>
+        <div className="right-scroll">{rightTab === 'EVENTS' ? (visibleEvents.length ? visibleEvents.map((event) => <EventCard event={event} key={event.id} />) : <div className="right-empty"><ShieldCheck size={24} /><strong>暂无通过证据门的行动</strong><p>不使用观点、传闻或推测填充。</p></div>) : (holdings.length ? holdings.map((event) => <EventCard event={event} key={`holding-${event.id}`} />) : <div className="right-empty"><ShieldCheck size={24} /><strong>暂无当前持仓快照</strong><p>只有通过质量校验的正式披露才会显示。</p></div>)}</div>
+      </aside>
     </section>
   </main>;
 }

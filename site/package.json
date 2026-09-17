@@ -9,7 +9,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
-    "lint": "oxlint app components/whale-dashboard.tsx components/asset-detail.tsx lib",
+    "lint": "oxlint app components/whale-dashboard.tsx components/asset-detail.tsx components/concentration-analysis.tsx lib",
     "format": "oxfmt"
   },
   "dependencies": {

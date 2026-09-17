@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { AssetDetail } from '@/components/asset-detail';
+import { WhaleDashboard } from '@/components/whale-dashboard';
 import { coreAssets } from '@/lib/whale-data';
 
 export function metadataFor(ticker: string): Metadata {
@@ -11,4 +11,4 @@ export function metadataFor(ticker: string): Metadata {
   };
 }
 
-export function StaticAssetPage({ ticker }: { ticker: string }) { return <AssetDetail ticker={ticker} />; }
+export function StaticAssetPage({ ticker }: { ticker: string }) { return <WhaleDashboard initialTicker={ticker} />; }
