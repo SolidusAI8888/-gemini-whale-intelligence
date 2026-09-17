@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 import logging
 from typing import Any, Iterable
 
@@ -25,15 +25,33 @@ def parse_chart_payload(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], 
         return [], None
     result = results[0]
     timestamps = result.get("timestamp") or []
-    closes = (((result.get("indicators") or {}).get("quote") or [{}])[0].get("close") or [])
+    quote = ((result.get("indicators") or {}).get("quote") or [{}])[0]
+    has_ohlc = all(key in quote for key in ("open", "high", "low"))
+    opens = quote.get("open") or []
+    highs = quote.get("high") or []
+    lows = quote.get("low") or []
+    closes = quote.get("close") or []
+    volumes = quote.get("volume") or []
     points = []
-    for timestamp, close in zip(timestamps, closes):
+    for index, timestamp in enumerate(timestamps):
+        close = closes[index] if index < len(closes) else None
         if close is None:
             continue
-        points.append({
+        if has_ohlc:
+            values = [series[index] if index < len(series) else None for series in (opens, highs, lows)]
+            if any(value is None for value in values):
+                continue
+            open_price, high, low = (float(value) for value in values)
+        point = {
             "date": datetime.fromtimestamp(int(timestamp), UTC).date().isoformat(),
             "close": round(float(close), 6),
-        })
+        }
+        if has_ohlc:
+            point.update({
+                "open": round(open_price, 6), "high": round(high, 6), "low": round(low, 6),
+                "volume": float(volumes[index]) if index < len(volumes) and volumes[index] is not None else None,
+            })
+        points.append(point)
     meta = result.get("meta") or {}
     price = meta.get("regularMarketPrice")
     if price is None and points:
@@ -50,7 +68,7 @@ def parse_chart_payload(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], 
     return points, market
 
 
-def refresh_site_market_history(tickers: Iterable[str] = CORE_ASSETS, range_name: str = "1y") -> tuple[int, int]:
+def refresh_site_market_history(tickers: Iterable[str] = CORE_ASSETS, start_date: str = "2025-01-01") -> tuple[int, int]:
     init_db()
     priced = 0
     point_count = 0
@@ -63,7 +81,12 @@ def refresh_site_market_history(tickers: Iterable[str] = CORE_ASSETS, range_name
             try:
                 response = requests.get(
                     f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}",
-                    params={"range": range_name, "interval": "1d", "events": "history"},
+                    params={
+                        "period1": int(datetime.fromisoformat(start_date).replace(tzinfo=UTC).timestamp()),
+                        "period2": int((datetime.now(UTC) + timedelta(days=1)).timestamp()),
+                        "interval": "1d",
+                        "events": "history",
+                    },
                     headers={"User-Agent": "Mozilla/5.0 WhaleIntelligence/1.0"},
                     timeout=30,
                 )
@@ -89,12 +112,18 @@ def refresh_site_market_history(tickers: Iterable[str] = CORE_ASSETS, range_name
             for point in points:
                 conn.execute(
                     """
-                    INSERT INTO market_price_history (ticker, price_date, close, source, updated_at)
-                    VALUES (?, ?, ?, 'yahoo_chart', CURRENT_TIMESTAMP)
+                    INSERT INTO market_price_history
+                        (ticker, price_date, open, high, low, close, volume, source, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'yahoo_chart', CURRENT_TIMESTAMP)
                     ON CONFLICT(ticker, price_date) DO UPDATE SET
-                        close=excluded.close, source=excluded.source, updated_at=CURRENT_TIMESTAMP
+                        open=excluded.open, high=excluded.high, low=excluded.low,
+                        close=excluded.close, volume=excluded.volume,
+                        source=excluded.source, updated_at=CURRENT_TIMESTAMP
                     """,
-                    (ticker, point["date"], point["close"]),
+                    (
+                        ticker, point["date"], point["open"], point["high"],
+                        point["low"], point["close"], point["volume"],
+                    ),
                 )
             point_count += len(points)
         conn.commit()

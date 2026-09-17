@@ -21,6 +21,10 @@ def init_db() -> None:
     with get_conn() as conn:
         schema = SCHEMA_PATH.read_text(encoding="utf-8")
         conn.executescript(schema)
+        history_columns = {row[1] for row in conn.execute("PRAGMA table_info(market_price_history)")}
+        for column in ("open", "high", "low", "volume"):
+            if column not in history_columns:
+                conn.execute(f"ALTER TABLE market_price_history ADD COLUMN {column} REAL")
         conn.commit()
 
 

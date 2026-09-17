@@ -1,5 +1,5 @@
 export type ActionKind = 'BUY' | 'SELL' | 'NEW' | 'ADD' | 'REDUCE' | 'EXIT';
-export type PricePoint = { date: string; close: number };
+export type PricePoint = { date: string; open: number; high: number; low: number; close: number; volume: number };
 export type CoreAsset = { ticker: string; name: string; kind: 'Equity' | 'Crypto' | 'Private'; price: number | null; change: number | null; signals: number; priceHistory: PricePoint[] };
 export type TradeEvent = {
   id: string; ticker: string; actor: string; organization: string; role: string; responsiblePeople: string[];

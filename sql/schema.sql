@@ -89,7 +89,11 @@ CREATE INDEX IF NOT EXISTS idx_market_snapshots_updated ON market_snapshots(upda
 CREATE TABLE IF NOT EXISTS market_price_history (
     ticker TEXT NOT NULL,
     price_date TEXT NOT NULL,
+    open REAL,
+    high REAL,
+    low REAL,
     close REAL NOT NULL,
+    volume REAL,
     source TEXT NOT NULL DEFAULT 'alpha_daily',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (ticker, price_date)
