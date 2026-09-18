@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.site_data import CORE_ASSETS, build_site_payload
+from app.collectors.congress_holdings import parse_house_annual_holdings
 
 
 def test_v48_core_universe_is_exact_and_stable():
@@ -105,3 +106,46 @@ def test_v49_action_concentration_counts_independent_actors_and_sources():
     assert row["actor_count"] == 2
     assert row["group_count"] == 2
     assert row["net_amount_usd"] == 1_000_000
+
+
+def test_v57_form4_post_transaction_shares_are_current_holdings_and_identity_is_canonical():
+    rows = [{
+        "source_id": "form4-uber-ceo", "ticker": "UBER", "source": "SEC_FORM4",
+        "action": "SELL", "transaction_code": "S", "whale_name": "KHOSROWSHAHI DARA",
+        "insider_role": "CEO", "amount_usd": 2_000_000, "shares": 20_000,
+        "trade_date": "2026-08-03", "filing_date": "2026-08-05",
+        "raw_json": {"security_title": "Common Stock", "shares_owned_following": "172507"},
+    }]
+    payload = build_site_payload(rows)
+    assert payload["events"][0]["actor"] == "Dara Khosrowshahi"
+    holding = payload["holdings"][0]
+    assert holding["actor"] == "Dara Khosrowshahi"
+    assert holding["shares"] == 172_507
+    assert holding["amount_display"] == "172,507 shares"
+    assert holding["holding_basis"] == "form4_post_transaction_shares"
+
+
+def test_v57_form4_derivatives_do_not_become_current_holdings():
+    rows = [{
+        "source_id": "form4-option", "ticker": "MSFT", "source": "SEC_FORM4",
+        "action": "BUY", "transaction_code": "A", "whale_name": "Example Officer",
+        "trade_date": "2026-08-03", "filing_date": "2026-08-05",
+        "raw_json": {"security_title": "Restricted Stock Unit", "shares_owned_following": "50000"},
+    }]
+    assert build_site_payload(rows)["holdings"] == []
+
+
+def test_v57_house_annual_parser_keeps_stocks_and_excludes_options():
+    text = """Filing Date: 05/15/2026
+Alphabet Inc. - Class A (GOOGL) [ST] SP $5,000,001 -
+$25,000,000
+Alphabet Inc. - Class A Common Stock (GOOGL) [OP] SP $1,000,001 -
+$5,000,000
+"""
+    rows = parse_house_annual_holdings(
+        text, filer_name="Nancy Pelosi", role="Member", source_url="https://example.test/annual.pdf"
+    )
+    assert len(rows) == 1
+    assert rows[0]["ticker"] == "GOOG"
+    assert rows[0]["amount_usd"] == 15_000_000.5
+    assert rows[0]["action"] == "HOLDING"

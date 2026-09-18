@@ -79,7 +79,7 @@ html,body{background:var(--v52-bg)!important;color:var(--v52-text)}
 .candle-controls button{min-width:30px;height:28px;padding:0 8px;border:1px solid #33414b;border-radius:5px;background:#182128;color:#c9d4da;cursor:pointer;font-size:12px}
 .candle-controls button:hover:not(:disabled){border-color:#68808f;background:#202d36;color:#fff}
 .candle-controls button:disabled{opacity:.35;cursor:default}
-.coverage-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(640px,100%);margin:18px auto 0}
+.coverage-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(820px,100%);margin:18px auto 0}
 .coverage-strip b{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid #33414b;border-radius:7px;background:#111a21;color:#fff;font-size:18px}
 .coverage-strip small{color:#91a1ac;font-size:11px;font-weight:600}
 @media(max-width:700px){.candle-controls{align-items:flex-start;flex-direction:column}.candle-controls>div{width:100%;overflow-x:auto}.candle-host{padding-top:70px}.candle-host svg{height:calc(100% - 70px)}.coverage-strip{grid-template-columns:1fr}}

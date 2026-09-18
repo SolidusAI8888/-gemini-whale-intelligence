@@ -34,11 +34,27 @@ KNOWN_TICKERS = {
     "advanced micro devices": "AMD",
     "oracle": "ORCL",
     "apple": "AAPL",
-    "alphabet": "GOOGL",
-    "google": "GOOGL",
+    "alphabet": "GOOG",
+    "google": "GOOG",
     "tesla": "TSLA",
     "netflix": "NFLX",
     "broadcom": "AVGO",
+    "intel corp": "INTC",
+    "uber technologies": "UBER",
+    "palantir technologies": "PLTR",
+    "micron technology": "MU",
+    "microstrategy": "MSTR",
+    "marvell technology": "MRVL",
+    "corning inc": "GLW",
+    "rocket lab": "RKLB",
+}
+KNOWN_TICKER_NAMES = {
+    "MSFT": "Microsoft Corp", "AMZN": "Amazon.com Inc", "NVDA": "NVIDIA Corp",
+    "AMD": "Advanced Micro Devices", "ORCL": "Oracle Corp", "AAPL": "Apple Inc",
+    "GOOG": "Alphabet Inc", "TSLA": "Tesla Inc", "AVGO": "Broadcom Inc",
+    "INTC": "Intel Corp", "UBER": "Uber Technologies Inc", "PLTR": "Palantir Technologies",
+    "MU": "Micron Technology", "MSTR": "MicroStrategy Inc", "MRVL": "Marvell Technology",
+    "GLW": "Corning Inc", "RKLB": "Rocket Lab",
 }
 
 OGE_STANDARD_RANGES = [
@@ -357,6 +373,7 @@ class ExecutiveReportSpec:
     agency: str
     url: str
     report_type: str = "OGE_278_T"
+    filing_date: str | None = None
 
 
 def _split_urls(value: str) -> list[str]:
@@ -395,6 +412,14 @@ SEEDED_CABINET_REPORTS = [
     # Official OGE PDFs from extapps2.oge.gov. These are not secrets; they are
     # public disclosure documents.  They give the Cabinet radar immediate coverage
     # while the OGE search-page discovery remains best-effort.
+    ExecutiveReportSpec(
+        "Donald J. Trump",
+        "President of the United States",
+        "White House",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+        "OGE_278e",
+        "2025-06-13",
+    ),
     ExecutiveReportSpec(
         "Scott Bessent",
         "Secretary of the Treasury",
@@ -616,7 +641,8 @@ def _parse_asset_disclosure_blocks(
     agency: str,
     source_url: str,
     report_type: str,
-    max_rows: int = 80,
+    max_rows: int = 1600,
+    filing_date_override: str | None = None,
 ) -> list[dict]:
     """Best-effort 278e/Ethics asset radar parser.
 
@@ -625,7 +651,7 @@ def _parse_asset_disclosure_blocks(
     """
     if not settings.enable_oge_asset_disclosures:
         return []
-    filing_date = _filing_date_from_text(text)
+    filing_date = filing_date_override or _filing_date_from_text(text)
     lines = [re.sub(r"\s+", " ", ln).strip() for ln in (text or "").splitlines()]
     candidates: list[str] = []
     for idx, line in enumerate(lines):
@@ -650,6 +676,8 @@ def _parse_asset_disclosure_blocks(
             continue
         seen.add(key)
         ticker = _asset_slug(asset_name)
+        if ticker in KNOWN_TICKER_NAMES:
+            asset_name = KNOWN_TICKER_NAMES[ticker]
         raw = {
             "report_type": report_type,
             "filer_name": filer_name,
@@ -667,8 +695,9 @@ def _parse_asset_disclosure_blocks(
             "radar_note": "278e/Ethics asset disclosure; not a recent BUY/SELL trade",
         }
         source_id = "OGEASSET:" + hashlib.sha256(
-            f"{source_url}|{filer_name}|{ticker}|{filing_date}|{amount_label}|{asset_name}".encode("utf-8")
+            f"{source_url}|{filer_name}|{ticker}|{filing_date}|{amount_label}|{asset_name}|{block}".encode("utf-8")
         ).hexdigest()[:28]
+        category = "Executive:President" if "president" in position.lower() else "Executive:Cabinet"
         rows.append({
             "source_id": source_id,
             "ticker": ticker,
@@ -677,7 +706,7 @@ def _parse_asset_disclosure_blocks(
             "accession_number": None,
             "filing_url": source_url,
             "whale_name": filer_name,
-            "whale_category": "Executive:Cabinet",
+            "whale_category": category,
             "insider_role": position or agency or "Executive Branch",
             "action": "HOLDING",
             "transaction_code": "H",
@@ -807,7 +836,14 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
                     agency=spec.agency,
                     source_url=spec.url,
                     report_type=spec.report_type,
+                    filing_date_override=spec.filing_date,
                 ))
+                # Trump's unusually long annual report contains thousands of
+                # private entities and table fragments. Until those receive a
+                # dedicated entity resolver, admit only explicitly recognized
+                # public equities; this is the safe subset needed by stock pages.
+                if spec.name == "Donald J. Trump":
+                    rows = [row for row in rows if str(row.get("ticker") or "") in KNOWN_TICKER_NAMES]
             filtered = []
             for row in rows:
                 try:

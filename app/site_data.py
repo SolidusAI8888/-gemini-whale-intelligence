@@ -21,6 +21,31 @@ CORE_ASSETS = (
 )
 
 
+def _identity_key(value: object) -> str:
+    """Match filing-name variants without changing the disclosed identity."""
+    tokens = re.findall(r"[a-z0-9]+", str(value or "").lower())
+    suffixes = {"jr", "sr", "ii", "iii", "iv"}
+    return "|".join(sorted(token for token in tokens if token not in suffixes))
+
+
+def _declared_identity_map() -> dict[str, str]:
+    identities: dict[str, str] = {}
+    for item in declared_whale_universe():
+        name = str(item.get("name") or "").strip()
+        key = _identity_key(name)
+        if name and key:
+            identities.setdefault(key, name)
+    return identities
+
+
+DECLARED_IDENTITIES = _declared_identity_map()
+
+
+def _canonical_actor(value: object) -> str:
+    actor = str(value or "Unknown filer").strip()
+    return DECLARED_IDENTITIES.get(_identity_key(actor), actor)
+
+
 def _is_display_ticker(value: object) -> bool:
     ticker = str(value or "").upper().strip()
     return bool(re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,9}", ticker)) and not ticker.startswith("OGE-")
@@ -54,6 +79,8 @@ def _source_semantics(row: Mapping[str, Any]) -> tuple[str, str]:
     source = str(row.get("source") or "").upper()
     if source == "INSTITUTIONAL_13F":
         return "SEC 13F", "B"
+    if source == "POLITICAL_HOUSE_HOLDING":
+        return "Congress Annual FD", "A"
     if source.startswith("POLITICAL"):
         return "Congress PTR", "A"
     if source.startswith("OGE"):
@@ -80,12 +107,13 @@ def _event_from_row(row: Mapping[str, Any]) -> dict[str, Any]:
     published = str(row.get("filing_date") or row.get("trade_date") or "")[:10]
     source = str(row.get("source") or "").upper()
     raw = _raw(row)
-    actor = str(row.get("whale_name") or "Unknown filer").strip()
+    actor = _canonical_actor(row.get("whale_name"))
     organization = str(row.get("insider_role") or row.get("whale_category") or "").strip()
     responsible_people: list[str] = []
     attribution = "reported_person_or_household"
     if source == "INSTITUTIONAL_13F":
         actor, organization, responsible_people = _institution_identity(row)
+        actor = _canonical_actor(actor)
         attribution = "institution_not_person"
     owner = str(raw.get("owner") or raw.get("ownership") or raw.get("owner_type") or "").strip()
     raw_text = " ".join(str(value or "") for value in raw.values())
@@ -187,18 +215,56 @@ def _holding_changes(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
 
 def _current_holdings(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
     """Return the latest observed holding per filer/institution and ticker."""
-    latest: dict[tuple[str, str], tuple[str, dict[str, Any]]] = {}
+    latest: dict[tuple[str, str], tuple[tuple[str, float], dict[str, Any]]] = {}
     for row in rows:
-        if not is_asset_or_holding_disclosure(row):
+        source = str(row.get("source") or "").upper()
+        event: dict[str, Any] | None = None
+        if is_asset_or_holding_disclosure(row):
+            event = _event_from_row(row)
+        elif source.startswith("SEC"):
+            raw = _raw(row)
+            title = str(raw.get("security_title") or "").strip()
+            # Form 4's post-transaction amount is a real snapshot. Restrict it
+            # to ordinary/common equity so awards, options and derivatives do
+            # not masquerade as current common-stock holdings.
+            eligible_equity = bool(re.search(r"COMMON STOCK|COMMON SHARES|ORDINARY SHARES", title, re.I))
+            excluded = bool(re.search(r"OPTION|DERIVATIVE|RESTRICTED|RSU|UNIT|RIGHT", title, re.I))
+            try:
+                post_shares = float(str(raw.get("shares_owned_following") or "0").replace(",", ""))
+            except (TypeError, ValueError):
+                post_shares = 0
+            if eligible_equity and not excluded and post_shares > 0:
+                event = _event_from_row(row)
+                event["id"] = f"{event['id']}:post-holding"
+                event["action"] = "HOLDING"
+                event["shares"] = post_shares
+                event["amount_usd"] = 0
+                event["amount_display"] = f"{post_shares:,.0f} shares"
+                event["holding_basis"] = "form4_post_transaction_shares"
+        if event is None:
             continue
-        event = _event_from_row(row)
         ticker = event["ticker"]
         if not ticker:
             continue
         key = (event["actor"], ticker)
         observed = event["published_at"] or event["occurred_at"]
-        if key not in latest or observed >= latest[key][0]:
-            latest[key] = (observed, event)
+        rank = (observed, float(event.get("shares") or 0))
+        existing = latest.get(key)
+        if (
+            existing
+            and observed == existing[0][0]
+            and event.get("source") in {"OGE", "Congress Annual FD"}
+            and existing[1].get("source") == event.get("source")
+            and existing[1].get("id") != event.get("id")
+        ):
+            combined = dict(existing[1])
+            combined["amount_usd"] = float(combined.get("amount_usd") or 0) + float(event.get("amount_usd") or 0)
+            combined["amount_display"] = f"≈${combined['amount_usd']:,.0f} disclosed midpoint"
+            combined["id"] = f"{combined['id']}:aggregate"
+            combined["holding_basis"] = "aggregated_disclosed_positions"
+            latest[key] = ((observed, max(existing[0][1], rank[1])), combined)
+        elif existing is None or rank >= existing[0]:
+            latest[key] = (rank, event)
     holdings = [event for _, event in latest.values()]
     holdings.sort(key=lambda event: (event["ticker"], -event["amount_usd"], event["actor"]))
     return holdings
@@ -285,7 +351,7 @@ def _holding_concentration(holdings: Iterable[Mapping[str, Any]]) -> list[dict[s
     max_holders = max((item["holder_count"] for item in output), default=1)
     max_sources = max((item["source_count"] for item in output), default=1)
     max_positions = max((item["position_count"] for item in output), default=1)
-    max_value = max((item["reported_value_usd"] for item in output), default=1)
+    max_value = max((item["reported_value_usd"] for item in output), default=1) or 1
     for item in output:
         item["score"] = round(
             45 * item["holder_count"] / max_holders

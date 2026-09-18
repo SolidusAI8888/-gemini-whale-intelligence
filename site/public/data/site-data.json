@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-09-18T14:54:13Z",
+  "generated_at": "2026-09-18T17:29:10Z",
   "mode": "production",
   "principles": {
     "actions_only": true,
@@ -69756,7 +69756,7 @@
       "id": "SEC_FORM4:0000789019-26-000212:5:Hood Amy:S:3942.0:500.783",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Hood Amy",
+      "actor": "Amy Hood",
       "organization": "Officer: EVP, Chief Financial Officer",
       "role": "Officer: EVP, Chief Financial Officer",
       "responsible_people": [],
@@ -69777,7 +69777,7 @@
       "id": "SEC_FORM4:0000789019-26-000212:4:Hood Amy:S:8834.0:500.1135",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Hood Amy",
+      "actor": "Amy Hood",
       "organization": "Officer: EVP, Chief Financial Officer",
       "role": "Officer: EVP, Chief Financial Officer",
       "responsible_people": [],
@@ -69798,7 +69798,7 @@
       "id": "SEC_FORM4:0000789019-26-000212:3:Hood Amy:S:4305.0:498.8845",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Hood Amy",
+      "actor": "Amy Hood",
       "organization": "Officer: EVP, Chief Financial Officer",
       "role": "Officer: EVP, Chief Financial Officer",
       "responsible_people": [],
@@ -69819,7 +69819,7 @@
       "id": "SEC_FORM4:0000789019-26-000212:2:Hood Amy:S:9821.0:497.7849",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Hood Amy",
+      "actor": "Amy Hood",
       "organization": "Officer: EVP, Chief Financial Officer",
       "role": "Officer: EVP, Chief Financial Officer",
       "responsible_people": [],
@@ -69840,7 +69840,7 @@
       "id": "SEC_FORM4:0000789019-26-000212:1:Hood Amy:S:10433.0:496.9118",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Hood Amy",
+      "actor": "Amy Hood",
       "organization": "Officer: EVP, Chief Financial Officer",
       "role": "Officer: EVP, Chief Financial Officer",
       "responsible_people": [],
@@ -69861,7 +69861,7 @@
       "id": "SEC_FORM4:0000789019-26-000212:0:Hood Amy:S:4339.0:495.974",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Hood Amy",
+      "actor": "Amy Hood",
       "organization": "Officer: EVP, Chief Financial Officer",
       "role": "Officer: EVP, Chief Financial Officer",
       "responsible_people": [],
@@ -70722,7 +70722,7 @@
       "id": "SEC_FORM4:0001184237-26-000008:0:KHOSROWSHAHI DARA:P:141000.0:70.9642",
       "ticker": "UBER",
       "action": "BUY",
-      "actor": "KHOSROWSHAHI DARA",
+      "actor": "Dara Khosrowshahi",
       "organization": "Unknown",
       "role": "Unknown",
       "responsible_people": [],
@@ -72129,7 +72129,7 @@
       "id": "SEC_FORM4:0001104659-26-106432:1:Taneja Vaibhav:S:2605.75:360.134",
       "ticker": "TSLA",
       "action": "SELL",
-      "actor": "Taneja Vaibhav",
+      "actor": "Vaibhav Taneja",
       "organization": "Officer: Chief Financial Officer",
       "role": "Officer: Chief Financial Officer",
       "responsible_people": [],
@@ -76749,7 +76749,7 @@
       "id": "SEC_FORM4:0000789019-26-000161:7:Nadella Satya:S:1360.0:505.1997",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Nadella Satya",
+      "actor": "Satya Nadella",
       "organization": "Director; Officer: Chief Executive Officer",
       "role": "Director; Officer: Chief Executive Officer",
       "responsible_people": [],
@@ -76770,7 +76770,7 @@
       "id": "SEC_FORM4:0000789019-26-000161:6:Nadella Satya:S:9834.0:504.1124",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Nadella Satya",
+      "actor": "Satya Nadella",
       "organization": "Director; Officer: Chief Executive Officer",
       "role": "Director; Officer: Chief Executive Officer",
       "responsible_people": [],
@@ -76791,7 +76791,7 @@
       "id": "SEC_FORM4:0000789019-26-000161:5:Nadella Satya:S:7067.0:503.4372",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Nadella Satya",
+      "actor": "Satya Nadella",
       "organization": "Director; Officer: Chief Executive Officer",
       "role": "Director; Officer: Chief Executive Officer",
       "responsible_people": [],
@@ -76812,7 +76812,7 @@
       "id": "SEC_FORM4:0000789019-26-000161:4:Nadella Satya:S:4520.0:502.2909",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Nadella Satya",
+      "actor": "Satya Nadella",
       "organization": "Director; Officer: Chief Executive Officer",
       "role": "Director; Officer: Chief Executive Officer",
       "responsible_people": [],
@@ -76833,7 +76833,7 @@
       "id": "SEC_FORM4:0000789019-26-000161:3:Nadella Satya:S:32901.0:501.1233",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Nadella Satya",
+      "actor": "Satya Nadella",
       "organization": "Director; Officer: Chief Executive Officer",
       "role": "Director; Officer: Chief Executive Officer",
       "responsible_people": [],
@@ -76854,7 +76854,7 @@
       "id": "SEC_FORM4:0000789019-26-000161:2:Nadella Satya:S:24723.0:500.4678",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Nadella Satya",
+      "actor": "Satya Nadella",
       "organization": "Director; Officer: Chief Executive Officer",
       "role": "Director; Officer: Chief Executive Officer",
       "responsible_people": [],
@@ -76875,7 +76875,7 @@
       "id": "SEC_FORM4:0000789019-26-000161:1:Nadella Satya:S:5080.0:499.4452",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Nadella Satya",
+      "actor": "Satya Nadella",
       "organization": "Director; Officer: Chief Executive Officer",
       "role": "Director; Officer: Chief Executive Officer",
       "responsible_people": [],
@@ -76896,7 +76896,7 @@
       "id": "SEC_FORM4:0000789019-26-000161:0:Nadella Satya:S:1040.0:498.2396",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Nadella Satya",
+      "actor": "Satya Nadella",
       "organization": "Director; Officer: Chief Executive Officer",
       "role": "Director; Officer: Chief Executive Officer",
       "responsible_people": [],
@@ -80088,7 +80088,7 @@
       "id": "SEC_FORM4:0002108589-26-000020:0:Verma Shiv:S:3982.0:95.07",
       "ticker": "HOOD",
       "action": "SELL",
-      "actor": "Verma Shiv",
+      "actor": "Shiv Verma",
       "organization": "Officer: Chief Financial Officer",
       "role": "Officer: Chief Financial Officer",
       "responsible_people": [],
@@ -88149,7 +88149,7 @@
       "id": "SEC_FORM4:0001018724-26-000028:0:BEZOS JEFFREY P:S:1209649.0:286.4083",
       "ticker": "AMZN",
       "action": "SELL",
-      "actor": "BEZOS JEFFREY P",
+      "actor": "Jeffrey P. Bezos",
       "organization": "Director; Officer: Executive Chair",
       "role": "Director; Officer: Executive Chair",
       "responsible_people": [],
@@ -130278,7 +130278,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:fc6c1bcb151b2f585c698a587b1a8ca0",
       "ticker": "LLY",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -130299,7 +130299,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:aa34eb3a6cddb581fa83178dd1a1c87b",
       "ticker": "ONON",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -130320,7 +130320,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:a348eea49fa4d9b78ce207d7a14722ea",
       "ticker": "NFLX",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -130341,7 +130341,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:9f5a893d272a1f42af4c1f27b221c710",
       "ticker": "BX",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -130362,7 +130362,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:8122f809013a475d2b16c5963a5fe911",
       "ticker": "META",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -130383,7 +130383,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:7323ae72265759298814579a031fae71",
       "ticker": "PYPL",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -130404,7 +130404,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:69e991796760135cc4cd8d2d082efa9e",
       "ticker": "UBER",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -130425,7 +130425,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:6425d513c828d529b4fbe3c189dc7286",
       "ticker": "MSFT",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -130446,7 +130446,7 @@
       "id": "PUBLIC_FILINGS:senate:09b9c1ed-1d73-4f17-b6f8-7b2d92021c5b:5b4b1e5e59d1c216c0d41ba8c5c34ae6",
       "ticker": "ADSK",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -145569,7 +145569,7 @@
       "id": "PUBLIC_FILINGS:senate:d7cae837-f73c-4eb1-b9fb-e510f53d65de:ee73f0062722f688ea9608274b8df7dc",
       "ticker": "HON",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -145590,7 +145590,7 @@
       "id": "PUBLIC_FILINGS:senate:d7cae837-f73c-4eb1-b9fb-e510f53d65de:b40259ea43f6e0ec998a841fa109d28d",
       "ticker": "LLY",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -145611,7 +145611,7 @@
       "id": "PUBLIC_FILINGS:senate:d7cae837-f73c-4eb1-b9fb-e510f53d65de:5af1e10f600149e118b5c0fa1e84b1a8",
       "ticker": "CMCSA",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211491,7 +211491,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:e5fa0170b442724791b255bb69b9c707",
       "ticker": "KEX",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211512,7 +211512,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:db2920e11464c690614a3ee6c7a80b4e",
       "ticker": "GOOGL",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211533,7 +211533,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:d819887543b4e0fdd99f173aa4a2b796",
       "ticker": "AMAT",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211554,7 +211554,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:d3c4ffa67b9b3980f8e054fe3ba4d1dd",
       "ticker": "PYPL",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211575,7 +211575,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:d18a717807ceaf90b09a454dabb26cc8",
       "ticker": "BX",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211596,7 +211596,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:b1e4da7a65a274b20db15169a1023fe2",
       "ticker": "BAC",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211617,7 +211617,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:9b2558efebfd48e1c74dc1de9e5a05e3",
       "ticker": "MSFT",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211638,7 +211638,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:891b7e8c4e052568d11b8fa8fda01588",
       "ticker": "AMD",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211659,7 +211659,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:8586d6b0a06b9d90512db633757040d3",
       "ticker": "XOM",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211680,7 +211680,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:83acaf275a5adfca33a815ca83c46c83",
       "ticker": "ANET",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211701,7 +211701,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:7edc8a6c4c8f0e25b796ec7eff64afdd",
       "ticker": "ONON",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211722,7 +211722,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:72e0433d4fa52a5fcad944f65b4573fb",
       "ticker": "TMO",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211743,7 +211743,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:71526a1cf532b433e49b3386a81692e0",
       "ticker": "META",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211764,7 +211764,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:60291a15486aa879d7bb007dc343f457",
       "ticker": "VRT",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211785,7 +211785,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:5ff9424132dd65c512a5d3fdce4cd01f",
       "ticker": "NFLX",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211806,7 +211806,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:5bcc13ffac9626f90199e31130e459c3",
       "ticker": "NVDA",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211827,7 +211827,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:48562a242dea33cf02865a4e00a4119f",
       "ticker": "UBER",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211848,7 +211848,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:47394a01eb8b0d0babb4b4bab3621890",
       "ticker": "JPM",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211869,7 +211869,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:31e0480f9bcdd9ffde2fc7dd6792ddb0",
       "ticker": "ADSK",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211890,7 +211890,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:244aa54376c9d4d5279e361e40a1dec3",
       "ticker": "PWR",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211911,7 +211911,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:105167dc8bfad5ff7bc17170b4ff4d6f",
       "ticker": "MRVL",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211932,7 +211932,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:071ae915629b008764f0a194a7e8af6e",
       "ticker": "LOW",
       "action": "BUY",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -211953,7 +211953,7 @@
       "id": "PUBLIC_FILINGS:senate:218c16a3-d408-4cc0-aa89-08730d05dfc3:0756c1e78d59f8330f3ec7927b65fdb3",
       "ticker": "UNH",
       "action": "SELL",
-      "actor": "Angus S. King, Jr.",
+      "actor": "Angus S. King",
       "organization": "Senate member · I-ME",
       "role": "Senate member · I-ME",
       "responsible_people": [],
@@ -302652,7 +302652,7 @@
       "id": "PUBLIC_FILINGS:senate:6488d95a-18fe-4753-8b42-094a070935e6:d39709415d9e150eb36732cdfb583dd5",
       "ticker": "KO",
       "action": "SELL",
-      "actor": "Rubio, Marco",
+      "actor": "Marco Rubio",
       "organization": "Senate member · -",
       "role": "Senate member · -",
       "responsible_people": [],
@@ -302673,7 +302673,7 @@
       "id": "PUBLIC_FILINGS:senate:6488d95a-18fe-4753-8b42-094a070935e6:bef700e9723eabd2e227d4f40583da21",
       "ticker": "CSCO",
       "action": "SELL",
-      "actor": "Rubio, Marco",
+      "actor": "Marco Rubio",
       "organization": "Senate member · -",
       "role": "Senate member · -",
       "responsible_people": [],
@@ -304374,7 +304374,7 @@
       "id": "PUBLIC_FILINGS:senate:f09fb0fe-7f70-434e-88c7-a43e96ee08a7:099fdb2e2429a9df50c1f482f2838b76",
       "ticker": "AHL-C",
       "action": "SELL",
-      "actor": "Hagerty, IV, William F",
+      "actor": "William F. Hagerty",
       "organization": "Senate member · -",
       "role": "Senate member · -",
       "responsible_people": [],
@@ -307711,6 +307711,71 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1387322/000117266126003733/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "HOUSEHOLDING:b8d7d078a636186c905a50fd08b9",
+      "ticker": "AAPL",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 15000000.5,
+      "amount_display": "$5,000,001–$25,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "OGEASSET:940aa5eb137ea202864aa9753689:aggregate:aggregate",
+      "ticker": "AAPL",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 3925001.5,
+      "amount_display": "≈$3,925,002 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
+    },
+    {
+      "id": "SEC_FORM4:0001140361-26-036226:0:Newstead Jennifer:S:1438.0:317.23:post-holding",
+      "ticker": "AAPL",
+      "action": "HOLDING",
+      "actor": "Newstead Jennifer",
+      "organization": "Unknown",
+      "role": "Unknown",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "34,352 shares",
+      "shares": 34352.0,
+      "price": 317.23,
+      "occurred_at": "2026-09-08",
+      "published_at": "2026-09-10",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000114036126036226/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
     },
     {
       "id": "13F:93751:0000093751-26-000507:000361105:CUSIP:000361105",
@@ -311437,7 +311502,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:4c94c27da6929b7cce86b9d18f49",
+      "id": "OGEASSET:c28a04151d41bc367cda692a733e:aggregate",
       "ticker": "ACN",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -311446,8 +311511,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -311455,7 +311520,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:93751:0000093751-26-000507:000868109:CUSIP:000868109",
@@ -314563,29 +314629,6 @@
       "evidence_grade": "B"
     },
     {
-      "id": "13F:93751:0000093751-26-000507:008073108:CUSIP:008073108",
-      "ticker": "AEROVIRONMENT INC",
-      "action": "HOLDING_13F",
-      "actor": "State Street Corp",
-      "organization": "State Street Corp",
-      "role": "State Street Corp",
-      "responsible_people": [
-        "State Street"
-      ],
-      "ownership": null,
-      "attribution": "institution_not_person",
-      "amount_usd": 361806995.0,
-      "amount_display": null,
-      "shares": 2192680.0,
-      "price": 0.0,
-      "occurred_at": "2026-06-30",
-      "published_at": "2026-08-07",
-      "lag_days": 38,
-      "source": "SEC 13F",
-      "source_url": "https://www.sec.gov/Archives/edgar/data/93751/000009375126000507/XML_Infotable.xml",
-      "evidence_grade": "B"
-    },
-    {
       "id": "13F:1697748:0001104659-26-096910:008073108:CUSIP:008073108",
       "ticker": "AEROVIRONMENT INC",
       "action": "HOLDING_13F",
@@ -314606,6 +314649,29 @@
       "lag_days": 45,
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1697748/000110465926096910/infotable.xml",
+      "evidence_grade": "B"
+    },
+    {
+      "id": "13F:93751:0000093751-26-000507:008073AA6:CUSIP:008073AA6",
+      "ticker": "AEROVIRONMENT INC",
+      "action": "HOLDING_13F",
+      "actor": "State Street Corp",
+      "organization": "State Street Corp",
+      "role": "State Street Corp",
+      "responsible_people": [
+        "State Street"
+      ],
+      "ownership": null,
+      "attribution": "institution_not_person",
+      "amount_usd": 18531452.0,
+      "amount_display": null,
+      "shares": 19790000.0,
+      "price": 0.0,
+      "occurred_at": "2026-06-30",
+      "published_at": "2026-08-07",
+      "lag_days": 38,
+      "source": "SEC 13F",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/93751/000009375126000507/XML_Infotable.xml",
       "evidence_grade": "B"
     },
     {
@@ -315046,29 +315112,6 @@
       "evidence_grade": "B"
     },
     {
-      "id": "13F:93751:0000093751-26-000507:00827B106:CUSIP:00827B106",
-      "ticker": "AFFIRM HLDGS INC",
-      "action": "HOLDING_13F",
-      "actor": "State Street Corp",
-      "organization": "State Street Corp",
-      "role": "State Street Corp",
-      "responsible_people": [
-        "State Street"
-      ],
-      "ownership": null,
-      "attribution": "institution_not_person",
-      "amount_usd": 517778402.0,
-      "amount_display": null,
-      "shares": 6349214.0,
-      "price": 0.0,
-      "occurred_at": "2026-06-30",
-      "published_at": "2026-08-07",
-      "lag_days": 38,
-      "source": "SEC 13F",
-      "source_url": "https://www.sec.gov/Archives/edgar/data/93751/000009375126000507/XML_Infotable.xml",
-      "evidence_grade": "B"
-    },
-    {
       "id": "13F:1747057:0001172661-26-003662:00827B106:CUSIP:00827B106",
       "ticker": "AFFIRM HLDGS INC",
       "action": "HOLDING_13F",
@@ -315112,6 +315155,29 @@
       "lag_days": 45,
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/919079/000091907926000011/form13fInfoTable.xml",
+      "evidence_grade": "B"
+    },
+    {
+      "id": "13F:93751:0000093751-26-000507:00827BAD8:CUSIP:00827BAD8",
+      "ticker": "AFFIRM HLDGS INC",
+      "action": "HOLDING_13F",
+      "actor": "State Street Corp",
+      "organization": "State Street Corp",
+      "role": "State Street Corp",
+      "responsible_people": [
+        "State Street"
+      ],
+      "ownership": null,
+      "attribution": "institution_not_person",
+      "amount_usd": 27613470.0,
+      "amount_display": null,
+      "shares": 23650000.0,
+      "price": 0.0,
+      "occurred_at": "2026-06-30",
+      "published_at": "2026-08-07",
+      "lag_days": 38,
+      "source": "SEC 13F",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/93751/000009375126000507/XML_Infotable.xml",
       "evidence_grade": "B"
     },
     {
@@ -316058,7 +316124,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:c4c4f7b4349001ab40d06acad05a",
+      "id": "OGEASSET:f5bb308744ea3c8c22a4b5d2d1f6:aggregate",
       "ticker": "AIG",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -316067,8 +316133,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -316076,7 +316142,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:919079:0000919079-26-000011:009158106:CUSIP:009158106",
@@ -316332,7 +316399,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "13F:1422849:0001422849-26-000113:00971T101:CUSIP:00971T101",
+      "id": "13F:1422849:0001422849-26-000113:00971TAN1:CUSIP:00971TAN1",
       "ticker": "AKAMAI TECHNOLOGIES INC",
       "action": "HOLDING_13F",
       "actor": "Capital Research Global Investors",
@@ -316343,9 +316410,9 @@
       ],
       "ownership": null,
       "attribution": "institution_not_person",
-      "amount_usd": 1324307406.0,
+      "amount_usd": 131241405.0,
       "amount_display": null,
-      "shares": 11203309.0,
+      "shares": 110117000.0,
       "price": 0.0,
       "occurred_at": "2026-06-30",
       "published_at": "2026-08-12",
@@ -316355,7 +316422,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "13F:1603466:0000919574-26-005520:00971T101:CUSIP:00971T101",
+      "id": "13F:1603466:0000919574-26-005520:00971TAL5:CUSIP:00971TAL5",
       "ticker": "AKAMAI TECHNOLOGIES INC",
       "action": "HOLDING_13F",
       "actor": "Point72 Asset Management",
@@ -316366,9 +316433,9 @@
       ],
       "ownership": null,
       "attribution": "institution_not_person",
-      "amount_usd": 304468650.0,
+      "amount_usd": 41174033.0,
       "amount_display": null,
-      "shares": 2575659.0,
+      "shares": 34278000.0,
       "price": 0.0,
       "occurred_at": "2026-06-30",
       "published_at": "2026-08-14",
@@ -319481,7 +319548,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:9b2739d0fc87c5e917cf738922a5",
+      "id": "OGEASSET:6dcb175514eab098edc3f348f3a1:aggregate",
       "ticker": "AMGN",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -319490,8 +319557,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -319499,7 +319566,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1569049:0000935836-26-000422:031652100:CUSIP:031652100",
@@ -319962,6 +320030,27 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:602a207eaab1ce8b1aca371874ed",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 15000000.5,
+      "amount_display": "$5,000,001–$25,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
       "id": "13F:1569049:0000935836-26-000422:023135106:AMZN",
       "ticker": "AMZN",
       "action": "HOLDING_13F",
@@ -319983,6 +320072,182 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1569049/000093583626000422/form13fInfoTable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "OGEASSET:0ba477efaffdc099210ae95b1a86:aggregate:aggregate",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 3450001.5,
+      "amount_display": "≈$3,450,002 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
+    },
+    {
+      "id": "SEC_FORM4:0002024813-26-000010:3:Garman Matthew S:M:7836.0:0.0:post-holding",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Garman Matthew S",
+      "organization": "Officer: CEO Amazon Web Services",
+      "role": "Officer: CEO Amazon Web Services",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "32,335 shares",
+      "shares": 32335.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-21",
+      "published_at": "2026-08-25",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1018724/000202481326000010/wk-form4_1787691690.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001936006-26-000024:0:Herrington Douglas J:S:1000.0:254.77:post-holding",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Herrington Douglas J",
+      "organization": "Officer: CEO Worldwide Amazon Stores",
+      "role": "Officer: CEO Worldwide Amazon Stores",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "475,681 shares",
+      "shares": 475681.0,
+      "price": 254.77,
+      "occurred_at": "2026-09-01",
+      "published_at": "2026-09-03",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1018724/000193600626000024/wk-form4_1788468119.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001374545-26-000010:0:Jassy Andrew R:M:50000.0:0.0:post-holding",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Jassy Andrew R",
+      "organization": "Director; Officer: President and CEO",
+      "role": "Director; Officer: President and CEO",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "2,255,766 shares",
+      "shares": 2255766.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-21",
+      "published_at": "2026-08-25",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1018724/000137454526000010/wk-form4_1787692115.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001043298-26-000002:0:BEZOS JEFFREY P:G:184943.0:0.0:post-holding",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Jeffrey P. Bezos",
+      "organization": "Director; Officer: Executive Chair",
+      "role": "Director; Officer: Executive Chair",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "879,554,061 shares",
+      "shares": 879554061.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-25",
+      "published_at": "2026-08-27",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1018724/000104329826000002/wk-form4_1787862279.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001639902-26-000008:1:Olsavsky Brian T:M:5530.0:0.0:post-holding",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Olsavsky Brian T",
+      "organization": "Officer: Senior Vice President and CFO",
+      "role": "Officer: Senior Vice President and CFO",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "115,379 shares",
+      "shares": 115379.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-21",
+      "published_at": "2026-08-25",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1018724/000163990226000008/wk-form4_1787690246.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001397333-26-000006:1:Reynolds Shelley:M:543.0:0.0:post-holding",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Reynolds Shelley",
+      "organization": "Officer: Vice President",
+      "role": "Officer: Vice President",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "122,123 shares",
+      "shares": 122123.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-21",
+      "published_at": "2026-08-25",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1018724/000139733326000006/wk-form4_1787689790.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001557979-26-000008:1:Zapolsky David:M:5530.0:0.0:post-holding",
+      "ticker": "AMZN",
+      "action": "HOLDING",
+      "actor": "Zapolsky David",
+      "organization": "Officer: Senior Vice President",
+      "role": "Officer: Senior Vice President",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "56,620 shares",
+      "shares": 56620.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-21",
+      "published_at": "2026-08-25",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1018724/000155797926000008/wk-form4_1787690696.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
     },
     {
       "id": "13F:919079:0000919079-26-000011:032654105:CUSIP:032654105",
@@ -322745,6 +323010,28 @@
       "evidence_grade": "B"
     },
     {
+      "id": "SEC_FORM4:0001552781-26-000454:0:Uber Technologies, Inc:S:72000000.0:6.55:post-holding",
+      "ticker": "AUR",
+      "action": "HOLDING",
+      "actor": "Uber Technologies, Inc",
+      "organization": "10% Owner",
+      "role": "10% Owner",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "186,473,411 shares",
+      "shares": 186473411.0,
+      "price": 6.55,
+      "occurred_at": "2026-08-17",
+      "published_at": "2026-08-19",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1543151/000155278126000454/ownership.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
       "id": "13F:919079:0000919079-26-000011:051774107:CUSIP:051774107",
       "ticker": "AURORA INNOVATION INC",
       "action": "HOLDING_13F",
@@ -322768,7 +323055,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "13F:1040273:0001040273-26-000003:051774107:CUSIP:051774107",
+      "id": "13F:1040273:0001040273-26-000003:051774115:CUSIP:051774115",
       "ticker": "AURORA INNOVATION INC",
       "action": "HOLDING_13F",
       "actor": "Third Point LLC",
@@ -322779,9 +323066,9 @@
       ],
       "ownership": null,
       "attribution": "institution_not_person",
-      "amount_usd": 7041398.0,
+      "amount_usd": 587384.0,
       "amount_display": null,
-      "shares": 1032463.0,
+      "shares": 1835000.0,
       "price": 0.0,
       "occurred_at": "2026-06-30",
       "published_at": "2026-08-14",
@@ -323343,6 +323630,49 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:129905b987fef03c01279022e513",
+      "ticker": "AVGO",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 15000000.5,
+      "amount_display": "$5,000,001–$25,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "OGEASSET:d8c7bca17b479e07a0f43b7e0fe7:aggregate:aggregate:aggregate:aggregate:aggregate",
+      "ticker": "AVGO",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 1607503.0,
+      "amount_display": "≈$1,607,503 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
+    },
+    {
       "id": "13F:1350694:0001350694-26-000003:05368V106:CUSIP:05368V106",
       "ticker": "AVIENT CORPORATION",
       "action": "HOLDING_13F",
@@ -323364,6 +323694,27 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1350694/000135069426000003/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "HOUSEHOLDING:7001b16359ec984c5e496a0008de",
+      "ticker": "AXP",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 3000000.5,
+      "amount_display": "$1,000,001–$5,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
     },
     {
       "id": "13F:1422849:0001422849-26-000113:00246W103:CUSIP:00246W103",
@@ -323987,7 +324338,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:fa9dce5988169d6f1e9669854988",
+      "id": "OGEASSET:bf30efc38b1b189c6c0a9a1395fc:aggregate:aggregate:aggregate",
       "ticker": "BGC",
       "action": "HOLDING",
       "actor": "Howard Lutnick",
@@ -323996,8 +324347,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 100016001.0,
+      "amount_display": "≈$100,016,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -324005,7 +324356,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1029160:0000902664-26-003507:088929104:CUSIP:088929104",
@@ -324629,7 +324981,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "13F:1422849:0001422849-26-000113:097023105:CUSIP:097023105",
+      "id": "13F:1422849:0001422849-26-000113:097023204:CUSIP:097023204",
       "ticker": "BOEING CO",
       "action": "HOLDING_13F",
       "actor": "Capital Research Global Investors",
@@ -324640,9 +324992,9 @@
       ],
       "ownership": null,
       "attribution": "institution_not_person",
-      "amount_usd": 6638071851.0,
+      "amount_usd": 2213942391.0,
       "amount_display": null,
-      "shares": 30665928.0,
+      "shares": 32896618.0,
       "price": 0.0,
       "occurred_at": "2026-06-30",
       "published_at": "2026-08-12",
@@ -326235,7 +326587,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:f37567167cfd5eca4500ef899f25",
+      "id": "OGEASSET:f643a164bda5ac00c338372a64cd:aggregate",
       "ticker": "CHTR",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -326244,8 +326596,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -326253,7 +326605,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1029160:0000902664-26-003507:H1467J104:CUSIP:H1467J104",
@@ -326392,6 +326745,27 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1029160/000090266426003507/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "HOUSEHOLDING:43d7d551db7bc76510a8837c9417",
+      "ticker": "CMCSA",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 750000.5,
+      "amount_display": "$500,001–$1,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
     },
     {
       "id": "13F:1029160:0000902664-26-003507:12572Q105:CUSIP:12572Q105",
@@ -327038,6 +327412,27 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:6ede27b5016f270b7b3a8fc9b8f9",
+      "ticker": "CRM",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 15000000.5,
+      "amount_display": "$5,000,001–$25,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
       "id": "13F:1697748:0001104659-26-096910:22788C105:CUSIP:22788C105",
       "ticker": "CROWDSTRIKE HOLDINGS INC",
       "action": "HOLDING_13F",
@@ -327084,7 +327479,28 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:f8d39c9cfcf81a64b2065ca2f047",
+      "id": "HOUSEHOLDING:b2a2029f786fba07149169b388b8",
+      "ticker": "CRWD",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 3000000.5,
+      "amount_display": "$1,000,001–$5,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "OGEASSET:a37dd2433617750b5eed6e9141bd:aggregate",
       "ticker": "CSCO",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -327093,8 +327509,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -327102,7 +327518,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1061165:0000919574-26-005485:146869102:CVNA",
@@ -327381,6 +327798,27 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:da6a260e198c90b62ff924a0b7ca",
+      "ticker": "DBX",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 375000.5,
+      "amount_display": "$250,001–$500,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
       "id": "13F:1697748:0001104659-26-096910:244199105:CUSIP:244199105",
       "ticker": "DE",
       "action": "HOLDING_13F",
@@ -327519,7 +327957,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:ba2e16068f5a84b8ff12b9ecd66a",
+      "id": "OGEASSET:061196f657aca8b17a36df5a4303:aggregate",
       "ticker": "DHR",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -327528,8 +327966,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -327537,7 +327975,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1029160:0000902664-26-003507:253868103:CUSIP:253868103",
@@ -327632,7 +328071,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:b88e96a6cd187048a92780e25b63",
+      "id": "OGEASSET:ae66847f240cc72079bdac26ee13:aggregate",
       "ticker": "DIS",
       "action": "HOLDING",
       "actor": "Howard Lutnick",
@@ -327641,8 +328080,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -327650,7 +328089,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1017645:0000950142-26-002338:G29018101:CUSIP:G29018101",
@@ -327881,7 +328321,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:865074d59db17b7b66f73331995e",
+      "id": "OGEASSET:48977d80f6d6352dc4f190e9abed:aggregate",
       "ticker": "EGFIX",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -327890,8 +328330,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -327899,7 +328339,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1029160:0000902664-26-003507:28256A109:CUSIP:28256A109",
@@ -328176,7 +328617,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:d3c789d9dd4a969b58844d7d9d12",
+      "id": "OGEASSET:a2228cdcb5ac75814f2414431c19:aggregate",
       "ticker": "EQT",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -328185,8 +328626,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -328194,7 +328635,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1167483:0000919574-26-005427:29445S100:CUSIP:29445S100",
@@ -328448,7 +328890,7 @@
       "evidence_grade": "A"
     },
     {
-      "id": "OGEASSET:10062503713401537bba42e5a201",
+      "id": "OGEASSET:44e0ce94a6e1290f377ad39cb76b:aggregate",
       "ticker": "FDRXX",
       "action": "HOLDING",
       "actor": "Howard Lutnick",
@@ -328457,8 +328899,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -328466,7 +328908,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1747057:0001172661-26-003662:31488V107:CUSIP:31488V107",
@@ -328837,7 +329280,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:af91cdf20753dbe0ac47a41ecaf9",
+      "id": "OGEASSET:03dfe86ac250ec94f7f0f72ced00:aggregate",
       "ticker": "FSLR",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -328846,8 +329289,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -328855,7 +329298,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:H2906T109:CUSIP:H2906T109",
@@ -328996,7 +329440,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:7534a24c125f52cc8616f3aa7004",
+      "id": "OGEASSET:bae946b9d4f5646a1ef72d2d47ec:aggregate",
       "ticker": "GEHC",
       "action": "HOLDING",
       "actor": "Howard Lutnick",
@@ -329005,8 +329449,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -329014,7 +329458,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1167483:0000919574-26-005427:36866J105:CUSIP:36866J105",
@@ -329109,7 +329554,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:caab563e054b95558d5e35c49463",
+      "id": "OGEASSET:881da29d7be51fb6ddcd9dfe25d1:aggregate",
       "ticker": "GEV",
       "action": "HOLDING",
       "actor": "Howard Lutnick",
@@ -329118,8 +329563,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -329127,7 +329572,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:M51474118:CUSIP:M51474118",
@@ -329176,6 +329622,28 @@
       "evidence_grade": "B"
     },
     {
+      "id": "OGEASSET:8d1bf200ef1b0463916a01e97f6d:aggregate",
+      "ticker": "GLW",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 183001.0,
+      "amount_display": "≈$183,001 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
+    },
+    {
       "id": "13F:1656456:0001656456-26-000003:382550101:CUSIP:382550101",
       "ticker": "GOODYEAR TIRE & RUBR CO",
       "action": "HOLDING_13F",
@@ -329197,6 +329665,49 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1656456/000165645626000003/Form13FInfoTable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "HOUSEHOLDING:0097c1ece8d3c5781371fe10b1ed",
+      "ticker": "GOOG",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 15000000.5,
+      "amount_display": "$5,000,001–$25,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "OGEASSET:5602f6589a5abfcce57492893276:aggregate:aggregate:aggregate",
+      "ticker": "GOOG",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 657502.0,
+      "amount_display": "≈$657,502 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1422849:0001422849-26-000113:02079K305:GOOGL",
@@ -329406,29 +329917,6 @@
       "evidence_grade": "B"
     },
     {
-      "id": "13F:1040273:0001040273-26-000003:02079K305:GOOGL",
-      "ticker": "GOOGL",
-      "action": "HOLDING_13F",
-      "actor": "Third Point LLC",
-      "organization": "Third Point LLC",
-      "role": "Third Point LLC",
-      "responsible_people": [
-        "Dan Loeb"
-      ],
-      "ownership": null,
-      "attribution": "institution_not_person",
-      "amount_usd": 366304250.0,
-      "amount_display": null,
-      "shares": 1025000.0,
-      "price": 0.0,
-      "occurred_at": "2026-06-30",
-      "published_at": "2026-08-14",
-      "lag_days": 45,
-      "source": "SEC 13F",
-      "source_url": "https://www.sec.gov/Archives/edgar/data/1040273/000104027326000003/infotable.xml",
-      "evidence_grade": "B"
-    },
-    {
       "id": "13F:1747057:0001172661-26-003662:02079K305:GOOGL",
       "ticker": "GOOGL",
       "action": "HOLDING_13F",
@@ -329449,29 +329937,6 @@
       "lag_days": 45,
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1747057/000117266126003662/infotable.xml",
-      "evidence_grade": "B"
-    },
-    {
-      "id": "13F:1029160:0000902664-26-003507:02079K305:GOOGL",
-      "ticker": "GOOGL",
-      "action": "HOLDING_13F",
-      "actor": "Soros Fund Management",
-      "organization": "Soros Fund Management",
-      "role": "Soros Fund Management",
-      "responsible_people": [
-        "Soros family office"
-      ],
-      "ownership": null,
-      "attribution": "institution_not_person",
-      "amount_usd": 213094728.0,
-      "amount_display": null,
-      "shares": 596286.0,
-      "price": 0.0,
-      "occurred_at": "2026-06-30",
-      "published_at": "2026-08-14",
-      "lag_days": 45,
-      "source": "SEC 13F",
-      "source_url": "https://www.sec.gov/Archives/edgar/data/1029160/000090266426003507/infotable.xml",
       "evidence_grade": "B"
     },
     {
@@ -329518,6 +329983,52 @@
       "lag_days": 45,
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1061165/000091957426005485/infotable.xml",
+      "evidence_grade": "B"
+    },
+    {
+      "id": "13F:1040273:0001040273-26-000003:02079K404:GOOGL",
+      "ticker": "GOOGL",
+      "action": "HOLDING_13F",
+      "actor": "Third Point LLC",
+      "organization": "Third Point LLC",
+      "role": "Third Point LLC",
+      "responsible_people": [
+        "Dan Loeb"
+      ],
+      "ownership": null,
+      "attribution": "institution_not_person",
+      "amount_usd": 66157000.0,
+      "amount_display": null,
+      "shares": 1300000.0,
+      "price": 0.0,
+      "occurred_at": "2026-06-30",
+      "published_at": "2026-08-14",
+      "lag_days": 45,
+      "source": "SEC 13F",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1040273/000104027326000003/infotable.xml",
+      "evidence_grade": "B"
+    },
+    {
+      "id": "13F:1029160:0000902664-26-003507:02079K602:GOOGL",
+      "ticker": "GOOGL",
+      "action": "HOLDING_13F",
+      "actor": "Soros Fund Management",
+      "organization": "Soros Fund Management",
+      "role": "Soros Fund Management",
+      "responsible_people": [
+        "Soros family office"
+      ],
+      "ownership": null,
+      "attribution": "institution_not_person",
+      "amount_usd": 60171083.0,
+      "amount_display": null,
+      "shares": 1200000.0,
+      "price": 0.0,
+      "occurred_at": "2026-06-30",
+      "published_at": "2026-08-14",
+      "lag_days": 45,
+      "source": "SEC 13F",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1029160/000090266426003507/infotable.xml",
       "evidence_grade": "B"
     },
     {
@@ -329749,7 +330260,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:2eee604fea79b8e4cd940541ee0e",
+      "id": "OGEASSET:49307a44cd09ac85c1adb3fb6968:aggregate",
       "ticker": "HLT",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -329758,8 +330269,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -329767,7 +330278,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1061165:0000919574-26-005485:437076102:CUSIP:437076102",
@@ -329858,6 +330370,138 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1697748/000110465926096910/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "SEC_FORM4:0001707112-26-000006:0:Bazzano Dara:M:6977.0:None:post-holding",
+      "ticker": "HOOD",
+      "action": "HOLDING",
+      "actor": "Bazzano Dara",
+      "organization": "Officer: Chief Accounting Officer",
+      "role": "Officer: Chief Accounting Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "6,977 shares",
+      "shares": 6977.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-01",
+      "published_at": "2026-09-03",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1783879/000170711226000006/wk-form4_1788468202.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001870914-26-000025:6:Bhatt Baiju:C:43373.0:0.0:post-holding",
+      "ticker": "HOOD",
+      "action": "HOLDING",
+      "actor": "Bhatt Baiju",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "46,805,566 shares",
+      "shares": 46805566.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-10",
+      "published_at": "2026-09-14",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1783879/000187091426000025/wk-form4_1789417999.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001705560-26-000023:0:Gallagher Daniel Martin Jr:S:100.0:113.45:post-holding",
+      "ticker": "HOOD",
+      "action": "HOLDING",
+      "actor": "Gallagher Daniel Martin Jr",
+      "organization": "Officer: Chief Legal Officer",
+      "role": "Officer: Chief Legal Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "519,843 shares",
+      "shares": 519843.0,
+      "price": 113.45,
+      "occurred_at": "2026-09-03",
+      "published_at": "2026-09-04",
+      "lag_days": 1,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1783879/000170556026000023/wk-form4_1788556416.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001659211-26-000018:0:Quirk Steven M.:S:2397.0:113.2475:post-holding",
+      "ticker": "HOOD",
+      "action": "HOLDING",
+      "actor": "Quirk Steven M.",
+      "organization": "Officer: Chief Brokerage Officer",
+      "role": "Officer: Chief Brokerage Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "99,858 shares",
+      "shares": 99858.0,
+      "price": 113.2475,
+      "occurred_at": "2026-09-03",
+      "published_at": "2026-09-04",
+      "lag_days": 1,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1783879/000165921126000018/wk-form4_1788556464.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0002108589-26-000022:0:Verma Shiv:M:33323.0:None:post-holding",
+      "ticker": "HOOD",
+      "action": "HOLDING",
+      "actor": "Shiv Verma",
+      "organization": "Officer: Chief Financial Officer",
+      "role": "Officer: Chief Financial Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "85,286 shares",
+      "shares": 85286.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-01",
+      "published_at": "2026-09-03",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1783879/000210858926000022/wk-form4_1788468181.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001817425-26-000012:0:Treseder Oluwadara Johnson:S:1875.0:125.0:post-holding",
+      "ticker": "HOOD",
+      "action": "HOLDING",
+      "actor": "Treseder Oluwadara Johnson",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "70,567 shares",
+      "shares": 70567.0,
+      "price": 125.0,
+      "occurred_at": "2026-09-08",
+      "published_at": "2026-09-10",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1783879/000181742526000012/wk-form4_1789074490.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:40434L105:CUSIP:40434L105",
@@ -329952,6 +330596,27 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:d41e4eac6a99a3bf4bd86383103e",
+      "ticker": "IBKR",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 750000.5,
+      "amount_display": "$500,001–$1,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
       "id": "13F:921669:0001539497-26-002243:451100101:CUSIP:451100101",
       "ticker": "ICAHN ENTERPRISES LP",
       "action": "HOLDING_13F",
@@ -330019,6 +330684,28 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1697748/000110465926096910/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "OGEASSET:328a7bbbf9a0d3414d93215ac3b7:aggregate",
+      "ticker": "INTC",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1167483:0000919574-26-005427:458140100:CUSIP:458140100",
@@ -330320,7 +331007,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:dc1ea8bb1aac4f13e60e25b39587",
+      "id": "OGEASSET:aad82d1c6ae010f328a8a62f2dd0:aggregate",
       "ticker": "ITW",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -330329,8 +331016,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -330338,7 +331025,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:80255:0000080255-26-000519:008064206:CUSIP:008064206",
@@ -330617,7 +331305,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:e775d8cfae4d89ca6e8e400b5b89",
+      "id": "OGEASSET:2919b56ef3acbd11b94257cb59d7:aggregate",
       "ticker": "JPM",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -330626,8 +331314,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -330635,7 +331323,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:483007704:CUSIP:483007704",
@@ -330776,7 +331465,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:8c08b73ccfc7118cd0f3222d2f5e",
+      "id": "OGEASSET:365a44c3be816d3bba0c9bb1e93e:aggregate",
       "ticker": "KO",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -330785,8 +331474,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -330794,7 +331483,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1061165:0000919574-26-005485:50012A108:CUSIP:50012A108",
@@ -331232,7 +331922,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:bd877d3ce51eab2ef919706d2a94",
+      "id": "OGEASSET:46b3847ec6202e6f590b9037b8de:aggregate",
       "ticker": "LLY",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -331241,8 +331931,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -331250,7 +331940,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:539830109:CUSIP:539830109",
@@ -331437,7 +332128,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:240e30f5740a13b6e075ef296576",
+      "id": "OGEASSET:815c749498ee22ccc07f90c04359:aggregate",
       "ticker": "MADCX",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -331446,8 +332137,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -331455,7 +332146,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1747057:0001172661-26-003662:55658T105:CUSIP:55658T105",
@@ -331481,7 +332173,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:ba027e975b9025543633ec9ab5f1",
+      "id": "OGEASSET:4c590c2b387fcdcb512bafcc4d0e:aggregate",
       "ticker": "MADVX",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -331490,8 +332182,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -331499,7 +332191,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1345471:0001345471-26-000035:N5505D105:CUSIP:N5505D105",
@@ -331962,7 +332655,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:264cf3091225eea32a8f2c8f99ac",
+      "id": "OGEASSET:4e41b2db1c8d0037a2681a3a74db:aggregate",
       "ticker": "META",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -331971,8 +332664,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -331980,7 +332673,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1387322:0001172661-26-003733:55306N104:CUSIP:55306N104",
@@ -332236,6 +332930,27 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:078510917efa4b9f707c0fe655fc",
+      "ticker": "MORN",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 175000.5,
+      "amount_display": "$100,001–$250,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
       "id": "13F:1656456:0001656456-26-000003:55336V100:CUSIP:55336V100",
       "ticker": "MPLX LP",
       "action": "HOLDING_13F",
@@ -332278,6 +332993,28 @@
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
       "evidence_grade": "A"
+    },
+    {
+      "id": "OGEASSET:71a164a667d287b3fd10ae7add81:aggregate:aggregate:aggregate",
+      "ticker": "MRVL",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 56502.0,
+      "amount_display": "≈$56,502 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "OGEASSET:34865ac5120c3b3c407b6da9624e",
@@ -332370,6 +333107,312 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:4a887003e5eec6005f5b5aefcf78",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 15000000.5,
+      "amount_display": "$5,000,001–$25,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "OGEASSET:bccbb28e206be5f53c0bf9b43dac:aggregate:aggregate",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 957501.5,
+      "amount_display": "≈$957,502 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000153:0:Althoff Judson:A:29724.0:0.0:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "Althoff Judson",
+      "organization": "Officer: EVP, Chief Commercial Officer",
+      "role": "Officer: EVP, Chief Commercial Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "130,171 shares",
+      "shares": 130171.434,
+      "price": 0.0,
+      "occurred_at": "2026-08-31",
+      "published_at": "2026-09-01",
+      "lag_days": 1,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000153/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000212:0:Hood Amy:S:4339.0:495.974:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "Amy Hood",
+      "organization": "Officer: EVP, Chief Financial Officer",
+      "role": "Officer: EVP, Chief Financial Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "570,959 shares",
+      "shares": 570959.427,
+      "price": 495.974,
+      "occurred_at": "2026-09-14",
+      "published_at": "2026-09-15",
+      "lag_days": 1,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000212/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000213:0:Coleman Amy:F:35.943:505.41:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "Coleman Amy",
+      "organization": "Officer: EVP, Chief Human Resources Off",
+      "role": "Officer: EVP, Chief Human Resources Off",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "44,451 shares",
+      "shares": 44451.4031,
+      "price": 505.41,
+      "occurred_at": "2026-09-15",
+      "published_at": "2026-09-15",
+      "lag_days": 0,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000213/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000214:0:Jolla Alice L.:F:122.773:505.41:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "Jolla Alice L.",
+      "organization": "Officer: Chief Accounting Officer",
+      "role": "Officer: Chief Accounting Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "81,119 shares",
+      "shares": 81119.1096,
+      "price": 505.41,
+      "occurred_at": "2026-09-15",
+      "published_at": "2026-09-15",
+      "lag_days": 0,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000214/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000178:0:List Teri:A:125.0:0.0:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "List Teri",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "125 shares",
+      "shares": 125.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-05",
+      "published_at": "2026-09-08",
+      "lag_days": 3,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000178/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000158:0:Numoto Takeshi:A:12684.0:0.0:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "Numoto Takeshi",
+      "organization": "Officer: EVP, Chief Marketing Officer",
+      "role": "Officer: EVP, Chief Marketing Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "55,361 shares",
+      "shares": 55361.4483,
+      "price": 0.0,
+      "occurred_at": "2026-08-31",
+      "published_at": "2026-09-01",
+      "lag_days": 1,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000158/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000184:0:SCHARF CHARLES W:A:125.0:0.0:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "SCHARF CHARLES W",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "45,166 shares",
+      "shares": 45166.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-05",
+      "published_at": "2026-09-08",
+      "lag_days": 3,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000184/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000188:0:SMITH BRADFORD L:G:14000.0:0.0:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "SMITH BRADFORD L",
+      "organization": "Officer: Vice Chair and President",
+      "role": "Officer: Vice Chair and President",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "444,716 shares",
+      "shares": 444716.2944,
+      "price": 0.0,
+      "occurred_at": "2026-09-09",
+      "published_at": "2026-09-10",
+      "lag_days": 1,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000188/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000185:0:STANTON JOHN W:A:125.0:0.0:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "STANTON JOHN W",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "84,179 shares",
+      "shares": 84179.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-05",
+      "published_at": "2026-09-08",
+      "lag_days": 3,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000185/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0000789019-26-000161:0:Nadella Satya:S:1040.0:498.2396:post-holding",
+      "ticker": "MSFT",
+      "action": "HOLDING",
+      "actor": "Satya Nadella",
+      "organization": "Director; Officer: Chief Executive Officer",
+      "role": "Director; Officer: Chief Executive Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "572,248 shares",
+      "shares": 572247.534,
+      "price": 498.2396,
+      "occurred_at": "2026-09-01",
+      "published_at": "2026-09-02",
+      "lag_days": 1,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000078901926000161/form4.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "OGEASSET:72dc6a153c54671b7fec204cf0ff",
+      "ticker": "MSTR",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 8000.5,
+      "amount_display": "$1,001–$15,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "SEC_FORM4:0001193125-26-376987:0:Patten Jarrod M:M:1850.0:18.236:post-holding",
+      "ticker": "MSTR",
+      "action": "HOLDING",
+      "actor": "Patten Jarrod M",
+      "organization": "Unknown",
+      "role": "Unknown",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "30,256 shares",
+      "shares": 30256.0,
+      "price": 18.236,
+      "occurred_at": "2026-08-27",
+      "published_at": "2026-08-31",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1050446/000119312526376987/ownership.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
       "id": "13F:1656456:0001656456-26-000003:595112103:CUSIP:595112103",
       "ticker": "MU",
       "action": "HOLDING_13F",
@@ -332391,6 +333434,28 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1656456/000165645626000003/Form13FInfoTable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "OGEASSET:14caa666d295272f1e63bba6088e:aggregate",
+      "ticker": "MU",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 40501.0,
+      "amount_display": "≈$40,501 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:63008G203:CUSIP:63008G203",
@@ -332483,6 +333548,27 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1517137/000092189526002172/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "HOUSEHOLDING:29f6a86f1dd2d59a1d86aa710345",
+      "ticker": "NFLX",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 3000000.5,
+      "amount_display": "$1,000,001–$5,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:653656108:CUSIP:653656108",
@@ -332916,6 +334002,137 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1569049/000093583626000422/form13fInfoTable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "HOUSEHOLDING:f5bded4555d7b106f56a9236b977",
+      "ticker": "NVDA",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 15000000.5,
+      "amount_display": "$5,000,001–$25,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "OGEASSET:b187c1f235867445a12164ae0e19:aggregate",
+      "ticker": "NVDA",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 925001.0,
+      "amount_display": "≈$925,001 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
+    },
+    {
+      "id": "SEC_FORM4:0001310264-26-000008:1:NORA JOHNSON SUZANNE M:A:1148.0:0.0:post-holding",
+      "ticker": "NVDA",
+      "action": "HOLDING",
+      "actor": "NORA JOHNSON SUZANNE M",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "2,410 shares",
+      "shares": 2410.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-10",
+      "published_at": "2026-08-12",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1045810/000131026426000008/wk-form4_1786569187.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0002152188-26-000005:0:Parker Nicholas P.:A:172507.0:0.0:post-holding",
+      "ticker": "NVDA",
+      "action": "HOLDING",
+      "actor": "Parker Nicholas P.",
+      "organization": "Officer: EVP, Worldwide Field Ops",
+      "role": "Officer: EVP, Worldwide Field Ops",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "172,507 shares",
+      "shares": 172507.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-09",
+      "published_at": "2026-09-11",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1045810/000215218826000005/wk-form4_1789160684.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001199039-26-000014:0:STEVENS MARK A:S:198707.0:227.6954:post-holding",
+      "ticker": "NVDA",
+      "action": "HOLDING",
+      "actor": "STEVENS MARK A",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "3,160,063 shares",
+      "shares": 3160063.0,
+      "price": 227.6954,
+      "occurred_at": "2026-09-03",
+      "published_at": "2026-09-08",
+      "lag_days": 5,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1045810/000119903926000014/wk-form4_1788901755.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001696841-26-000010:0:Teter Timothy S.:S:6692.0:216.8411:post-holding",
+      "ticker": "NVDA",
+      "action": "HOLDING",
+      "actor": "Teter Timothy S.",
+      "organization": "Officer: EVP, General Counsel and Sec",
+      "role": "Officer: EVP, General Counsel and Sec",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "2,710,968 shares",
+      "shares": 2710968.0,
+      "price": 216.8411,
+      "occurred_at": "2026-08-31",
+      "published_at": "2026-09-02",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1045810/000169684126000010/wk-form4_1788386836.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
     },
     {
       "id": "13F:1569049:0000935836-26-000422:N6596X109:CUSIP:N6596X109",
@@ -333762,7 +334979,7 @@
       "evidence_grade": "A"
     },
     {
-      "id": "OGEASSET:49a365911af01834725ce00e25cd",
+      "id": "OGEASSET:568b48133c15c84d0b18cce0ac6c:aggregate",
       "ticker": "OGE-8-2-US-CASH-ACCOUN",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -333771,8 +334988,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 32500.5,
-      "amount_display": "$15,001–$50,000",
+      "amount_usd": 40501.0,
+      "amount_display": "≈$40,501 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -333780,7 +334997,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "OGEASSET:5e393927b2504ba14f19c3f24b27",
@@ -333867,7 +335085,7 @@
       "evidence_grade": "A"
     },
     {
-      "id": "OGEASSET:bbd9b39b0763452bb08c90d7d8f0",
+      "id": "OGEASSET:cf4d65c5daf080d08f994cf3909b:aggregate",
       "ticker": "OGE-ASSETS-RELATED-TO",
       "action": "HOLDING",
       "actor": "Howard Lutnick",
@@ -333876,8 +335094,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 1000.0,
-      "amount_display": null,
+      "amount_usd": 2000.0,
+      "amount_display": "≈$2,000 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -333885,7 +335103,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "OGEASSET:5300b8bf05e097b58a1f1fa849a9",
@@ -333909,7 +335128,7 @@
       "evidence_grade": "A"
     },
     {
-      "id": "OGEASSET:487386a738b887bbb330df54ef48",
+      "id": "OGEASSET:fbf9b088028f874edf969b58bcba:aggregate",
       "ticker": "OGE-COMMERCIAL-AND-MUL",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -333918,8 +335137,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -333927,10 +335146,11 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
-      "id": "OGEASSET:f7992da1a5007d94788a2cb0c045",
+      "id": "OGEASSET:d40621f6316a8c355344a4f49077:aggregate",
       "ticker": "OGE-COMMERCIAL-REAL-ES",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -333939,8 +335159,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -333948,7 +335168,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "OGEASSET:7264fa544b742f6a246d9e39a7ba",
@@ -334896,7 +336117,7 @@
       "evidence_grade": "A"
     },
     {
-      "id": "OGEASSET:eea90900bae27d47c79187c9bf76",
+      "id": "OGEASSET:4aa9bcd963137b90adbfea423818:aggregate",
       "ticker": "OGE-SOURCES-OF-EARNED",
       "action": "HOLDING",
       "actor": "Howard Lutnick",
@@ -334905,8 +336126,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 200.0,
-      "amount_display": null,
+      "amount_usd": 1200.0,
+      "amount_display": "≈$1,200 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -334914,7 +336135,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "OGEASSET:4ca5a925437451a613bf1f984728",
@@ -335339,6 +336561,28 @@
       "evidence_grade": "B"
     },
     {
+      "id": "OGEASSET:d0cabd1e3fecfad2025cdd0d7c1b:aggregate:aggregate",
+      "ticker": "ORCL",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 73001.5,
+      "amount_display": "≈$73,002 disclosed midpoint",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
+    },
+    {
       "id": "OGEASSET:d9cd8a7219c8c47b9b6521a07bba",
       "ticker": "ORCL",
       "action": "HOLDING",
@@ -335360,7 +336604,7 @@
       "evidence_grade": "A"
     },
     {
-      "id": "OGEASSET:d32622717952a178eaf2f446d94d",
+      "id": "OGEASSET:8d34c7fac1f2d94a97809a5795d9:aggregate",
       "ticker": "OWL",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -335369,8 +336613,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -335378,7 +336622,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:69404D108:CUSIP:69404D108",
@@ -335628,6 +336873,137 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1649339/000164933925000007/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "OGEASSET:c1138d9bc258dc85e31fda3c871d",
+      "ticker": "PLTR",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 32500.5,
+      "amount_display": "$15,001–$50,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "SEC_FORM4:0001705189-26-000015:0:Buckley Jeffrey:S:58.0:172.6542:post-holding",
+      "ticker": "PLTR",
+      "action": "HOLDING",
+      "actor": "Buckley Jeffrey",
+      "organization": "Officer: See Remarks",
+      "role": "Officer: See Remarks",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "60,168 shares",
+      "shares": 60168.0,
+      "price": 172.6542,
+      "occurred_at": "2026-08-20",
+      "published_at": "2026-08-24",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1321655/000170518926000015/wk-form4_1787616201.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001823951-26-000009:15:Karp Alexander C.:M:97500.0:0.0:post-holding",
+      "ticker": "PLTR",
+      "action": "HOLDING",
+      "actor": "Karp Alexander C.",
+      "organization": "Director; Officer: See Remarks",
+      "role": "Director; Officer: See Remarks",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "52,985,249 shares",
+      "shares": 52985249.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-20",
+      "published_at": "2026-08-24",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1321655/000182395126000009/wk-form4_1787616121.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001823952-26-000020:0:Moore Alexander D.:S:3516.0:173.2121:post-holding",
+      "ticker": "PLTR",
+      "action": "HOLDING",
+      "actor": "Moore Alexander D.",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "1,091,579 shares",
+      "shares": 1091579.0,
+      "price": 173.2121,
+      "occurred_at": "2026-08-17",
+      "published_at": "2026-08-19",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1321655/000182395226000020/wk-form4_1787184083.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001824159-26-000013:0:Sankar Shyam:G:55498.0:0.0:post-holding",
+      "ticker": "PLTR",
+      "action": "HOLDING",
+      "actor": "Sankar Shyam",
+      "organization": "Officer: See Remarks",
+      "role": "Officer: See Remarks",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "587,288 shares",
+      "shares": 587288.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-10",
+      "published_at": "2026-08-12",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1321655/000182415926000013/wk-form4_1786579300.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001840244-26-000016:0:Stat Lauren Elaina Friedman:S:1342.0:182.5:post-holding",
+      "ticker": "PLTR",
+      "action": "HOLDING",
+      "actor": "Stat Lauren Elaina Friedman",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "52,765 shares",
+      "shares": 52765.0,
+      "price": 182.5,
+      "occurred_at": "2026-09-01",
+      "published_at": "2026-09-03",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1321655/000184024426000016/wk-form4_1788480144.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
     },
     {
       "id": "13F:1167483:0000919574-26-005427:732908108:CUSIP:732908108",
@@ -335906,6 +337282,27 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:64dad850ad54e0bf7f0f3b1b3fb7",
+      "ticker": "RBLX",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 375000.5,
+      "amount_display": "$250,001–$500,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
       "id": "13F:1167483:0000919574-26-005427:75734B100:RDDT",
       "ticker": "RDDT",
       "action": "HOLDING_13F",
@@ -336178,7 +337575,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:52006b8b147f77700fed108ae335",
+      "id": "OGEASSET:01e7b2ffc1c5471148b5ee3b6065:aggregate",
       "ticker": "RSG",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -336187,8 +337584,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -336196,7 +337593,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1656456:0001656456-26-000002:75513E101:CUSIP:75513E101",
@@ -336220,6 +337618,28 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1656456/000165645626000002/Form13FInfoTable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "SEC_FORM4:0001783879-26-000140:0:Robinhood Markets, Inc.:S:4355.0:26.66:post-holding",
+      "ticker": "RVI",
+      "action": "HOLDING",
+      "actor": "Robinhood Markets, Inc.",
+      "organization": "10% Owner",
+      "role": "10% Owner",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "12,984,209 shares",
+      "shares": 12984209.0,
+      "price": 26.66,
+      "occurred_at": "2026-08-31",
+      "published_at": "2026-09-02",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1783879/000178387926000140/wk-form4_1788380922.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
     },
     {
       "id": "13F:1647251:0001647251-26-000007:78409V104:CUSIP:78409V104",
@@ -336910,7 +338330,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:80d743919442d2411875b5755af0",
+      "id": "OGEASSET:7862eb26b3dc4b45987e3911b6d4:aggregate",
       "ticker": "SNOXX",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -336919,8 +338339,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -336928,7 +338348,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1345471:0001345471-26-000035:83444M101:CUSIP:83444M101",
@@ -337069,6 +338490,28 @@
       "evidence_grade": "B"
     },
     {
+      "id": "SEC_FORM4:0001213900-26-100186:0:Gracias Antonio J.:J:42790223.0:None:post-holding",
+      "ticker": "SPCX",
+      "action": "HOLDING",
+      "actor": "Gracias Antonio J.",
+      "organization": "Director",
+      "role": "Director",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "460,624,307 shares",
+      "shares": 460624307.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-11",
+      "published_at": "2026-09-15",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1181412/000121390026100186/ownership.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
       "id": "13F:1167483:0000919574-26-005427:L8681T102:CUSIP:L8681T102",
       "ticker": "SPOTIFY TECHNOLOGY S A",
       "action": "HOLDING_13F",
@@ -337159,6 +338602,27 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1422849/000142284926000113/form13fInfoTable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "HOUSEHOLDING:746dc9d74c33701916008682aad5",
+      "ticker": "SQ",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 375000.5,
+      "amount_display": "$250,001–$500,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
     },
     {
       "id": "13F:1040273:0001040273-26-000003:78462F103:CUSIP:78462F103",
@@ -337320,6 +338784,27 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1040273/000104027326000003/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "HOUSEHOLDING:770b1f1358668c20b69d6c3fc285",
+      "ticker": "T",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 175000.5,
+      "amount_display": "$100,001–$250,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
     },
     {
       "id": "13F:1697748:0001104659-26-096910:M8744T106:CUSIP:M8744T106",
@@ -337780,6 +339265,49 @@
       "source": "SEC 13F",
       "source_url": "https://www.sec.gov/Archives/edgar/data/1747057/000117266126003662/infotable.xml",
       "evidence_grade": "B"
+    },
+    {
+      "id": "OGEASSET:e03ae2ed09c1120587c147658d11",
+      "ticker": "TSLA",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 175000.5,
+      "amount_display": "$100,001–$250,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "SEC_FORM4:0001104659-26-106432:0:Taneja Vaibhav:M:6539.0:0.0:post-holding",
+      "ticker": "TSLA",
+      "action": "HOLDING",
+      "actor": "Vaibhav Taneja",
+      "organization": "Officer: Chief Financial Officer",
+      "role": "Officer: Chief Financial Officer",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "28,578 shares",
+      "shares": 28578.0,
+      "price": 0.0,
+      "occurred_at": "2026-09-05",
+      "published_at": "2026-09-09",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1318605/000110465926106432/tm2625055d1_4seq1.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
     },
     {
       "id": "13F:1167483:0000919574-26-005427:874039100:TSM",
@@ -338357,7 +339885,160 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:3d1cc5b5154793a87ce1119766f2",
+      "id": "OGEASSET:47af58c319e71965cecc27c9c163",
+      "ticker": "UBER",
+      "action": "HOLDING",
+      "actor": "Donald J. Trump",
+      "organization": "President of the United States",
+      "role": "President of the United States",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 8000.5,
+      "amount_display": "$1,001–$15,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2025-06-13",
+      "published_at": "2025-06-13",
+      "lag_days": 0,
+      "source": "OGE",
+      "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/4EC9A8E6DD078F2985258CA9002C9377/%24FILE/Trump%2C%20Donald%20J.%202025%20Annual%20278.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "SEC_FORM4:0001525321-26-000009:4:Ceremony Glen:M:1515.0:None:post-holding",
+      "ticker": "UBER",
+      "action": "HOLDING",
+      "actor": "Ceremony Glen",
+      "organization": "Unknown",
+      "role": "Unknown",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "269,598 shares",
+      "shares": 269598.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-16",
+      "published_at": "2026-08-18",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1543151/000152532126000009/primarydocument.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001184237-26-000008:0:KHOSROWSHAHI DARA:P:141000.0:70.9642:post-holding",
+      "ticker": "UBER",
+      "action": "HOLDING",
+      "actor": "Dara Khosrowshahi",
+      "organization": "Unknown",
+      "role": "Unknown",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "1,367,100 shares",
+      "shares": 1367100.0,
+      "price": 70.9642,
+      "occurred_at": "2026-09-10",
+      "published_at": "2026-09-10",
+      "lag_days": 0,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1543151/000118423726000008/primarydocument.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001775297-26-000012:0:Hazelbaker Jill:S:28170.0:71.3054:post-holding",
+      "ticker": "UBER",
+      "action": "HOLDING",
+      "actor": "Hazelbaker Jill",
+      "organization": "Unknown",
+      "role": "Unknown",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "149,525 shares",
+      "shares": 149525.0,
+      "price": 71.3054,
+      "occurred_at": "2026-09-11",
+      "published_at": "2026-09-15",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1543151/000177529726000012/primarydocument.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0002111867-26-000012:5:Krishnamurthy Balaji (A):M:607.0:None:post-holding",
+      "ticker": "UBER",
+      "action": "HOLDING",
+      "actor": "Krishnamurthy Balaji (A)",
+      "organization": "Unknown",
+      "role": "Unknown",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "43,652 shares",
+      "shares": 43652.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-16",
+      "published_at": "2026-08-18",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1543151/000211186726000012/primarydocument.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0002071761-26-000011:1:Macdonald Andrew:P:15675.0:76.4425:post-holding",
+      "ticker": "UBER",
+      "action": "HOLDING",
+      "actor": "Macdonald Andrew",
+      "organization": "Unknown",
+      "role": "Unknown",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "426,320 shares",
+      "shares": 426320.0,
+      "price": 76.4425,
+      "occurred_at": "2026-09-04",
+      "published_at": "2026-09-08",
+      "lag_days": 4,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1543151/000207176126000011/primarydocument.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "SEC_FORM4:0001626201-26-000019:3:West Tony:M:2911.0:None:post-holding",
+      "ticker": "UBER",
+      "action": "HOLDING",
+      "actor": "West Tony",
+      "organization": "Unknown",
+      "role": "Unknown",
+      "responsible_people": [],
+      "ownership": null,
+      "attribution": "reported_person_or_household",
+      "amount_usd": 0,
+      "amount_display": "258,442 shares",
+      "shares": 258442.0,
+      "price": 0.0,
+      "occurred_at": "2026-08-16",
+      "published_at": "2026-08-18",
+      "lag_days": 2,
+      "source": "SEC Form 4",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1543151/000162620126000019/primarydocument.xml",
+      "evidence_grade": "A",
+      "holding_basis": "form4_post_transaction_shares"
+    },
+    {
+      "id": "OGEASSET:668f685ac5dddf991c233a0acc03:aggregate",
       "ticker": "UNH",
       "action": "HOLDING",
       "actor": "Doug Burgum",
@@ -338366,8 +340047,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -338375,7 +340056,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1040273:0001040273-26-000003:907818108:CUSIP:907818108",
@@ -338562,7 +340244,28 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:5ece6aab304d7e600e7cfdcad6de",
+      "id": "HOUSEHOLDING:28881858360ff63bc4f15a33c30f",
+      "ticker": "V",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 15000000.5,
+      "amount_display": "$5,000,001–$25,000,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
+      "id": "OGEASSET:45d76110479360fc4fc7940c2a97:aggregate",
       "ticker": "V",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -338571,8 +340274,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -338580,7 +340283,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1649339:0001879202-25-000038:918204108:CUSIP:918204108",
@@ -338790,6 +340494,27 @@
       "evidence_grade": "B"
     },
     {
+      "id": "HOUSEHOLDING:3eb06129efac7ec050cd7defa649",
+      "ticker": "WBD",
+      "action": "HOLDING",
+      "actor": "Nancy Pelosi",
+      "organization": "Member, U.S. House of Representatives",
+      "role": "Member, U.S. House of Representatives",
+      "responsible_people": [],
+      "ownership": "SP",
+      "attribution": "reported_person_or_household",
+      "amount_usd": 75000.5,
+      "amount_display": "$50,001–$100,000",
+      "shares": 0.0,
+      "price": 0.0,
+      "occurred_at": "2026-05-15",
+      "published_at": "2026-05-15",
+      "lag_days": 0,
+      "source": "Congress Annual FD",
+      "source_url": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/2025/10075701.pdf",
+      "evidence_grade": "A"
+    },
+    {
       "id": "13F:1167483:0000919574-26-005427:947002101:CUSIP:947002101",
       "ticker": "WEALTHFRONT CORP",
       "action": "HOLDING_13F",
@@ -338928,7 +340653,7 @@
       "evidence_grade": "B"
     },
     {
-      "id": "OGEASSET:d732c9f5e60fa0a55b91aa4c10fb",
+      "id": "OGEASSET:3f068a793553caf1726986251573:aggregate",
       "ticker": "WMT",
       "action": "HOLDING",
       "actor": "Chris Wright",
@@ -338937,8 +340662,8 @@
       "responsible_people": [],
       "ownership": null,
       "attribution": "reported_person_or_household",
-      "amount_usd": 8000.5,
-      "amount_display": "$1,001–$15,000",
+      "amount_usd": 16001.0,
+      "amount_display": "≈$16,001 disclosed midpoint",
       "shares": 0.0,
       "price": 0.0,
       "occurred_at": "2027-08-31",
@@ -338946,7 +340671,8 @@
       "lag_days": 0,
       "source": "OGE",
       "source_url": "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
-      "evidence_grade": "A"
+      "evidence_grade": "A",
+      "holding_basis": "aggregated_disclosed_positions"
     },
     {
       "id": "13F:1040273:0001040273-26-000003:97785W106:CUSIP:97785W106",
@@ -374242,6 +375968,48 @@
   ],
   "holding_concentration": [
     {
+      "ticker": "AMZN",
+      "holder_count": 23,
+      "source_count": 4,
+      "source_names": [
+        "Congress Annual FD",
+        "OGE",
+        "SEC 13F",
+        "SEC Form 4"
+      ],
+      "position_count": 23,
+      "reported_value_usd": 28823003764.0,
+      "score": 99
+    },
+    {
+      "ticker": "MSFT",
+      "holder_count": 15,
+      "source_count": 4,
+      "source_names": [
+        "Congress Annual FD",
+        "OGE",
+        "SEC 13F",
+        "SEC Form 4"
+      ],
+      "position_count": 15,
+      "reported_value_usd": 2987846742.0,
+      "score": 80
+    },
+    {
+      "ticker": "NVDA",
+      "holder_count": 13,
+      "source_count": 4,
+      "source_names": [
+        "Congress Annual FD",
+        "OGE",
+        "SEC 13F",
+        "SEC Form 4"
+      ],
+      "position_count": 13,
+      "reported_value_usd": 3401207039.5,
+      "score": 75
+    },
+    {
       "ticker": "GOOGL",
       "holder_count": 15,
       "source_count": 1,
@@ -374249,19 +376017,22 @@
         "SEC 13F"
       ],
       "position_count": 15,
-      "reported_value_usd": 40227826483.0,
-      "score": 92
+      "reported_value_usd": 39774755588.0,
+      "score": 71
     },
     {
-      "ticker": "AMZN",
-      "holder_count": 14,
-      "source_count": 1,
+      "ticker": "AAPL",
+      "holder_count": 9,
+      "source_count": 4,
       "source_names": [
-        "SEC 13F"
+        "Congress Annual FD",
+        "OGE",
+        "SEC 13F",
+        "SEC Form 4"
       ],
-      "position_count": 14,
-      "reported_value_usd": 28804553762.0,
-      "score": 89
+      "position_count": 9,
+      "reported_value_usd": 20508530728.0,
+      "score": 68
     },
     {
       "ticker": "AMD",
@@ -374272,7 +376043,46 @@
       ],
       "position_count": 13,
       "reported_value_usd": 49263519528.0,
-      "score": 86
+      "score": 67
+    },
+    {
+      "ticker": "AVGO",
+      "holder_count": 10,
+      "source_count": 3,
+      "source_names": [
+        "Congress Annual FD",
+        "OGE",
+        "SEC 13F"
+      ],
+      "position_count": 10,
+      "reported_value_usd": 48333379318.5,
+      "score": 67
+    },
+    {
+      "ticker": "UBER",
+      "holder_count": 10,
+      "source_count": 3,
+      "source_names": [
+        "OGE",
+        "SEC 13F",
+        "SEC Form 4"
+      ],
+      "position_count": 10,
+      "reported_value_usd": 2721055565.5,
+      "score": 64
+    },
+    {
+      "ticker": "PLTR",
+      "holder_count": 7,
+      "source_count": 3,
+      "source_names": [
+        "OGE",
+        "SEC 13F",
+        "SEC Form 4"
+      ],
+      "position_count": 7,
+      "reported_value_usd": 912132500.5,
+      "score": 56
     },
     {
       "ticker": "META",
@@ -374283,19 +376093,20 @@
         "SEC 13F"
       ],
       "position_count": 7,
-      "reported_value_usd": 4142619102.5,
-      "score": 70
+      "reported_value_usd": 4142627103.0,
+      "score": 53
     },
     {
-      "ticker": "AVGO",
-      "holder_count": 8,
-      "source_count": 1,
+      "ticker": "SPCX",
+      "holder_count": 6,
+      "source_count": 2,
       "source_names": [
-        "SEC 13F"
+        "SEC 13F",
+        "SEC Form 4"
       ],
-      "position_count": 8,
-      "reported_value_usd": 48316771815.0,
-      "score": 68
+      "position_count": 6,
+      "reported_value_usd": 21694976522.0,
+      "score": 53
     },
     {
       "ticker": "ASML",
@@ -374306,7 +376117,7 @@
       ],
       "position_count": 8,
       "reported_value_usd": 1693165598.0,
-      "score": 65
+      "score": 51
     },
     {
       "ticker": "TXG",
@@ -374317,7 +376128,19 @@
       ],
       "position_count": 8,
       "reported_value_usd": 751112517.0,
-      "score": 64
+      "score": 51
+    },
+    {
+      "ticker": "HOOD",
+      "holder_count": 7,
+      "source_count": 2,
+      "source_names": [
+        "SEC 13F",
+        "SEC Form 4"
+      ],
+      "position_count": 7,
+      "reported_value_usd": 525069168.0,
+      "score": 51
     },
     {
       "ticker": "APP",
@@ -374328,7 +376151,7 @@
       ],
       "position_count": 7,
       "reported_value_usd": 6033759093.0,
-      "score": 63
+      "score": 50
     },
     {
       "ticker": "TSM",
@@ -374339,29 +376162,7 @@
       ],
       "position_count": 7,
       "reported_value_usd": 3887726463.0,
-      "score": 62
-    },
-    {
-      "ticker": "NVDA",
-      "holder_count": 7,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 7,
-      "reported_value_usd": 3385282038.0,
-      "score": 62
-    },
-    {
-      "ticker": "AAPL",
-      "holder_count": 6,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 6,
-      "reported_value_usd": 20489605726.0,
-      "score": 60
+      "score": 50
     },
     {
       "ticker": "AMAT",
@@ -374372,30 +376173,20 @@
       ],
       "position_count": 6,
       "reported_value_usd": 6884260733.0,
-      "score": 59
+      "score": 48
     },
     {
-      "ticker": "SPCX",
-      "holder_count": 5,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 5,
-      "reported_value_usd": 21694976522.0,
-      "score": 56
-    },
-    {
-      "ticker": "DHR",
+      "ticker": "TSLA",
       "holder_count": 4,
-      "source_count": 2,
+      "source_count": 3,
       "source_names": [
         "OGE",
-        "SEC 13F"
+        "SEC 13F",
+        "SEC Form 4"
       ],
       "position_count": 4,
-      "reported_value_usd": 624408869.5,
-      "score": 56
+      "reported_value_usd": 1329986213.5,
+      "score": 48
     },
     {
       "ticker": "CBRS",
@@ -374406,7 +376197,7 @@
       ],
       "position_count": 5,
       "reported_value_usd": 2094845298.0,
-      "score": 54
+      "score": 44
     },
     {
       "ticker": "MELI",
@@ -374417,7 +376208,19 @@
       ],
       "position_count": 5,
       "reported_value_usd": 797797709.0,
-      "score": 53
+      "score": 43
+    },
+    {
+      "ticker": "DHR",
+      "holder_count": 4,
+      "source_count": 2,
+      "source_names": [
+        "OGE",
+        "SEC 13F"
+      ],
+      "position_count": 4,
+      "reported_value_usd": 624416870.0,
+      "score": 43
     },
     {
       "ticker": "GEV",
@@ -374428,20 +376231,8 @@
         "SEC 13F"
       ],
       "position_count": 3,
-      "reported_value_usd": 2034054316.5,
-      "score": 53
-    },
-    {
-      "ticker": "DIS",
-      "holder_count": 3,
-      "source_count": 2,
-      "source_names": [
-        "OGE",
-        "SEC 13F"
-      ],
-      "position_count": 3,
-      "reported_value_usd": 277681358.5,
-      "score": 51
+      "reported_value_usd": 2034062317.0,
+      "score": 42
     },
     {
       "ticker": "SE",
@@ -374452,7 +376243,7 @@
       ],
       "position_count": 4,
       "reported_value_usd": 1426954375.0,
-      "score": 50
+      "score": 41
     },
     {
       "ticker": "NU",
@@ -374463,7 +376254,7 @@
       ],
       "position_count": 4,
       "reported_value_usd": 1385997584.0,
-      "score": 50
+      "score": 41
     },
     {
       "ticker": "CVNA",
@@ -374474,7 +376265,19 @@
       ],
       "position_count": 4,
       "reported_value_usd": 1375209381.0,
-      "score": 50
+      "score": 41
+    },
+    {
+      "ticker": "DIS",
+      "holder_count": 3,
+      "source_count": 2,
+      "source_names": [
+        "OGE",
+        "SEC 13F"
+      ],
+      "position_count": 3,
+      "reported_value_usd": 277689359.0,
+      "score": 40
     },
     {
       "ticker": "AECOM",
@@ -374485,7 +376288,7 @@
       ],
       "position_count": 4,
       "reported_value_usd": 377674119.0,
-      "score": 48
+      "score": 39
     },
     {
       "ticker": "DASH",
@@ -374496,19 +376299,7 @@
       ],
       "position_count": 4,
       "reported_value_usd": 334654013.0,
-      "score": 48
-    },
-    {
-      "ticker": "HLT",
-      "holder_count": 2,
-      "source_count": 2,
-      "source_names": [
-        "OGE",
-        "SEC 13F"
-      ],
-      "position_count": 2,
-      "reported_value_usd": 869991734.5,
-      "score": 48
+      "score": 39
     },
     {
       "ticker": "BN",
@@ -374519,29 +376310,7 @@
       ],
       "position_count": 3,
       "reported_value_usd": 5801107563.0,
-      "score": 47
-    },
-    {
-      "ticker": "MSFT",
-      "holder_count": 3,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 3,
-      "reported_value_usd": 2971889240.0,
-      "score": 46
-    },
-    {
-      "ticker": "UBER",
-      "holder_count": 3,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 3,
-      "reported_value_usd": 2721047565.0,
-      "score": 46
+      "score": 39
     },
     {
       "ticker": "LRCX",
@@ -374552,7 +376321,19 @@
       ],
       "position_count": 3,
       "reported_value_usd": 1858393338.0,
-      "score": 46
+      "score": 38
+    },
+    {
+      "ticker": "MU",
+      "holder_count": 2,
+      "source_count": 2,
+      "source_names": [
+        "OGE",
+        "SEC 13F"
+      ],
+      "position_count": 2,
+      "reported_value_usd": 1125473251.0,
+      "score": 38
     },
     {
       "ticker": "RDDT",
@@ -374563,7 +376344,31 @@
       ],
       "position_count": 3,
       "reported_value_usd": 898403213.0,
-      "score": 45
+      "score": 37
+    },
+    {
+      "ticker": "HLT",
+      "holder_count": 2,
+      "source_count": 2,
+      "source_names": [
+        "OGE",
+        "SEC 13F"
+      ],
+      "position_count": 2,
+      "reported_value_usd": 869999735.0,
+      "score": 37
+    },
+    {
+      "ticker": "RBLX",
+      "holder_count": 2,
+      "source_count": 2,
+      "source_names": [
+        "Congress Annual FD",
+        "SEC 13F"
+      ],
+      "position_count": 2,
+      "reported_value_usd": 351990103.5,
+      "score": 37
     },
     {
       "ticker": "BABA",
@@ -374574,18 +376379,7 @@
       ],
       "position_count": 3,
       "reported_value_usd": 472273053.0,
-      "score": 44
-    },
-    {
-      "ticker": "TSLA",
-      "holder_count": 2,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 2,
-      "reported_value_usd": 1329811213.0,
-      "score": 41
+      "score": 36
     },
     {
       "ticker": "TER",
@@ -374596,7 +376390,7 @@
       ],
       "position_count": 2,
       "reported_value_usd": 1034383247.0,
-      "score": 41
+      "score": 34
     },
     {
       "ticker": "USFD",
@@ -374607,7 +376401,7 @@
       ],
       "position_count": 2,
       "reported_value_usd": 962832626.0,
-      "score": 40
+      "score": 34
     },
     {
       "ticker": "CEG",
@@ -374618,7 +376412,7 @@
       ],
       "position_count": 2,
       "reported_value_usd": 652960260.0,
-      "score": 40
+      "score": 33
     },
     {
       "ticker": "SGI",
@@ -374629,7 +376423,7 @@
       ],
       "position_count": 2,
       "reported_value_usd": 591616828.0,
-      "score": 40
+      "score": 33
     },
     {
       "ticker": "SHOP",
@@ -374640,7 +376434,7 @@
       ],
       "position_count": 2,
       "reported_value_usd": 569394599.0,
-      "score": 40
+      "score": 33
     },
     {
       "ticker": "SHW",
@@ -374651,7 +376445,7 @@
       ],
       "position_count": 2,
       "reported_value_usd": 519769634.0,
-      "score": 40
+      "score": 33
     },
     {
       "ticker": "FLS",
@@ -374662,7 +376456,31 @@
       ],
       "position_count": 2,
       "reported_value_usd": 475388812.0,
-      "score": 40
+      "score": 33
+    },
+    {
+      "ticker": "GOOG",
+      "holder_count": 2,
+      "source_count": 2,
+      "source_names": [
+        "Congress Annual FD",
+        "OGE"
+      ],
+      "position_count": 2,
+      "reported_value_usd": 15657502.5,
+      "score": 33
+    },
+    {
+      "ticker": "V",
+      "holder_count": 2,
+      "source_count": 2,
+      "source_names": [
+        "Congress Annual FD",
+        "OGE"
+      ],
+      "position_count": 2,
+      "reported_value_usd": 15016001.5,
+      "score": 33
     },
     {
       "ticker": "CP",
@@ -374673,7 +376491,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 3925911608.0,
-      "score": 37
+      "score": 31
     },
     {
       "ticker": "QSR",
@@ -374684,7 +376502,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 1673501194.0,
-      "score": 36
+      "score": 31
     },
     {
       "ticker": "HHH",
@@ -374695,18 +376513,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 1192581569.0,
-      "score": 35
-    },
-    {
-      "ticker": "MU",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 1125432750.0,
-      "score": 35
+      "score": 30
     },
     {
       "ticker": "CART",
@@ -374717,18 +376524,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 1068425997.0,
-      "score": 35
-    },
-    {
-      "ticker": "PLTR",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 912100000.0,
-      "score": 35
+      "score": 30
     },
     {
       "ticker": "ETN",
@@ -374739,7 +376535,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 829570842.0,
-      "score": 35
+      "score": 30
     },
     {
       "ticker": "JHX",
@@ -374750,7 +376546,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 721141609.0,
-      "score": 35
+      "score": 30
     },
     {
       "ticker": "DLOCAL",
@@ -374761,7 +376557,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 606303752.0,
-      "score": 35
+      "score": 30
     },
     {
       "ticker": "JCI",
@@ -374772,18 +376568,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 548188210.0,
-      "score": 35
-    },
-    {
-      "ticker": "HOOD",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 525069168.0,
-      "score": 35
+      "score": 29
     },
     {
       "ticker": "CRSP",
@@ -374794,7 +376579,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 515999631.0,
-      "score": 35
+      "score": 29
     },
     {
       "ticker": "EQIX",
@@ -374805,7 +376590,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 483160274.0,
-      "score": 35
+      "score": 29
     },
     {
       "ticker": "TWST",
@@ -374816,7 +376601,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 468083756.0,
-      "score": 35
+      "score": 29
     },
     {
       "ticker": "CHIME",
@@ -374827,7 +376612,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 435398308.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "FABRINET",
@@ -374838,7 +376623,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 418617511.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "TMO",
@@ -374849,7 +376634,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 409672787.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "KRC",
@@ -374860,7 +376645,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 393364556.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "CLH",
@@ -374871,7 +376656,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 393005924.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "COIN",
@@ -374882,18 +376667,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 367129713.0,
-      "score": 34
-    },
-    {
-      "ticker": "RBLX",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "SEC 13F"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 351615103.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "VST",
@@ -374904,7 +376678,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 351408597.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "BEAM",
@@ -374915,7 +376689,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 351260447.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "ALKAMI",
@@ -374926,7 +376700,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 351148169.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "FCNCA",
@@ -374937,7 +376711,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 290266043.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "NTLA",
@@ -374948,7 +376722,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 285536575.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "NRG",
@@ -374959,7 +376733,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 257065600.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "DE",
@@ -374970,7 +376744,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 249307586.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "KTOS",
@@ -374981,7 +376755,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 232974116.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "SCHW",
@@ -374992,7 +376766,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 227592259.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "PHARVARIS",
@@ -375003,7 +376777,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 226525177.0,
-      "score": 34
+      "score": 29
     },
     {
       "ticker": "LINE",
@@ -375014,7 +376788,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 204845494.0,
-      "score": 34
+      "score": 28
     },
     {
       "ticker": "TXN",
@@ -375025,7 +376799,18 @@
       ],
       "position_count": 1,
       "reported_value_usd": 120859635.0,
-      "score": 33
+      "score": 28
+    },
+    {
+      "ticker": "BGC",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 100016001.0,
+      "score": 28
     },
     {
       "ticker": "ROKU",
@@ -375036,7 +376821,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 82314834.0,
-      "score": 33
+      "score": 27
     },
     {
       "ticker": "NMRK",
@@ -375047,7 +376832,19 @@
       ],
       "position_count": 1,
       "reported_value_usd": 50000000.0,
-      "score": 32
+      "score": 27
+    },
+    {
+      "ticker": "MSTR",
+      "holder_count": 2,
+      "source_count": 2,
+      "source_names": [
+        "OGE",
+        "SEC Form 4"
+      ],
+      "position_count": 2,
+      "reported_value_usd": 8000.5,
+      "score": 26
     },
     {
       "ticker": "RISKIFIED",
@@ -375058,7 +376855,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 26837990.0,
-      "score": 32
+      "score": 26
     },
     {
       "ticker": "ARAMARK",
@@ -375069,7 +376866,403 @@
       ],
       "position_count": 1,
       "reported_value_usd": 26246661.0,
-      "score": 32
+      "score": 26
+    },
+    {
+      "ticker": "CRM",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 15000000.5,
+      "score": 26
+    },
+    {
+      "ticker": "ORCL",
+      "holder_count": 2,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 2,
+      "reported_value_usd": 81002.0,
+      "score": 24
+    },
+    {
+      "ticker": "MRVL",
+      "holder_count": 2,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 2,
+      "reported_value_usd": 64502.5,
+      "score": 24
+    },
+    {
+      "ticker": "AXP",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 3000000.5,
+      "score": 24
+    },
+    {
+      "ticker": "CRWD",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 3000000.5,
+      "score": 24
+    },
+    {
+      "ticker": "NFLX",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 3000000.5,
+      "score": 24
+    },
+    {
+      "ticker": "CMCSA",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 750000.5,
+      "score": 23
+    },
+    {
+      "ticker": "IBKR",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 750000.5,
+      "score": 23
+    },
+    {
+      "ticker": "DBX",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 375000.5,
+      "score": 22
+    },
+    {
+      "ticker": "SQ",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 375000.5,
+      "score": 22
+    },
+    {
+      "ticker": "GLW",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 183001.0,
+      "score": 21
+    },
+    {
+      "ticker": "MORN",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 175000.5,
+      "score": 21
+    },
+    {
+      "ticker": "T",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 175000.5,
+      "score": 21
+    },
+    {
+      "ticker": "WBD",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "Congress Annual FD"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 75000.5,
+      "score": 20
+    },
+    {
+      "ticker": "ACN",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "AIG",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "AMGN",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "CHTR",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "CSCO",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "EGFIX",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "EQT",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "FDRXX",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "FSLR",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "GEHC",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "INTC",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "ITW",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "JPM",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "KO",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "LLY",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "MADCX",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "MADVX",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "OWL",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "RSG",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "SNOXX",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "UNH",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
+    },
+    {
+      "ticker": "WMT",
+      "holder_count": 1,
+      "source_count": 1,
+      "source_names": [
+        "OGE"
+      ],
+      "position_count": 1,
+      "reported_value_usd": 16001.0,
+      "score": 19
     },
     {
       "ticker": "ABT",
@@ -375080,51 +377273,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "ACN",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "AIG",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "AMGN",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "BGC",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
+      "score": 18
     },
     {
       "ticker": "BX",
@@ -375135,40 +377284,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "CHTR",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "CSCO",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "EGFIX",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
+      "score": 18
     },
     {
       "ticker": "ELV",
@@ -375179,18 +377295,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "EQT",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
+      "score": 18
     },
     {
       "ticker": "FCX",
@@ -375201,40 +377306,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "FDRXX",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "FSLR",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "GEHC",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
+      "score": 18
     },
     {
       "ticker": "HON",
@@ -375245,73 +377317,7 @@
       ],
       "position_count": 1,
       "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "ITW",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "JPM",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "KO",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "LLY",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "MADCX",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "MADVX",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
+      "score": 18
     },
     {
       "ticker": "MRK",
@@ -375322,100 +377328,34 @@
       ],
       "position_count": 1,
       "reported_value_usd": 8000.5,
-      "score": 23
+      "score": 18
     },
     {
-      "ticker": "MRVL",
+      "ticker": "AUR",
       "holder_count": 1,
       "source_count": 1,
       "source_names": [
-        "OGE"
+        "SEC Form 4"
       ],
       "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
+      "reported_value_usd": 0.0,
+      "score": 9
     },
     {
-      "ticker": "ORCL",
+      "ticker": "RVI",
       "holder_count": 1,
       "source_count": 1,
       "source_names": [
-        "OGE"
+        "SEC Form 4"
       ],
       "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "OWL",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "RSG",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "SNOXX",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "UNH",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "V",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
-    },
-    {
-      "ticker": "WMT",
-      "holder_count": 1,
-      "source_count": 1,
-      "source_names": [
-        "OGE"
-      ],
-      "position_count": 1,
-      "reported_value_usd": 8000.5,
-      "score": 23
+      "reported_value_usd": 0.0,
+      "score": 9
     }
   ],
   "metrics": {
     "event_count": 11217,
-    "holding_count": 1472,
+    "holding_count": 1550,
     "priced_asset_count": 21,
     "history_asset_count": 21
   }

@@ -8,6 +8,7 @@ from typing import Any
 from app.analyzers.consensus import build_consensus_scores
 from app.analyzers.opportunity import score_opportunities
 from app.collectors.congress import collect_congress_trades
+from app.collectors.congress_holdings import collect_house_annual_holdings
 from app.collectors.sec_client import SecClient
 from app.collectors.sec_form4 import collect_sec_form4_trades
 from app.collectors.market_data import apply_market_context_to_scores, collect_market_snapshots
@@ -144,11 +145,13 @@ def run_scan() -> dict:
         political_target_tickers = target_tickers if political_scope == "core" else set()
         congress_trades = collect_congress_trades(political_target_tickers, settings.sec_user_agent, settings.lookback_days)
         log.info("Collected political trades: %s", len(congress_trades))
+        congress_holdings = collect_house_annual_holdings(settings.sec_user_agent, settings.lookback_days)
+        log.info("Collected House annual holdings: %s", len(congress_holdings))
         oge_trades = collect_oge_executive_trades(settings.sec_user_agent, settings.lookback_days)
         log.info("Collected OGE executive disclosures: %s", len(oge_trades))
         institutional_13f_rows = collect_institutional_13f_holdings(settings.sec_user_agent, settings.lookback_days)
         log.info("Collected institutional 13F holdings: %s", len(institutional_13f_rows))
-        disclosures = sec_trades + congress_trades + oge_trades + institutional_13f_rows
+        disclosures = sec_trades + congress_trades + congress_holdings + oge_trades + institutional_13f_rows
         log.info("Collected normalized disclosures: %s", len(disclosures))
 
         new_disclosure_count = upsert_trades(disclosures)
