@@ -13,9 +13,11 @@ log = logging.getLogger(__name__)
 
 YAHOO_SYMBOLS = {
     "BTC": "BTC-USD",
-    # PURR has no unambiguous Yahoo instrument and remains intentionally blank.
+    # Nasdaq: PURR is Hyperliquid Strategies Inc. Yahoo now exposes this
+    # unambiguously under the plain U.S. symbol; do not use the CSE namesake.
+    "PURR": "PURR",
 }
-NO_PUBLIC_MARKET_SYMBOL = {"PURR"}
+NO_PUBLIC_MARKET_SYMBOL: set[str] = set()
 
 
 def parse_chart_payload(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:

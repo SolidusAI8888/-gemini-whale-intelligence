@@ -1,4 +1,9 @@
-from app.site_market_history import parse_chart_payload
+from app.site_market_history import NO_PUBLIC_MARKET_SYMBOL, YAHOO_SYMBOLS, parse_chart_payload
+
+
+def test_purr_uses_unambiguous_nasdaq_yahoo_symbol():
+    assert YAHOO_SYMBOLS["PURR"] == "PURR"
+    assert "PURR" not in NO_PUBLIC_MARKET_SYMBOL
 
 
 def test_parse_chart_payload_keeps_only_real_timestamped_closes():
