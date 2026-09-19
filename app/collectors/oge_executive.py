@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 import hashlib
+import html as html_lib
 import io
 import json
 import logging
@@ -14,6 +15,7 @@ import requests
 from pypdf import PdfReader
 
 from app.config import settings
+from app.whale_universe import CURRENT_EXECUTIVE_BRANCH
 
 log = logging.getLogger(__name__)
 
@@ -382,6 +384,30 @@ def _split_urls(value: str) -> list[str]:
     return [x.strip() for x in re.split(r"[;\n]+", value or "") if x.strip()]
 
 
+def _document_presence_row(spec: ExecutiveReportSpec) -> dict:
+    """Represent an official catalogue entry without pretending it is a holding."""
+    filing_date = spec.filing_date or date.today().isoformat()
+    raw = {
+        "report_type": spec.report_type,
+        "filer_name": spec.name,
+        "position": spec.position,
+        "agency": spec.agency,
+        "asset_name": f"{spec.report_type} listed in official OGE catalogue; document unavailable for parsing",
+        "source_url": spec.url,
+        "parse_status": "official_catalogue_entry_document_unavailable",
+    }
+    return {
+        "source_id": "OGECAT:" + hashlib.sha256(f"{spec.url}|{spec.name}|{spec.report_type}".encode("utf-8")).hexdigest()[:28],
+        "ticker": "OGE-DOC", "company_name": raw["asset_name"], "cik": None,
+        "accession_number": None, "filing_url": spec.url, "whale_name": spec.name,
+        "whale_category": "Executive:President" if "president" in spec.position.lower() else "Executive:Cabinet",
+        "insider_role": spec.position or spec.agency or "Executive Branch", "action": "DISCLOSURE",
+        "transaction_code": "D", "amount_usd": 0.0, "shares": None, "price": None,
+        "trade_date": filing_date, "filing_date": filing_date, "source": "OGE_EXECUTIVE_ASSET",
+        "raw_json": json.dumps(raw, ensure_ascii=False),
+    }
+
+
 def _mask_url(url: str) -> str:
     try:
         parsed = urlparse(url)
@@ -461,6 +487,7 @@ SEEDED_CABINET_REPORTS = [
         "Interior",
         "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3742068B59ECA5BC85258C130032E5E3/%24FILE/Burgum%2C%20Doug%20%20final278.pdf",
         "OGE_278e",
+        "2025-01-15",
     ),
     ExecutiveReportSpec(
         "Howard Lutnick",
@@ -468,6 +495,7 @@ SEEDED_CABINET_REPORTS = [
         "Commerce",
         "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/AC841CF0E3B5807A85258C1C00320D21/%24FILE/Lutnick%2C%20Howard%20%20final278.pdf",
         "OGE_278e",
+        "2025-01-24",
     ),
     ExecutiveReportSpec(
         "Chris Wright",
@@ -475,6 +503,15 @@ SEEDED_CABINET_REPORTS = [
         "Energy",
         "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/3743C3A1AEA32F4385258C150032F2B6/%24FILE/Wright%2C%20Christopher%20Allen%20%20final278.pdf",
         "OGE_278e",
+        "2025-01-17",
+    ),
+    ExecutiveReportSpec(
+        "Jamieson Greer",
+        "United States Trade Representative",
+        "Office of the United States Trade Representative",
+        "https://extapps2.oge.gov/201/Presiden.nsf/PAS%2BIndex/2A0A8221E67D6C7885258C210032086E/%24FILE/Greer%2C%20Jamieson%20%20final278.pdf",
+        "OGE_278e",
+        "2025-01-29",
     ),
 ]
 
@@ -537,10 +574,79 @@ def _discover_oge_specs(user_agent: str) -> list[ExecutiveReportSpec]:
     if not settings.enable_oge_auto_discovery:
         log.info("OGE auto-discovery disabled")
         return []
-    urls = _split_urls(settings.oge_discovery_urls)
-    if not urls:
-        return []
     found: dict[str, ExecutiveReportSpec] = {}
+    # The OGE search page is only a JavaScript shell. Its underlying official
+    # DataTables endpoint is the authoritative searchable catalogue.
+    aliases = {
+        "Donald J. Trump": ("donald", "trump"), "Scott Bessent": ("scott", "bessent"),
+        "Todd Blanche": ("todd", "blanche"), "Doug Burgum": ("doug", "burgum"),
+        "Jay Clayton": ("walter", "clayton"), "Doug Collins": ("doug", "collins"),
+        "Sean Duffy": ("sean", "duffy"), "Jamieson Greer": ("jamieson", "greer"),
+        "Pete Hegseth": ("pete", "hegseth"), "Robert F. Kennedy, Jr.": ("robert", "kennedy"),
+        "Kelly Loeffler": ("kelly", "loeffler"), "Howard Lutnick": ("howard", "lutnick"),
+        "Linda McMahon": ("linda", "mcmahon"), "Markwayne Mullin": ("markwayne", "mullin"),
+        "John Ratcliffe": ("john", "ratcliffe"), "Brooke Rollins": ("brooke", "rollins"),
+        "Marco Rubio": ("marco", "rubio"), "Keith E. Sonderling": ("keith", "sonderling"),
+        "Scott Turner": ("scott", "turner"), "Russ Vought": ("russ", "vought"),
+        "Chris Wright": ("christopher", "wright"), "Lee Zeldin": ("lee", "zeldin"),
+    }
+    roles = dict(CURRENT_EXECUTIVE_BRANCH)
+    catalog_rows: list[dict] = []
+    api_url = settings.oge_catalog_api_url
+    columns = ("docDate", "title", "type", "name", "agency", "level")
+    for start in range(0, 20000, 5000):
+        params: dict[str, object] = {
+            "draw": start // 5000 + 1, "start": start, "length": 5000,
+            "search[value]": "", "search[regex]": "false",
+            "order[0][column]": 0, "order[0][dir]": "desc",
+        }
+        for index, column in enumerate(columns):
+            params[f"columns[{index}][data]"] = column
+            params[f"columns[{index}][name]"] = column
+            params[f"columns[{index}][searchable]"] = "true"
+            params[f"columns[{index}][orderable]"] = "true"
+            params[f"columns[{index}][search][value]"] = ""
+            params[f"columns[{index}][search][regex]"] = "false"
+        try:
+            response = requests.get(api_url, params=params, headers={"User-Agent": user_agent, "Accept": "application/json"}, timeout=60)
+            response.raise_for_status()
+            page = response.json().get("data", [])
+            if not isinstance(page, list):
+                break
+            catalog_rows.extend(row for row in page if isinstance(row, dict))
+            if len(page) < 5000:
+                break
+        except Exception as exc:  # noqa: BLE001
+            log.warning("OGE catalogue API discovery failed at offset %s: %s", start, exc)
+            break
+    for declared_name, tokens in aliases.items():
+        matches = [row for row in catalog_rows if all(token in str(row.get("name") or "").lower() for token in tokens)]
+        annual = [row for row in matches if re.search(r"Annual", str(row.get("type") or ""), re.I)]
+        nominee = [row for row in matches if re.search(r"Nominee.*278|278.*Nominee", str(row.get("type") or ""), re.I)]
+        transactions = [row for row in matches if re.search(r"Transaction|278\s*[- ]?T", str(row.get("type") or ""), re.I)]
+        selected = []
+        assets = annual or nominee
+        if assets:
+            selected.append((max(assets, key=lambda row: str(row.get("docDate") or "")), "OGE_278e"))
+        if transactions:
+            selected.append((max(transactions, key=lambda row: str(row.get("docDate") or "")), "OGE_278_T"))
+        for row, report_type in selected:
+            type_html = html_lib.unescape(str(row.get("type") or ""))
+            href = re.search(r'href=["\']([^"\']+)', type_html, re.I)
+            if not href:
+                continue
+            url = urljoin("https://extapps2.oge.gov/201/Presiden.nsf/", href.group(1))
+            filing_date = str(row.get("docDate") or "")[:10] or None
+            found[url] = ExecutiveReportSpec(
+                declared_name, roles.get(declared_name, str(row.get("title") or "Executive Branch")),
+                str(row.get("agency") or "Executive Branch"), url, report_type, filing_date,
+            )
+    if found:
+        log.info("OGE official catalogue discovery specs found: %s", len(found))
+        return list(found.values())[: max(settings.oge_discovery_max_links, 1)]
+
+    # Fallback for local mirrors or a temporary catalogue API outage.
+    urls = _split_urls(settings.oge_discovery_urls)
     for page_url in urls:
         try:
             log.info("OGE discovery fetch: %s", _mask_url(page_url))
@@ -590,7 +696,7 @@ def _filing_date_from_text(text: str) -> str:
             continue
         try:
             dt = datetime.strptime(d, "%Y-%m-%d").date()
-            if 2024 <= dt.year <= date.today().year + 1:
+            if 2024 <= dt.year <= date.today().year:
                 parsed.append(dt)
         except ValueError:
             continue
@@ -857,6 +963,10 @@ def collect_oge_executive_trades(user_agent: str, lookback_days: int) -> list[di
             all_rows.extend(filtered)
         except Exception as exc:  # noqa: BLE001
             log.warning("OGE executive report failed for %s: %s", spec.name, exc)
+            # The official catalogue entry remains a verifiable disclosure fact,
+            # even when OGE serves a request form or temporarily aborts a PDF.
+            # It is stored as OGE-DOC and explicitly excluded from holdings/scores.
+            all_rows.append(_document_presence_row(spec))
     log.info("OGE executive trades collected: %s", len(all_rows))
     return all_rows
 

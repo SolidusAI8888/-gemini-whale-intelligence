@@ -17,10 +17,14 @@ function SourceList({ names }: { names: string[] }) {
 }
 
 function DetailLedger({ detail, events, holdings }: { detail: NonNullable<Detail>; events: TradeEvent[]; holdings: TradeEvent[] }) {
-  const rows = detail.mode === 'holding' ? holdings.filter((event) => event.ticker === detail.ticker) : events.filter((event) => event.ticker === detail.ticker && (detail.mode === 'increase' ? positive.has(event.action) : negative.has(event.action)));
+  const [sort, setSort] = useState<'actor' | 'amount' | 'date'>('amount');
+  const rows = useMemo(() => {
+    const selected = detail.mode === 'holding' ? holdings.filter((event) => event.ticker === detail.ticker) : events.filter((event) => event.ticker === detail.ticker && (detail.mode === 'increase' ? positive.has(event.action) : negative.has(event.action)));
+    return selected.sort((a, b) => sort === 'actor' ? a.actor.localeCompare(b.actor) : sort === 'amount' ? b.amountUsd - a.amountUsd : String(b.occurredAt || b.publishedAt).localeCompare(String(a.occurredAt || a.publishedAt)) || String(b.publishedAt).localeCompare(String(a.publishedAt)));
+  }, [detail, events, holdings, sort]);
   return <section className="analysis-detail" id="concentration-detail">
     <header><div><p>VERIFIABLE DETAIL</p><h2>{detail.ticker} · {detail.mode === 'holding' ? '当前持有人与仓位' : detail.mode === 'increase' ? '新建仓 / 加仓明细' : '减仓 / 清仓明细'}</h2></div><b>{rows.length} 条正式披露</b></header>
-    <div className="detail-head"><span>主体</span><span>方向 / 仓位</span><span>金额</span><span>发生 / 披露日期</span><span>披露来源</span></div>
+    <div className="detail-head"><button className={sort === 'actor' ? 'active' : ''} onClick={() => setSort('actor')}>主体 ↕</button><span>方向 / 仓位</span><button className={sort === 'amount' ? 'active' : ''} onClick={() => setSort('amount')}>金额 ↕</button><button className={sort === 'date' ? 'active' : ''} onClick={() => setSort('date')}>发生 / 披露日期 ↕</button><span>披露来源</span></div>
     {rows.length ? rows.map((event) => <article className="detail-row" key={`${detail.mode}-${event.id}`}><span><strong>{event.actor}</strong><small>{event.organization || event.role || '正式申报主体'}</small></span><span><b className={positive.has(event.action) ? 'up' : 'down'}>{detail.mode === 'holding' ? '持仓快照' : labels[event.action]}</b><small>{event.instrument}</small></span><span><strong>{event.amount}</strong></span><span><strong>{event.occurredAt || '未披露'}</strong><small>公开 {event.publishedAt || '未披露'}</small></span><span><strong>{event.source}</strong>{event.sourceUrl && <a href={event.sourceUrl} target="_blank" rel="noreferrer" aria-label="查看原始披露"><ExternalLink size={14} /></a>}</span></article>) : <div className="detail-empty">当前筛选下没有可验证记录。</div>}
   </section>;
 }
@@ -40,7 +44,7 @@ export function ConcentrationAnalysis() {
   const visibleHoldings = filterTicker(holdings, holdingQuery);
   const openDetail = (next: NonNullable<Detail>) => { setDetail(next); requestAnimationFrame(() => document.getElementById('concentration-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); };
   return <main className="analysis-page">
-    <header className="analysis-header"><a href="/"><ArrowLeft size={17} />返回标的工作台</a><div className="terminal-brand"><span><Activity size={18} /></span><div><strong>WHALE INTELLIGENCE</strong><small>集中度分析</small></div></div><span className="analysis-live"><i />生产数据</span></header>
+    <header className="analysis-header"><nav className="analysis-nav"><a href="/"><ArrowLeft size={17} />标的工作台</a><a href="/whales"><Users size={16} />巨鲸池</a></nav><div className="terminal-brand"><span><Activity size={18} /></span><div><strong>WHALE INTELLIGENCE</strong><small>集中度分析</small></div></div><span className="analysis-live"><i />生产数据</span></header>
     <section className="analysis-hero"><p>CONCENTRATION INTELLIGENCE</p><h1>政商巨鲸行动与持仓集中度</h1><span>买入侧、卖出侧与持仓侧独立排名。每一行均可展开到底层申报主体、金额、日期和原始证据。</span></section>
     <section className="analysis-summary"><div><Users size={20} /><span>买入侧覆盖标的<strong>{increase.length}</strong></span></div><div><Building2 size={20} /><span>卖出侧覆盖标的<strong>{decrease.length}</strong></span></div><div><Network size={20} /><span>持仓覆盖标的<strong>{holdings.length}</strong></span></div><div><ShieldCheck size={20} /><span>可验证行动<strong>{data.events.length}</strong></span></div></section>
     <section className="analysis-grid three-panels">

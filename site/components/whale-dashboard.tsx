@@ -19,24 +19,30 @@ function HoldingCard({ event }: { event: TradeEvent }) {
   </article>;
 }
 
-export function WhaleDashboard({ initialTicker = 'UBER' }: { initialTicker?: string }) {
+export function WhaleDashboard({ initialTicker = '' }: { initialTicker?: string }) {
   const { data, loading, failed } = useSiteData();
   const [selectedTicker, setSelectedTicker] = useState(initialTicker);
+  const [assetSort, setAssetSort] = useState<'increase' | 'decrease' | 'holding'>('increase');
   const [query, setQuery] = useState('');
   const [actionFilter, setActionFilter] = useState<'ALL' | 'POSITIVE' | 'NEGATIVE'>('ALL');
   const [selectedActor, setSelectedActor] = useState<string | null>(null);
 
-  const asset = data.assets.find((item) => item.ticker === selectedTicker) || data.assets[0];
-  const filteredAssets = useMemo(() => { const text = query.trim().toUpperCase(); return text ? data.assets.filter((item) => item.ticker.includes(text) || item.name.toUpperCase().includes(text)) : data.assets; }, [data.assets, query]);
+  const increaseRanks = useMemo(() => [...data.concentration].filter((row) => row.increaseEvents > 0).sort((a, b) => b.increaseScore - a.increaseScore || b.increaseAmountUsd - a.increaseAmountUsd), [data.concentration]);
+  const decreaseRanks = useMemo(() => [...data.concentration].filter((row) => row.decreaseEvents > 0).sort((a, b) => b.decreaseScore - a.decreaseScore || b.decreaseAmountUsd - a.decreaseAmountUsd), [data.concentration]);
+  const holdingRanks = useMemo(() => [...data.holdingConcentration].sort((a, b) => b.score - a.score || b.valueUsd - a.valueUsd), [data.holdingConcentration]);
+  const sortedAssets = useMemo(() => {
+    const rows = assetSort === 'increase' ? increaseRanks : assetSort === 'decrease' ? decreaseRanks : holdingRanks;
+    const rank = new Map(rows.map((row, index) => [row.ticker === 'GOOGL' ? 'GOOG' : row.ticker, index]));
+    return [...data.assets].sort((a, b) => (rank.get(a.ticker) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.ticker) ?? Number.MAX_SAFE_INTEGER) || a.ticker.localeCompare(b.ticker));
+  }, [assetSort, data.assets, decreaseRanks, holdingRanks, increaseRanks]);
+  const asset = data.assets.find((item) => item.ticker === selectedTicker) || sortedAssets[0] || data.assets[0];
+  const filteredAssets = useMemo(() => { const text = query.trim().toUpperCase(); return text ? sortedAssets.filter((item) => item.ticker.includes(text) || item.name.toUpperCase().includes(text)) : sortedAssets; }, [query, sortedAssets]);
   const allEvents = data.events.filter((event) => event.ticker === asset.ticker);
   const visibleEvents = allEvents.filter((event) => (!selectedActor || event.actor === selectedActor) && (actionFilter === 'ALL' || (actionFilter === 'POSITIVE' ? positive.has(event.action) : !positive.has(event.action))));
   const holdings = data.holdings.filter((event) => event.ticker === asset.ticker);
   const visibleHoldings = selectedActor ? holdings.filter((event) => event.actor === selectedActor) : holdings;
   const actors = [...new Set(allEvents.map((event) => event.actor))].sort((a, b) => a.localeCompare(b));
   const concentrationTicker = asset.ticker === 'GOOG' ? 'GOOGL' : asset.ticker;
-  const increaseRanks = [...data.concentration].filter((row) => row.increaseEvents > 0).sort((a, b) => b.increaseScore - a.increaseScore || b.increaseAmountUsd - a.increaseAmountUsd);
-  const decreaseRanks = [...data.concentration].filter((row) => row.decreaseEvents > 0).sort((a, b) => b.decreaseScore - a.decreaseScore || b.decreaseAmountUsd - a.decreaseAmountUsd);
-  const holdingRanks = [...data.holdingConcentration].sort((a, b) => b.score - a.score);
   const increaseRank = increaseRanks.findIndex((row) => row.ticker === concentrationTicker);
   const decreaseRank = decreaseRanks.findIndex((row) => row.ticker === concentrationTicker);
   const holdingRank = holdingRanks.findIndex((row) => row.ticker === concentrationTicker);
@@ -52,6 +58,15 @@ export function WhaleDashboard({ initialTicker = 'UBER' }: { initialTicker?: str
     if (typeof window !== 'undefined') window.history.replaceState({}, '', `/assets/${ticker}`);
   }
 
+  function selectAssetSort(mode: 'increase' | 'decrease' | 'holding') {
+    setAssetSort(mode);
+    setSelectedTicker('');
+    setSelectedActor(null);
+    if (typeof window !== 'undefined') window.history.replaceState({}, '', '/');
+  }
+
+  const activeRank = new Map((assetSort === 'increase' ? increaseRanks.map((row, index) => [row.ticker, { index, score: row.increaseScore }] as const) : assetSort === 'decrease' ? decreaseRanks.map((row, index) => [row.ticker, { index, score: row.decreaseScore }] as const) : holdingRanks.map((row, index) => [row.ticker, { index, score: row.score }] as const)).map(([ticker, value]) => [ticker === 'GOOGL' ? 'GOOG' : ticker, value]));
+
   return <main className="terminal-shell">
     <header className="terminal-header">
       <div className="terminal-brand"><span><Activity size={17} /></span><div><strong>WHALE INTELLIGENCE</strong><small>只看行动，不看观点</small></div></div>
@@ -62,8 +77,9 @@ export function WhaleDashboard({ initialTicker = 'UBER' }: { initialTicker?: str
     <section className="terminal-workspace">
       <aside className="terminal-left">
         <div className="terminal-left-title"><span>核心标的</span><b>{data.assets.length}</b></div>
+        <div className="ticker-sort" aria-label="按集中度排序"><button className={assetSort === 'increase' ? 'active' : ''} onClick={() => selectAssetSort('increase')}>加仓集中度</button><button className={assetSort === 'decrease' ? 'active' : ''} onClick={() => selectAssetSort('decrease')}>减仓集中度</button><button className={assetSort === 'holding' ? 'active' : ''} onClick={() => selectAssetSort('holding')}>持仓集中度</button></div>
         <label className="terminal-search"><Search size={14} /><input aria-label="搜索核心标的" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索标的" /></label>
-        <nav className="ticker-list" aria-label="核心标的列表">{filteredAssets.map((item) => <button aria-label={`查看 ${item.ticker} 价格与巨鲸行动`} className={item.ticker === asset.ticker ? 'selected' : ''} onClick={() => selectTicker(item.ticker)} key={item.ticker}><span><strong>{item.ticker}</strong><small>{item.name}</small></span><span className="ticker-side"><b>{item.signals}</b><small>{item.kind}</small></span></button>)}</nav>
+        <nav className="ticker-list" aria-label="核心标的列表">{filteredAssets.map((item) => { const ranked = activeRank.get(item.ticker); return <button aria-label={`查看 ${item.ticker} 价格与巨鲸行动`} className={item.ticker === asset.ticker ? 'selected' : ''} onClick={() => selectTicker(item.ticker)} key={item.ticker}><span><strong>{item.ticker}</strong><small>{item.name}</small></span><span className="ticker-side"><b>{ranked ? `#${ranked.index + 1}` : '—'}</b><small>{ranked ? `${ranked.score} 分` : '暂无排名'}</small></span></button>; })}</nav>
         <div className="terminal-left-foot"><ShieldCheck size={13} /><span>仅收录可验证行动</span></div>
       </aside>
 

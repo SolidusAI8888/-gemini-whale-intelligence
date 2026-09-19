@@ -100,12 +100,13 @@ class Settings:
     oge_trump_report_urls: str = os.getenv("OGE_TRUMP_REPORT_URLS", "")
     oge_trump_filer_name: str = os.getenv("OGE_TRUMP_FILER_NAME", "Donald J. Trump")
     oge_cabinet_reports: str = os.getenv("OGE_CABINET_REPORTS", "")
-    oge_max_reports: int = _int("OGE_MAX_REPORTS", 20)
+    oge_max_reports: int = _int("OGE_MAX_REPORTS", 60)
     oge_executive_watchlist: str = os.getenv("OGE_EXECUTIVE_WATCHLIST", "Donald J. Trump,JD Vance,Marco Rubio,Scott Bessent,Pete Hegseth,Pamela Bondi,Doug Burgum,Brooke Rollins,Howard Lutnick,Lori Chavez-DeRemer,Robert F. Kennedy Jr.,Scott Turner,Sean Duffy,Chris Wright,Linda McMahon,Doug Collins,Kristi Noem,Tulsi Gabbard,Jamieson Greer,Russell Vought,Lee Zeldin,John Ratcliffe,Kelly Loeffler,SEC Chair,FTC Chair")
     # Optional OGE watcher. It scrapes configured public OGE/search-result pages for
     # direct PDF links containing 278T / Transaction and known watchlist names, then
     # feeds those PDFs into the same parser. Keep manual URLs as the primary reliable path.
     enable_oge_auto_discovery: bool = _bool("ENABLE_OGE_AUTO_DISCOVERY", True)
+    oge_catalog_api_url: str = os.getenv("OGE_CATALOG_API_URL", "https://extapps2.oge.gov/201/Presiden.nsf/API.xsp/v2/rest")
     oge_discovery_urls: str = os.getenv("OGE_DISCOVERY_URLS", "https://www.oge.gov/web/oge.nsf/Officials%20Individual%20Disclosures%20Search%20Collection?OpenForm")
     oge_discovery_watchlist: str = os.getenv("OGE_DISCOVERY_WATCHLIST", os.getenv("OGE_EXECUTIVE_WATCHLIST", "Donald J. Trump,JD Vance,Marco Rubio,Scott Bessent,Pete Hegseth,Pamela Bondi,Doug Burgum,Brooke Rollins,Howard Lutnick,Chris Wright,Doug Collins,Kristi Noem,Tulsi Gabbard,John Ratcliffe"))
     oge_discovery_max_links: int = _int("OGE_DISCOVERY_MAX_LINKS", 50)

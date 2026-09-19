@@ -37,6 +37,12 @@ def _normalize_asset_row(row: Mapping[str, object]) -> dict | None:
     if str(row.get("source") or "").upper() != "OGE_EXECUTIVE_ASSET":
         return dict(row)
 
+    # A document-presence row is not a security holding. Preserve it so the
+    # product can distinguish "official filing found" from "nothing filed";
+    # downstream holding and concentration builders explicitly exclude OGE-DOC.
+    if str(row.get("action") or "").upper() == "DISCLOSURE" and str(row.get("ticker") or "").upper() == "OGE-DOC":
+        return dict(row)
+
     candidate = evaluate_oge_asset_candidate(_asset_text(row))
     if candidate.quality != "accepted" or not candidate.canonical_key:
         log.info(

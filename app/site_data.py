@@ -244,7 +244,7 @@ def _current_holdings(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]
         if event is None:
             continue
         ticker = event["ticker"]
-        if not ticker:
+        if not _is_display_ticker(ticker):
             continue
         key = (event["actor"], ticker)
         observed = event["published_at"] or event["occurred_at"]
@@ -395,6 +395,21 @@ def build_site_payload(
     # snapshots is eligible for a chart pin.
     events = [event for event in primary + holding_changes if event["ticker"] and event["action"] != "HOLDING"]
     events.sort(key=lambda event: (event.get("published_at") or "", event.get("occurred_at") or ""), reverse=True)
+    filing_coverage: dict[str, dict[str, Any]] = {}
+    for row in records:
+        actor = _canonical_actor(row.get("whale_name"))
+        if actor == "Unknown filer" or not str(row.get("filing_url") or ""):
+            continue
+        item = filing_coverage.setdefault(actor, {"count": 0, "source_url": ""})
+        item["count"] += 1
+        item["source_url"] = str(row.get("filing_url") or item["source_url"])
+    whale_universe = declared_whale_universe()
+    for whale in whale_universe:
+        coverage = filing_coverage.get(_canonical_actor(whale.get("name")))
+        whale["filing_count"] = int(coverage["count"]) if coverage else 0
+        if coverage:
+            whale["tracking_status"] = "disclosed"
+            whale["source_url"] = coverage["source_url"] or whale.get("source_url")
     return {
         "schema_version": 3,
         "generated_at": datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
@@ -406,7 +421,7 @@ def build_site_payload(
         ],
         "events": events,
         "holdings": current_holdings,
-        "whale_universe": declared_whale_universe(),
+        "whale_universe": whale_universe,
         "concentration": _concentration(events),
         "holding_concentration": _holding_concentration(current_holdings),
         "metrics": {
