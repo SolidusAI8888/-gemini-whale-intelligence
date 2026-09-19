@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-09-19T03:12:44Z",
+  "generated_at": "2026-09-19T08:46:51Z",
   "mode": "production",
   "principles": {
     "actions_only": true,
@@ -320600,6 +320600,36 @@
       "score": 88
     },
     {
+      "ticker": "GOOG",
+      "actor_count": 55,
+      "group_count": 3,
+      "source_names": [
+        "Congress PTR",
+        "OGE",
+        "SEC 13F"
+      ],
+      "event_count": 187,
+      "buy_amount_usd": 32446516220.5,
+      "sell_amount_usd": 2948744852.0,
+      "net_amount_usd": 29497771368.5,
+      "increase_actor_count": 35,
+      "decrease_actor_count": 38,
+      "increase_event_count": 106,
+      "decrease_event_count": 81,
+      "increase_source_names": [
+        "Congress PTR",
+        "SEC 13F"
+      ],
+      "decrease_source_names": [
+        "Congress PTR",
+        "OGE",
+        "SEC 13F"
+      ],
+      "increase_score": 81,
+      "decrease_score": 86,
+      "score": 86
+    },
+    {
       "ticker": "AAPL",
       "actor_count": 55,
       "group_count": 3,
@@ -320690,34 +320720,6 @@
       "increase_score": 74,
       "decrease_score": 69,
       "score": 74
-    },
-    {
-      "ticker": "GOOGL",
-      "actor_count": 40,
-      "group_count": 2,
-      "source_names": [
-        "Congress PTR",
-        "SEC 13F"
-      ],
-      "event_count": 102,
-      "buy_amount_usd": 32444598198.0,
-      "sell_amount_usd": 2947806338.5,
-      "net_amount_usd": 29496791859.5,
-      "increase_actor_count": 26,
-      "decrease_actor_count": 27,
-      "increase_event_count": 54,
-      "decrease_event_count": 48,
-      "increase_source_names": [
-        "Congress PTR",
-        "SEC 13F"
-      ],
-      "decrease_source_names": [
-        "Congress PTR",
-        "SEC 13F"
-      ],
-      "increase_score": 72,
-      "decrease_score": 71,
-      "score": 72
     },
     {
       "ticker": "AVGO",
@@ -321053,33 +321055,6 @@
       "increase_score": 52,
       "decrease_score": 57,
       "score": 57
-    },
-    {
-      "ticker": "GOOG",
-      "actor_count": 22,
-      "group_count": 2,
-      "source_names": [
-        "Congress PTR",
-        "OGE"
-      ],
-      "event_count": 85,
-      "buy_amount_usd": 1918022.5,
-      "sell_amount_usd": 938513.5,
-      "net_amount_usd": 979509.0,
-      "increase_actor_count": 11,
-      "decrease_actor_count": 17,
-      "increase_event_count": 52,
-      "decrease_event_count": 33,
-      "increase_source_names": [
-        "Congress PTR"
-      ],
-      "decrease_source_names": [
-        "Congress PTR",
-        "OGE"
-      ],
-      "increase_score": 48,
-      "decrease_score": 56,
-      "score": 56
     },
     {
       "ticker": "ORCL",
@@ -354788,6 +354763,2226 @@
       "score": 22
     }
   ],
+  "concentration_periods": {
+    "all": [
+      {
+        "ticker": "MSFT",
+        "actor_count": 58,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC Form 4"
+        ],
+        "event_count": 268,
+        "buy_amount_usd": 19480549.0,
+        "sell_amount_usd": 84840597.97994,
+        "net_amount_usd": -65360048.97994,
+        "increase_actor_count": 32,
+        "decrease_actor_count": 46,
+        "increase_event_count": 140,
+        "decrease_event_count": 128,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC Form 4"
+        ],
+        "increase_score": 68,
+        "decrease_score": 90,
+        "score": 90
+      },
+      {
+        "ticker": "AMZN",
+        "actor_count": 54,
+        "group_count": 4,
+        "source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 182,
+        "buy_amount_usd": 564510785.369,
+        "sell_amount_usd": 766764949.6132,
+        "net_amount_usd": -202254164.2442,
+        "increase_actor_count": 32,
+        "decrease_actor_count": 36,
+        "increase_event_count": 110,
+        "decrease_event_count": 72,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 75,
+        "decrease_score": 88,
+        "score": 88
+      },
+      {
+        "ticker": "GOOG",
+        "actor_count": 55,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F"
+        ],
+        "event_count": 187,
+        "buy_amount_usd": 32446516220.5,
+        "sell_amount_usd": 2948744852.0,
+        "net_amount_usd": 29497771368.5,
+        "increase_actor_count": 35,
+        "decrease_actor_count": 38,
+        "increase_event_count": 106,
+        "decrease_event_count": 81,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F"
+        ],
+        "increase_score": 81,
+        "decrease_score": 86,
+        "score": 86
+      },
+      {
+        "ticker": "AAPL",
+        "actor_count": 55,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC Form 4"
+        ],
+        "event_count": 175,
+        "buy_amount_usd": 19055032.0,
+        "sell_amount_usd": 49978676.04,
+        "net_amount_usd": -30923644.04,
+        "increase_actor_count": 27,
+        "decrease_actor_count": 42,
+        "increase_event_count": 91,
+        "decrease_event_count": 84,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC Form 4"
+        ],
+        "increase_score": 64,
+        "decrease_score": 86,
+        "score": 86
+      },
+      {
+        "ticker": "NVDA",
+        "actor_count": 43,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 230,
+        "buy_amount_usd": 158455218.0,
+        "sell_amount_usd": 662544583.5168,
+        "net_amount_usd": -504089365.51680005,
+        "increase_actor_count": 32,
+        "decrease_actor_count": 28,
+        "increase_event_count": 139,
+        "decrease_event_count": 91,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 75,
+        "decrease_score": 72,
+        "score": 75
+      },
+      {
+        "ticker": "UBER",
+        "actor_count": 24,
+        "group_count": 4,
+        "source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 67,
+        "buy_amount_usd": 116969639.88250001,
+        "sell_amount_usd": 315773229.618,
+        "net_amount_usd": -198803589.73549998,
+        "increase_actor_count": 21,
+        "decrease_actor_count": 15,
+        "increase_event_count": 37,
+        "decrease_event_count": 30,
+        "increase_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 74,
+        "decrease_score": 69,
+        "score": 74
+      },
+      {
+        "ticker": "AVGO",
+        "actor_count": 29,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F"
+        ],
+        "event_count": 106,
+        "buy_amount_usd": 3958523.5,
+        "sell_amount_usd": 154978321.5,
+        "net_amount_usd": -151019798.0,
+        "increase_actor_count": 24,
+        "decrease_actor_count": 19,
+        "increase_event_count": 64,
+        "decrease_event_count": 42,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F"
+        ],
+        "increase_score": 59,
+        "decrease_score": 68,
+        "score": 68
+      },
+      {
+        "ticker": "TSLA",
+        "actor_count": 16,
+        "group_count": 4,
+        "source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 72,
+        "buy_amount_usd": 376517.5,
+        "sell_amount_usd": 109612313.1705,
+        "net_amount_usd": -109235795.6705,
+        "increase_actor_count": 8,
+        "decrease_actor_count": 14,
+        "increase_event_count": 44,
+        "decrease_event_count": 28,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 44,
+        "decrease_score": 68,
+        "score": 68
+      },
+      {
+        "ticker": "HOOD",
+        "actor_count": 14,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 82,
+        "buy_amount_usd": 322507.5,
+        "sell_amount_usd": 124756041.9461,
+        "net_amount_usd": -124433534.4461,
+        "increase_actor_count": 8,
+        "decrease_actor_count": 12,
+        "increase_event_count": 25,
+        "decrease_event_count": 57,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 43,
+        "decrease_score": 63,
+        "score": 63
+      },
+      {
+        "ticker": "PLTR",
+        "actor_count": 22,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 92,
+        "buy_amount_usd": 901515.0,
+        "sell_amount_usd": 95934316.5564,
+        "net_amount_usd": -95032801.5564,
+        "increase_actor_count": 14,
+        "decrease_actor_count": 17,
+        "increase_event_count": 43,
+        "decrease_event_count": 49,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 50,
+        "decrease_score": 61,
+        "score": 61
+      },
+      {
+        "ticker": "AMD",
+        "actor_count": 20,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F"
+        ],
+        "event_count": 76,
+        "buy_amount_usd": 893518.0,
+        "sell_amount_usd": 70068329.5,
+        "net_amount_usd": -69174811.5,
+        "increase_actor_count": 16,
+        "decrease_actor_count": 11,
+        "increase_event_count": 59,
+        "decrease_event_count": 17,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE",
+          "SEC 13F"
+        ],
+        "increase_score": 52,
+        "decrease_score": 59,
+        "score": 59
+      },
+      {
+        "ticker": "ORCL",
+        "actor_count": 20,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "OGE"
+        ],
+        "event_count": 59,
+        "buy_amount_usd": 406008.5,
+        "sell_amount_usd": 451514.5,
+        "net_amount_usd": -45506.0,
+        "increase_actor_count": 11,
+        "decrease_actor_count": 17,
+        "increase_event_count": 24,
+        "decrease_event_count": 35,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "OGE"
+        ],
+        "increase_score": 46,
+        "decrease_score": 56,
+        "score": 56
+      },
+      {
+        "ticker": "MU",
+        "actor_count": 19,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 47,
+        "buy_amount_usd": 650006.0,
+        "sell_amount_usd": 563146158.5,
+        "net_amount_usd": -562496152.5,
+        "increase_actor_count": 13,
+        "decrease_actor_count": 11,
+        "increase_event_count": 25,
+        "decrease_event_count": 22,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 48,
+        "decrease_score": 56,
+        "score": 56
+      },
+      {
+        "ticker": "INTC",
+        "actor_count": 18,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 51,
+        "buy_amount_usd": 5237512.5,
+        "sell_amount_usd": 468007.0,
+        "net_amount_usd": 4769505.5,
+        "increase_actor_count": 11,
+        "decrease_actor_count": 12,
+        "increase_event_count": 34,
+        "decrease_event_count": 17,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 48,
+        "decrease_score": 46,
+        "score": 48
+      },
+      {
+        "ticker": "MSTR",
+        "actor_count": 6,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 16,
+        "buy_amount_usd": 105501.0,
+        "sell_amount_usd": 1170318.625,
+        "net_amount_usd": -1064817.625,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 4,
+        "increase_event_count": 4,
+        "decrease_event_count": 12,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 35,
+        "decrease_score": 45,
+        "score": 45
+      },
+      {
+        "ticker": "SPCX",
+        "actor_count": 9,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 16,
+        "buy_amount_usd": 360004.5,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 360004.5,
+        "increase_actor_count": 9,
+        "decrease_actor_count": 0,
+        "increase_event_count": 16,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 43,
+        "decrease_score": 0,
+        "score": 43
+      },
+      {
+        "ticker": "MRVL",
+        "actor_count": 9,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 18,
+        "buy_amount_usd": 187504.5,
+        "sell_amount_usd": 164003.0,
+        "net_amount_usd": 23501.5,
+        "increase_actor_count": 9,
+        "decrease_actor_count": 4,
+        "increase_event_count": 12,
+        "decrease_event_count": 6,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 42,
+        "decrease_score": 37,
+        "score": 42
+      },
+      {
+        "ticker": "GLW",
+        "actor_count": 7,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 15,
+        "buy_amount_usd": 145005.0,
+        "sell_amount_usd": 215501.5,
+        "net_amount_usd": -70496.5,
+        "increase_actor_count": 6,
+        "decrease_actor_count": 2,
+        "increase_event_count": 12,
+        "decrease_event_count": 3,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 40,
+        "decrease_score": 34,
+        "score": 40
+      },
+      {
+        "ticker": "BTC",
+        "actor_count": 1,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 3,
+        "buy_amount_usd": 91000.5,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 91000.5,
+        "increase_actor_count": 1,
+        "decrease_actor_count": 0,
+        "increase_event_count": 3,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 33,
+        "decrease_score": 0,
+        "score": 33
+      }
+    ],
+    "1y": [
+      {
+        "ticker": "AMZN",
+        "actor_count": 37,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 101,
+        "buy_amount_usd": 561571254.369,
+        "sell_amount_usd": 766163941.1132,
+        "net_amount_usd": -204592686.7442,
+        "increase_actor_count": 18,
+        "decrease_actor_count": 27,
+        "increase_event_count": 46,
+        "decrease_event_count": 55,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 74,
+        "decrease_score": 91,
+        "score": 91
+      },
+      {
+        "ticker": "MSFT",
+        "actor_count": 40,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 160,
+        "buy_amount_usd": 6988024.5,
+        "sell_amount_usd": 74976070.47994,
+        "net_amount_usd": -67988045.97994,
+        "increase_actor_count": 23,
+        "decrease_actor_count": 31,
+        "increase_event_count": 87,
+        "decrease_event_count": 73,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 71,
+        "decrease_score": 88,
+        "score": 88
+      },
+      {
+        "ticker": "GOOG",
+        "actor_count": 36,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 105,
+        "buy_amount_usd": 32444606696.5,
+        "sell_amount_usd": 2944180835.0,
+        "net_amount_usd": 29500425861.5,
+        "increase_actor_count": 23,
+        "decrease_actor_count": 25,
+        "increase_event_count": 58,
+        "decrease_event_count": 47,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 83,
+        "decrease_score": 83,
+        "score": 83
+      },
+      {
+        "ticker": "AAPL",
+        "actor_count": 35,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 89,
+        "buy_amount_usd": 2219512.5,
+        "sell_amount_usd": 33312658.04,
+        "net_amount_usd": -31093145.54,
+        "increase_actor_count": 17,
+        "decrease_actor_count": 25,
+        "increase_event_count": 43,
+        "decrease_event_count": 46,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 61,
+        "decrease_score": 79,
+        "score": 79
+      },
+      {
+        "ticker": "NVDA",
+        "actor_count": 30,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 111,
+        "buy_amount_usd": 149495174.5,
+        "sell_amount_usd": 657056068.5168,
+        "net_amount_usd": -507560894.01680005,
+        "increase_actor_count": 19,
+        "decrease_actor_count": 19,
+        "increase_event_count": 50,
+        "decrease_event_count": 61,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 74,
+        "decrease_score": 76,
+        "score": 76
+      },
+      {
+        "ticker": "UBER",
+        "actor_count": 18,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 47,
+        "buy_amount_usd": 116824633.88250001,
+        "sell_amount_usd": 315642225.618,
+        "net_amount_usd": -198817591.73549998,
+        "increase_actor_count": 12,
+        "decrease_actor_count": 10,
+        "increase_event_count": 25,
+        "decrease_event_count": 22,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 71,
+        "decrease_score": 69,
+        "score": 71
+      },
+      {
+        "ticker": "HOOD",
+        "actor_count": 11,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 64,
+        "buy_amount_usd": 209503.5,
+        "sell_amount_usd": 124676036.9461,
+        "net_amount_usd": -124466533.4461,
+        "increase_actor_count": 5,
+        "decrease_actor_count": 10,
+        "increase_event_count": 17,
+        "decrease_event_count": 47,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 44,
+        "decrease_score": 70,
+        "score": 70
+      },
+      {
+        "ticker": "PLTR",
+        "actor_count": 16,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 68,
+        "buy_amount_usd": 397506.5,
+        "sell_amount_usd": 95811313.0564,
+        "net_amount_usd": -95413806.5564,
+        "increase_actor_count": 10,
+        "decrease_actor_count": 13,
+        "increase_event_count": 26,
+        "decrease_event_count": 42,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 51,
+        "decrease_score": 67,
+        "score": 67
+      },
+      {
+        "ticker": "TSLA",
+        "actor_count": 9,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 29,
+        "buy_amount_usd": 168504.5,
+        "sell_amount_usd": 109260304.6705,
+        "net_amount_usd": -109091800.1705,
+        "increase_actor_count": 6,
+        "decrease_actor_count": 7,
+        "increase_event_count": 18,
+        "decrease_event_count": 11,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 45,
+        "decrease_score": 63,
+        "score": 63
+      },
+      {
+        "ticker": "AVGO",
+        "actor_count": 15,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 49,
+        "buy_amount_usd": 321508.0,
+        "sell_amount_usd": 154570310.0,
+        "net_amount_usd": -154248802.0,
+        "increase_actor_count": 12,
+        "decrease_actor_count": 10,
+        "increase_event_count": 31,
+        "decrease_event_count": 18,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 53,
+        "decrease_score": 62,
+        "score": 62
+      },
+      {
+        "ticker": "MU",
+        "actor_count": 14,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 32,
+        "buy_amount_usd": 535004.5,
+        "sell_amount_usd": 563049654.0,
+        "net_amount_usd": -562514649.5,
+        "increase_actor_count": 10,
+        "decrease_actor_count": 7,
+        "increase_event_count": 19,
+        "decrease_event_count": 13,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 51,
+        "decrease_score": 58,
+        "score": 58
+      },
+      {
+        "ticker": "AMD",
+        "actor_count": 13,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 48,
+        "buy_amount_usd": 503507.5,
+        "sell_amount_usd": 69794826.5,
+        "net_amount_usd": -69291319.0,
+        "increase_actor_count": 10,
+        "decrease_actor_count": 7,
+        "increase_event_count": 37,
+        "decrease_event_count": 11,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 52,
+        "decrease_score": 56,
+        "score": 56
+      },
+      {
+        "ticker": "INTC",
+        "actor_count": 10,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 24,
+        "buy_amount_usd": 4963003.5,
+        "sell_amount_usd": 96503.0,
+        "net_amount_usd": 4866500.5,
+        "increase_actor_count": 7,
+        "decrease_actor_count": 5,
+        "increase_event_count": 15,
+        "decrease_event_count": 9,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 49,
+        "decrease_score": 42,
+        "score": 49
+      },
+      {
+        "ticker": "SPCX",
+        "actor_count": 9,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 16,
+        "buy_amount_usd": 360004.5,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 360004.5,
+        "increase_actor_count": 9,
+        "decrease_actor_count": 0,
+        "increase_event_count": 16,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 49,
+        "decrease_score": 0,
+        "score": 49
+      },
+      {
+        "ticker": "MSTR",
+        "actor_count": 5,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 14,
+        "buy_amount_usd": 73000.5,
+        "sell_amount_usd": 1137818.125,
+        "net_amount_usd": -1064817.625,
+        "increase_actor_count": 2,
+        "decrease_actor_count": 3,
+        "increase_event_count": 3,
+        "decrease_event_count": 11,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 36,
+        "decrease_score": 49,
+        "score": 49
+      },
+      {
+        "ticker": "ORCL",
+        "actor_count": 10,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 30,
+        "buy_amount_usd": 153003.0,
+        "sell_amount_usd": 209505.5,
+        "net_amount_usd": -56502.5,
+        "increase_actor_count": 7,
+        "decrease_actor_count": 8,
+        "increase_event_count": 13,
+        "decrease_event_count": 17,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 45,
+        "decrease_score": 47,
+        "score": 47
+      },
+      {
+        "ticker": "MRVL",
+        "actor_count": 5,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 8,
+        "buy_amount_usd": 80502.0,
+        "sell_amount_usd": 8000.5,
+        "net_amount_usd": 72501.5,
+        "increase_actor_count": 4,
+        "decrease_actor_count": 1,
+        "increase_event_count": 7,
+        "decrease_event_count": 1,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 40,
+        "decrease_score": 32,
+        "score": 40
+      },
+      {
+        "ticker": "GLW",
+        "actor_count": 4,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 6,
+        "buy_amount_usd": 89001.5,
+        "sell_amount_usd": 175000.5,
+        "net_amount_usd": -85999.0,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 1,
+        "increase_event_count": 5,
+        "decrease_event_count": 1,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 38,
+        "decrease_score": 34,
+        "score": 38
+      },
+      {
+        "ticker": "BTC",
+        "actor_count": 1,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 3,
+        "buy_amount_usd": 91000.5,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 91000.5,
+        "increase_actor_count": 1,
+        "decrease_actor_count": 0,
+        "increase_event_count": 3,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 35,
+        "decrease_score": 0,
+        "score": 35
+      }
+    ],
+    "6m": [
+      {
+        "ticker": "MSFT",
+        "actor_count": 29,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 89,
+        "buy_amount_usd": 5878012.5,
+        "sell_amount_usd": 74531560.47994,
+        "net_amount_usd": -68653547.97994,
+        "increase_actor_count": 15,
+        "decrease_actor_count": 22,
+        "increase_event_count": 44,
+        "decrease_event_count": 45,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 68,
+        "decrease_score": 88,
+        "score": 88
+      },
+      {
+        "ticker": "AMZN",
+        "actor_count": 26,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 49,
+        "buy_amount_usd": 556480745.369,
+        "sell_amount_usd": 762987434.6132,
+        "net_amount_usd": -206506689.2442,
+        "increase_actor_count": 10,
+        "decrease_actor_count": 16,
+        "increase_event_count": 14,
+        "decrease_event_count": 35,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 67,
+        "decrease_score": 87,
+        "score": 87
+      },
+      {
+        "ticker": "GOOG",
+        "actor_count": 25,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 45,
+        "buy_amount_usd": 30720090425.0,
+        "sell_amount_usd": 2940817823.5,
+        "net_amount_usd": 27779272601.5,
+        "increase_actor_count": 17,
+        "decrease_actor_count": 15,
+        "increase_event_count": 26,
+        "decrease_event_count": 19,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 82,
+        "decrease_score": 77,
+        "score": 82
+      },
+      {
+        "ticker": "NVDA",
+        "actor_count": 23,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 65,
+        "buy_amount_usd": 144562668.5,
+        "sell_amount_usd": 653722562.0168,
+        "net_amount_usd": -509159893.51680005,
+        "increase_actor_count": 14,
+        "decrease_actor_count": 14,
+        "increase_event_count": 23,
+        "decrease_event_count": 42,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 74,
+        "decrease_score": 77,
+        "score": 77
+      },
+      {
+        "ticker": "AAPL",
+        "actor_count": 21,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 37,
+        "buy_amount_usd": 495004.0,
+        "sell_amount_usd": 2422148.04,
+        "net_amount_usd": -1927144.04,
+        "increase_actor_count": 8,
+        "decrease_actor_count": 14,
+        "increase_event_count": 16,
+        "decrease_event_count": 21,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 53,
+        "decrease_score": 71,
+        "score": 71
+      },
+      {
+        "ticker": "UBER",
+        "actor_count": 10,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 19,
+        "buy_amount_usd": 116561630.88250001,
+        "sell_amount_usd": 315380221.118,
+        "net_amount_usd": -198818590.23549998,
+        "increase_actor_count": 8,
+        "decrease_actor_count": 4,
+        "increase_event_count": 13,
+        "decrease_event_count": 6,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 70,
+        "decrease_score": 62,
+        "score": 70
+      },
+      {
+        "ticker": "PLTR",
+        "actor_count": 10,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 39,
+        "buy_amount_usd": 105002.0,
+        "sell_amount_usd": 95657810.0564,
+        "net_amount_usd": -95552808.0564,
+        "increase_actor_count": 4,
+        "decrease_actor_count": 8,
+        "increase_event_count": 7,
+        "decrease_event_count": 32,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 43,
+        "decrease_score": 65,
+        "score": 65
+      },
+      {
+        "ticker": "HOOD",
+        "actor_count": 9,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 40,
+        "buy_amount_usd": 32001.0,
+        "sell_amount_usd": 124563534.4461,
+        "net_amount_usd": -124531533.4461,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 6,
+        "increase_event_count": 4,
+        "decrease_event_count": 36,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 39,
+        "decrease_score": 63,
+        "score": 63
+      },
+      {
+        "ticker": "TSLA",
+        "actor_count": 5,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 11,
+        "buy_amount_usd": 72502.0,
+        "sell_amount_usd": 109187802.6705,
+        "net_amount_usd": -109115300.6705,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 4,
+        "increase_event_count": 6,
+        "decrease_event_count": 5,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 41,
+        "decrease_score": 61,
+        "score": 61
+      },
+      {
+        "ticker": "MU",
+        "actor_count": 10,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 20,
+        "buy_amount_usd": 161003.5,
+        "sell_amount_usd": 562993651.5,
+        "net_amount_usd": -562832648.0,
+        "increase_actor_count": 9,
+        "decrease_actor_count": 4,
+        "increase_event_count": 14,
+        "decrease_event_count": 6,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 53,
+        "decrease_score": 56,
+        "score": 56
+      },
+      {
+        "ticker": "AVGO",
+        "actor_count": 10,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 16,
+        "buy_amount_usd": 104503.0,
+        "sell_amount_usd": 154449805.5,
+        "net_amount_usd": -154345302.5,
+        "increase_actor_count": 6,
+        "decrease_actor_count": 5,
+        "increase_event_count": 10,
+        "decrease_event_count": 6,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 47,
+        "decrease_score": 56,
+        "score": 56
+      },
+      {
+        "ticker": "AMD",
+        "actor_count": 8,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 28,
+        "buy_amount_usd": 233005.0,
+        "sell_amount_usd": 69722324.0,
+        "net_amount_usd": -69489319.0,
+        "increase_actor_count": 6,
+        "decrease_actor_count": 4,
+        "increase_event_count": 23,
+        "decrease_event_count": 5,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 50,
+        "decrease_score": 54,
+        "score": 54
+      },
+      {
+        "ticker": "SPCX",
+        "actor_count": 9,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 16,
+        "buy_amount_usd": 360004.5,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 360004.5,
+        "increase_actor_count": 9,
+        "decrease_actor_count": 0,
+        "increase_event_count": 16,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 54,
+        "decrease_score": 0,
+        "score": 54
+      },
+      {
+        "ticker": "INTC",
+        "actor_count": 6,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 14,
+        "buy_amount_usd": 4899002.0,
+        "sell_amount_usd": 56002.5,
+        "net_amount_usd": 4842999.5,
+        "increase_actor_count": 4,
+        "decrease_actor_count": 4,
+        "increase_event_count": 7,
+        "decrease_event_count": 7,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 46,
+        "decrease_score": 43,
+        "score": 46
+      },
+      {
+        "ticker": "MSTR",
+        "actor_count": 4,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 13,
+        "buy_amount_usd": 73000.5,
+        "sell_amount_usd": 1105317.625,
+        "net_amount_usd": -1032317.125,
+        "increase_actor_count": 2,
+        "decrease_actor_count": 2,
+        "increase_event_count": 3,
+        "decrease_event_count": 10,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 38,
+        "decrease_score": 43,
+        "score": 43
+      },
+      {
+        "ticker": "MRVL",
+        "actor_count": 4,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 7,
+        "buy_amount_usd": 80502.0,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 80502.0,
+        "increase_actor_count": 4,
+        "decrease_actor_count": 0,
+        "increase_event_count": 7,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 43,
+        "decrease_score": 0,
+        "score": 43
+      },
+      {
+        "ticker": "GLW",
+        "actor_count": 4,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 5,
+        "buy_amount_usd": 81001.5,
+        "sell_amount_usd": 175000.5,
+        "net_amount_usd": -93999.0,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 1,
+        "increase_event_count": 4,
+        "decrease_event_count": 1,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 40,
+        "decrease_score": 35,
+        "score": 40
+      },
+      {
+        "ticker": "ORCL",
+        "actor_count": 3,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 7,
+        "buy_amount_usd": 40500.5,
+        "sell_amount_usd": 89002.0,
+        "net_amount_usd": -48501.5,
+        "increase_actor_count": 2,
+        "decrease_actor_count": 2,
+        "increase_event_count": 2,
+        "decrease_event_count": 5,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 37,
+        "decrease_score": 39,
+        "score": 39
+      }
+    ],
+    "3m": [
+      {
+        "ticker": "AMZN",
+        "actor_count": 15,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 35,
+        "buy_amount_usd": 388973845.5,
+        "sell_amount_usd": 762947432.6132,
+        "net_amount_usd": -373973587.11319995,
+        "increase_actor_count": 4,
+        "decrease_actor_count": 11,
+        "increase_event_count": 5,
+        "decrease_event_count": 30,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 59,
+        "decrease_score": 91,
+        "score": 91
+      },
+      {
+        "ticker": "MSFT",
+        "actor_count": 15,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 44,
+        "buy_amount_usd": 1686003.0,
+        "sell_amount_usd": 72788555.47994,
+        "net_amount_usd": -71102552.47994,
+        "increase_actor_count": 5,
+        "decrease_actor_count": 13,
+        "increase_event_count": 14,
+        "decrease_event_count": 30,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 55,
+        "decrease_score": 88,
+        "score": 88
+      },
+      {
+        "ticker": "GOOG",
+        "actor_count": 15,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 26,
+        "buy_amount_usd": 30242361894.0,
+        "sell_amount_usd": 1015808642.5,
+        "net_amount_usd": 29226553251.5,
+        "increase_actor_count": 12,
+        "decrease_actor_count": 7,
+        "increase_event_count": 17,
+        "decrease_event_count": 9,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 86,
+        "decrease_score": 69,
+        "score": 86
+      },
+      {
+        "ticker": "NVDA",
+        "actor_count": 14,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 40,
+        "buy_amount_usd": 144383166.0,
+        "sell_amount_usd": 653227556.5168,
+        "net_amount_usd": -508844390.51680005,
+        "increase_actor_count": 8,
+        "decrease_actor_count": 8,
+        "increase_event_count": 12,
+        "decrease_event_count": 28,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 72,
+        "decrease_score": 76,
+        "score": 76
+      },
+      {
+        "ticker": "HOOD",
+        "actor_count": 6,
+        "group_count": 2,
+        "source_names": [
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 36,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 124563534.4461,
+        "net_amount_usd": -124563534.4461,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 6,
+        "increase_event_count": 0,
+        "decrease_event_count": 36,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 70,
+        "score": 70
+      },
+      {
+        "ticker": "UBER",
+        "actor_count": 7,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 10,
+        "buy_amount_usd": 115029629.38250001,
+        "sell_amount_usd": 2024673.6180000002,
+        "net_amount_usd": 113004955.7645,
+        "increase_actor_count": 5,
+        "decrease_actor_count": 3,
+        "increase_event_count": 7,
+        "decrease_event_count": 3,
+        "increase_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 69,
+        "decrease_score": 52,
+        "score": 69
+      },
+      {
+        "ticker": "AAPL",
+        "actor_count": 10,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 17,
+        "buy_amount_usd": 40001.0,
+        "sell_amount_usd": 2350144.54,
+        "net_amount_usd": -2310143.54,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 7,
+        "increase_event_count": 5,
+        "decrease_event_count": 12,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 43,
+        "decrease_score": 66,
+        "score": 66
+      },
+      {
+        "ticker": "TSLA",
+        "actor_count": 4,
+        "group_count": 3,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "event_count": 5,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 109187802.6705,
+        "net_amount_usd": -109187802.6705,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 4,
+        "increase_event_count": 0,
+        "decrease_event_count": 5,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F",
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 65,
+        "score": 65
+      },
+      {
+        "ticker": "PLTR",
+        "actor_count": 7,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 29,
+        "buy_amount_usd": 16000.5,
+        "sell_amount_usd": 95617808.5564,
+        "net_amount_usd": -95601808.0564,
+        "increase_actor_count": 2,
+        "decrease_actor_count": 5,
+        "increase_event_count": 2,
+        "decrease_event_count": 27,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 38,
+        "decrease_score": 60,
+        "score": 60
+      },
+      {
+        "ticker": "AMD",
+        "actor_count": 6,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 10,
+        "buy_amount_usd": 48001.0,
+        "sell_amount_usd": 69714324.0,
+        "net_amount_usd": -69666323.0,
+        "increase_actor_count": 4,
+        "decrease_actor_count": 3,
+        "increase_event_count": 6,
+        "decrease_event_count": 4,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "increase_score": 47,
+        "decrease_score": 55,
+        "score": 55
+      },
+      {
+        "ticker": "MSTR",
+        "actor_count": 2,
+        "group_count": 1,
+        "source_names": [
+          "SEC Form 4"
+        ],
+        "event_count": 10,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 1105317.625,
+        "net_amount_usd": -1105317.625,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 2,
+        "increase_event_count": 0,
+        "decrease_event_count": 10,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 45,
+        "score": 45
+      },
+      {
+        "ticker": "AVGO",
+        "actor_count": 4,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 6,
+        "buy_amount_usd": 40002.0,
+        "sell_amount_usd": 154385303.0,
+        "net_amount_usd": -154345301.0,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 1,
+        "increase_event_count": 5,
+        "decrease_event_count": 1,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "SEC 13F"
+        ],
+        "increase_score": 43,
+        "decrease_score": 38,
+        "score": 43
+      },
+      {
+        "ticker": "MU",
+        "actor_count": 4,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC 13F"
+        ],
+        "event_count": 5,
+        "buy_amount_usd": 32001.5,
+        "sell_amount_usd": 562929150.0,
+        "net_amount_usd": -562897148.5,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 1,
+        "increase_event_count": 4,
+        "decrease_event_count": 1,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "SEC 13F"
+        ],
+        "increase_score": 43,
+        "decrease_score": 39,
+        "score": 43
+      },
+      {
+        "ticker": "SPCX",
+        "actor_count": 3,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 4,
+        "buy_amount_usd": 32001.0,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 32001.0,
+        "increase_actor_count": 3,
+        "decrease_actor_count": 0,
+        "increase_event_count": 4,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 43,
+        "decrease_score": 0,
+        "score": 43
+      },
+      {
+        "ticker": "INTC",
+        "actor_count": 2,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 3,
+        "buy_amount_usd": 1125001.0,
+        "sell_amount_usd": 8000.5,
+        "net_amount_usd": 1117000.5,
+        "increase_actor_count": 1,
+        "decrease_actor_count": 1,
+        "increase_event_count": 2,
+        "decrease_event_count": 1,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 39,
+        "decrease_score": 34,
+        "score": 39
+      },
+      {
+        "ticker": "MRVL",
+        "actor_count": 2,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 3,
+        "buy_amount_usd": 24000.5,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 24000.5,
+        "increase_actor_count": 2,
+        "decrease_actor_count": 0,
+        "increase_event_count": 3,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 39,
+        "decrease_score": 0,
+        "score": 39
+      }
+    ],
+    "1m": [
+      {
+        "ticker": "MSFT",
+        "actor_count": 7,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 22,
+        "buy_amount_usd": 16000.0,
+        "sell_amount_usd": 64299378.4225,
+        "net_amount_usd": -64283378.4225,
+        "increase_actor_count": 2,
+        "decrease_actor_count": 6,
+        "increase_event_count": 2,
+        "decrease_event_count": 20,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 50,
+        "decrease_score": 97,
+        "score": 97
+      },
+      {
+        "ticker": "AMZN",
+        "actor_count": 6,
+        "group_count": 1,
+        "source_names": [
+          "SEC Form 4"
+        ],
+        "event_count": 21,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 17067545.4351,
+        "net_amount_usd": -17067545.4351,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 6,
+        "increase_event_count": 0,
+        "decrease_event_count": 21,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 86,
+        "score": 86
+      },
+      {
+        "ticker": "NVDA",
+        "actor_count": 3,
+        "group_count": 2,
+        "source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "event_count": 18,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 653025053.0168,
+        "net_amount_usd": -653025053.0168,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 3,
+        "increase_event_count": 0,
+        "decrease_event_count": 18,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "Congress PTR",
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 82,
+        "score": 82
+      },
+      {
+        "ticker": "HOOD",
+        "actor_count": 4,
+        "group_count": 1,
+        "source_names": [
+          "SEC Form 4"
+        ],
+        "event_count": 25,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 9353090.8281,
+        "net_amount_usd": -9353090.8281,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 4,
+        "increase_event_count": 0,
+        "decrease_event_count": 25,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 74,
+        "score": 74
+      },
+      {
+        "ticker": "PLTR",
+        "actor_count": 3,
+        "group_count": 1,
+        "source_names": [
+          "SEC Form 4"
+        ],
+        "event_count": 17,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 86879521.7514,
+        "net_amount_usd": -86879521.7514,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 3,
+        "increase_event_count": 0,
+        "decrease_event_count": 17,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 69,
+        "score": 69
+      },
+      {
+        "ticker": "UBER",
+        "actor_count": 3,
+        "group_count": 1,
+        "source_names": [
+          "SEC Form 4"
+        ],
+        "event_count": 4,
+        "buy_amount_usd": 15314015.882500002,
+        "sell_amount_usd": 2008673.1180000002,
+        "net_amount_usd": 13305342.764500001,
+        "increase_actor_count": 2,
+        "decrease_actor_count": 1,
+        "increase_event_count": 3,
+        "decrease_event_count": 1,
+        "increase_source_names": [
+          "SEC Form 4"
+        ],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 57,
+        "decrease_score": 47,
+        "score": 57
+      },
+      {
+        "ticker": "MSTR",
+        "actor_count": 2,
+        "group_count": 1,
+        "source_names": [
+          "SEC Form 4"
+        ],
+        "event_count": 7,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 716172.0,
+        "net_amount_usd": -716172.0,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 2,
+        "increase_event_count": 0,
+        "decrease_event_count": 7,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 56,
+        "score": 56
+      },
+      {
+        "ticker": "GOOG",
+        "actor_count": 2,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 2,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 83001.0,
+        "net_amount_usd": -83001.0,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 2,
+        "increase_event_count": 0,
+        "decrease_event_count": 2,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "Congress PTR"
+        ],
+        "increase_score": 0,
+        "decrease_score": 51,
+        "score": 51
+      },
+      {
+        "ticker": "AAPL",
+        "actor_count": 1,
+        "group_count": 1,
+        "source_names": [
+          "SEC Form 4"
+        ],
+        "event_count": 3,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 1359811.1800000002,
+        "net_amount_usd": -1359811.1800000002,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 1,
+        "increase_event_count": 0,
+        "decrease_event_count": 3,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 49,
+        "score": 49
+      },
+      {
+        "ticker": "TSLA",
+        "actor_count": 1,
+        "group_count": 1,
+        "source_names": [
+          "SEC Form 4"
+        ],
+        "event_count": 1,
+        "buy_amount_usd": 0,
+        "sell_amount_usd": 938419.1705,
+        "net_amount_usd": -938419.1705,
+        "increase_actor_count": 0,
+        "decrease_actor_count": 1,
+        "increase_event_count": 0,
+        "decrease_event_count": 1,
+        "increase_source_names": [],
+        "decrease_source_names": [
+          "SEC Form 4"
+        ],
+        "increase_score": 0,
+        "decrease_score": 47,
+        "score": 47
+      },
+      {
+        "ticker": "AVGO",
+        "actor_count": 1,
+        "group_count": 1,
+        "source_names": [
+          "Congress PTR"
+        ],
+        "event_count": 2,
+        "buy_amount_usd": 16001.0,
+        "sell_amount_usd": 0,
+        "net_amount_usd": 16001.0,
+        "increase_actor_count": 1,
+        "decrease_actor_count": 0,
+        "increase_event_count": 2,
+        "decrease_event_count": 0,
+        "increase_source_names": [
+          "Congress PTR"
+        ],
+        "decrease_source_names": [],
+        "increase_score": 44,
+        "decrease_score": 0,
+        "score": 44
+      }
+    ]
+  },
   "holding_concentration": [
     {
       "ticker": "AMZN",

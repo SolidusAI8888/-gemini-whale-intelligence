@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import calendar
 from datetime import UTC, date, datetime
 import json
 import math
@@ -274,6 +275,8 @@ def _concentration(events: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
     groups: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for event in events:
         ticker = str(event.get("ticker") or "")
+        if ticker == "GOOGL":
+            ticker = "GOOG"
         if _is_display_ticker(ticker) and event.get("action") in {"BUY", "SELL", "NEW", "ADD", "REDUCE", "EXIT"}:
             groups[ticker].append(event)
     aggregates = []
@@ -332,6 +335,24 @@ def _concentration(events: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
         item.pop("increase_quality", None)
         item.pop("decrease_quality", None)
     return sorted(aggregates, key=lambda item: (item["score"], item["event_count"], abs(item["net_amount_usd"])), reverse=True)
+
+
+def _months_before(day: date, months: int) -> date:
+    month_index = day.year * 12 + day.month - 1 - months
+    year, month_zero = divmod(month_index, 12)
+    month = month_zero + 1
+    return date(year, month, min(day.day, calendar.monthrange(year, month)[1]))
+
+
+def _concentration_periods(events: list[Mapping[str, Any]], as_of: date) -> dict[str, list[dict[str, Any]]]:
+    """Recompute every score within its selected occurrence-date population."""
+    core = set(CORE_ASSETS)
+    output = {"all": [row for row in _concentration(events) if row["ticker"] in core]}
+    for key, months in (("1y", 12), ("6m", 6), ("3m", 3), ("1m", 1)):
+        cutoff = _months_before(as_of, months).isoformat()
+        period_events = [event for event in events if str(event.get("occurred_at") or event.get("published_at") or "")[:10] >= cutoff]
+        output[key] = [row for row in _concentration(period_events) if row["ticker"] in core]
+    return output
 
 
 def _holding_concentration(holdings: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
@@ -410,9 +431,10 @@ def build_site_payload(
         if coverage:
             whale["tracking_status"] = "disclosed"
             whale["source_url"] = coverage["source_url"] or whale.get("source_url")
+    generated_at = datetime.now(UTC).replace(microsecond=0)
     return {
         "schema_version": 3,
-        "generated_at": datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "generated_at": generated_at.isoformat().replace("+00:00", "Z"),
         "mode": "production" if events or current_holdings or market else "empty",
         "principles": {"actions_only": True, "opinions_included": False, "institution_person_separation": True},
         "core_assets": [
@@ -423,6 +445,7 @@ def build_site_payload(
         "holdings": current_holdings,
         "whale_universe": whale_universe,
         "concentration": _concentration(events),
+        "concentration_periods": _concentration_periods(events, generated_at.date()),
         "holding_concentration": _holding_concentration(current_holdings),
         "metrics": {
             "event_count": len(events),

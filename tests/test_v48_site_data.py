@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 from app.site_data import CORE_ASSETS, build_site_payload
 from app.collectors.congress_holdings import parse_house_annual_holdings
 
@@ -106,6 +108,39 @@ def test_v49_action_concentration_counts_independent_actors_and_sources():
     assert row["actor_count"] == 2
     assert row["group_count"] == 2
     assert row["net_amount_usd"] == 1_000_000
+
+
+def test_v59_action_concentration_periods_recompute_event_population():
+    ages = (10, 45, 100, 220, 500)
+    rows = [{
+        "source_id": f"period-{age}", "ticker": "UBER", "source": "POLITICAL_HOUSE",
+        "action": "BUY", "transaction_code": "P", "whale_name": f"Filer {age}",
+        "whale_category": "Political:House", "amount_usd": 100_000,
+        "trade_date": (date.today() - timedelta(days=age)).isoformat(),
+        "filing_date": (date.today() - timedelta(days=max(age - 2, 0))).isoformat(), "raw_json": {},
+    } for age in ages]
+    periods = build_site_payload(rows)["concentration_periods"]
+
+    assert periods["all"][0]["increase_event_count"] == 5
+    assert periods["1y"][0]["increase_event_count"] == 4
+    assert periods["6m"][0]["increase_event_count"] == 3
+    assert periods["3m"][0]["increase_event_count"] == 2
+    assert periods["1m"][0]["increase_event_count"] == 1
+
+
+def test_v59_alphabet_share_classes_share_one_action_rank():
+    rows = [{
+        "source_id": f"alphabet-{ticker}", "ticker": ticker, "source": "POLITICAL_HOUSE",
+        "action": "BUY", "transaction_code": "P", "whale_name": f"Filer {ticker}",
+        "whale_category": "Political:House", "amount_usd": 100_000,
+        "trade_date": (date.today() - timedelta(days=10)).isoformat(),
+        "filing_date": (date.today() - timedelta(days=8)).isoformat(), "raw_json": {},
+    } for ticker in ("GOOG", "GOOGL")]
+    concentration = build_site_payload(rows)["concentration"]
+
+    assert len(concentration) == 1
+    assert concentration[0]["ticker"] == "GOOG"
+    assert concentration[0]["increase_event_count"] == 2
 
 
 def test_v57_form4_post_transaction_shares_are_current_holdings_and_identity_is_canonical():
