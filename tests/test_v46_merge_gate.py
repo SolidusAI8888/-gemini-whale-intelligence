@@ -81,6 +81,30 @@ def test_v46_release_gate_fails_if_database_signal_vanishes_from_final_html():
         validate_key_political_visibility(broken, rows)
 
 
+
+def test_v53_release_gate_accepts_large_buy_visible_in_political_chapter_even_if_outside_global_top20():
+    rows = [_political_buy("MSFT")]
+    html = (
+        '<section id="v40-active-buy-radar"><table><tr><td><b>OTHER</b></td></tr></table></section>'
+        '<h2 id="political">三、政界巨鲸行动</h2>'
+        '<table><tbody><tr><td><b>MSFT</b></td><td>BUY</td><td>$750.0K</td></tr></tbody></table>'
+        '<h2 id="institutional">四、机构巨鲸</h2>'
+    )
+
+    validate_key_political_visibility(html, rows)
+
+
+def test_v53_release_gate_still_fails_if_large_political_buy_missing_everywhere():
+    rows = [_political_buy("MSFT")]
+    html = (
+        '<section id="v40-active-buy-radar"><table><tr><td><b>OTHER</b></td></tr></table></section>'
+        '<h2 id="political">三、政界巨鲸行动</h2><p>暂无相关记录。</p>'
+        '<h2 id="institutional">四、机构巨鲸</h2>'
+    )
+
+    with pytest.raises(ReportQualityError, match="MSFT"):
+        validate_key_political_visibility(html, rows)
+
 def test_v46_run_scan_does_not_restore_old_truncated_report_refetches():
     source = inspect.getsource(main.run_scan)
 
