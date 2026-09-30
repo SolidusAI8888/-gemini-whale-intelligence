@@ -3,12 +3,43 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 import logging
 from typing import Any, Iterable
+from urllib.parse import urlsplit
 
 import requests
 
 from app.config import settings
 
 log = logging.getLogger(__name__)
+
+_CIRCUIT_OPEN: set[str] = set()
+_CIRCUIT_FAILURES: dict[str, int] = {}
+_TRANSIENT_FAILURE_LIMIT = 2
+
+
+def _endpoint_key(url: str, params: dict[str, Any]) -> str:
+    if "alphavantage.co" in url:
+        return f"alpha:{str(params.get('function') or 'unknown').upper()}"
+    if "finnhub.io" in url:
+        return f"finnhub:{urlsplit(url).path}"
+    return urlsplit(url).netloc + urlsplit(url).path
+
+
+def _reset_market_api_circuits() -> None:
+    _CIRCUIT_OPEN.clear()
+    _CIRCUIT_FAILURES.clear()
+
+
+def _open_market_api_circuit(key: str, reason: str) -> None:
+    if key not in _CIRCUIT_OPEN:
+        log.warning("Market API circuit opened endpoint=%s reason=%s", key, reason)
+    _CIRCUIT_OPEN.add(key)
+
+
+def _record_transient_failure(key: str, reason: str) -> None:
+    failures = _CIRCUIT_FAILURES.get(key, 0) + 1
+    _CIRCUIT_FAILURES[key] = failures
+    if failures >= _TRANSIENT_FAILURE_LIMIT:
+        _open_market_api_circuit(key, f"{reason}; failures={failures}")
 
 
 def _as_float(value: Any) -> float | None:
@@ -24,15 +55,43 @@ def _as_float(value: Any) -> float | None:
 
 
 def _safe_get_json(url: str, params: dict[str, Any], *, timeout: int = 20) -> dict[str, Any] | list[Any] | None:
+    key = _endpoint_key(url, params)
+    if key in _CIRCUIT_OPEN:
+        return None
     try:
         response = requests.get(url, params=params, timeout=timeout)
+        safe_url = response.url.split("apikey=")[0] if "apikey=" in response.url else response.url
         if response.status_code in {401, 402, 403, 429}:
-            log.warning("Market API restricted/throttled: status=%s url=%s body=%s", response.status_code, response.url.split("apikey=")[0] if "apikey=" in response.url else response.url, response.text[:180])
+            log.warning(
+                "Market API restricted/throttled: status=%s url=%s body=%s",
+                response.status_code,
+                safe_url,
+                response.text[:180],
+            )
+            _open_market_api_circuit(key, f"http_{response.status_code}")
+            return None
+        if response.status_code >= 500:
+            log.warning(
+                "Market API server error: status=%s url=%s body=%s",
+                response.status_code,
+                safe_url,
+                response.text[:180],
+            )
+            _record_transient_failure(key, f"http_{response.status_code}")
             return None
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        _CIRCUIT_FAILURES.pop(key, None)
+        return data
+    except (requests.Timeout, requests.ConnectionError) as exc:
+        log.warning("Market API request failed endpoint=%s error=%s", key, exc)
+        _record_transient_failure(key, type(exc).__name__)
+        return None
+    except requests.RequestException as exc:
+        log.warning("Market API request failed endpoint=%s error=%s", key, exc)
+        return None
     except Exception as exc:  # noqa: BLE001
-        log.warning("Market API request failed url=%s error=%s", url, exc)
+        log.warning("Market API response handling failed endpoint=%s error=%s", key, exc)
         return None
 
 
@@ -279,6 +338,9 @@ def _market_quality_scores(row: dict[str, Any]) -> tuple[float | None, float | N
 
 
 def collect_market_snapshots(symbols: Iterable[str]) -> list[dict[str, Any]]:
+    # Circuit state is per scan. A provider/endpoint can recover on the next
+    # scheduled run, while repeated failures in the current run are bounded.
+    _reset_market_api_circuits()
     if not settings.enable_market_data:
         log.info("Market data connectors disabled: ENABLE_MARKET_DATA=false")
         return []
