@@ -33,6 +33,16 @@ def _active_buy_section(html: str) -> str:
     return match.group(1) if match else ""
 
 
+def _political_section(html: str) -> str:
+    """Return the V47 political-whale chapter, bounded by the next H2/body."""
+    match = re.search(
+        r'<h2\s+id="political"[^>]*>.*?(?=<h2\b|</body>)',
+        html or "",
+        re.I | re.S,
+    )
+    return match.group(0) if match else ""
+
+
 def _build_sha() -> str:
     return str(os.getenv("REPORT_BUILD_SHA") or os.getenv("GITHUB_SHA") or "local")[:12]
 
@@ -56,17 +66,19 @@ def validate_key_political_visibility(
     *,
     min_large_buy_usd: float = KEY_POLITICAL_LARGE_BUY_USD,
 ) -> None:
-    """Fail closed if known large Congress BUYs survive classification but vanish from HTML.
+    """Fail closed if known large Congress BUYs vanish from the final report.
 
-    This is deliberately conditional on the data actually present in the formal
-    report input.  It therefore does not fabricate or require a historical
-    transaction that is absent from the database.  If a key ticker has at least
-    one accepted political BUY >= ``min_large_buy_usd``, however, the final
-    active-buy radar must display that ticker.  V46 was introduced after valid
-    UBER/MSFT/INTC records existed in SQLite but were silently lost by a smaller
-    report re-fetch limit.
+    V46 originally required every key political large BUY to appear in the
+    all-source active-buy Top20.  After V47 expanded the formal report input,
+    a valid political BUY can legitimately rank outside that global Top20.
+    The release invariant is visibility, not a forced global rank: a key ticker
+    must appear in the dedicated political chapter, with the active-buy radar
+    retained as a backwards-compatible fallback for older report layouts.
     """
-    active = _active_buy_section(html)
+    visible = "\n".join(
+        section for section in (_political_section(html), _active_buy_section(html))
+        if section
+    )
     build = _build_sha()
     largest_by_ticker: dict[str, float] = {ticker: 0.0 for ticker in KEY_POLITICAL_REGRESSION_TICKERS}
 
@@ -90,7 +102,7 @@ def validate_key_political_visibility(
     for ticker, largest in largest_by_ticker.items():
         if largest < min_large_buy_usd:
             continue
-        if not re.search(rf"<b>\s*{re.escape(ticker)}\s*</b>", active, re.I):
+        if not re.search(rf"<b>\s*{re.escape(ticker)}\s*</b>", visible, re.I):
             missing.append(f"{ticker} largest=${largest:,.0f}")
 
     if missing:
@@ -139,3 +151,4 @@ validate_report_html_for_tests = validate_report_html
 validate_key_political_visibility_for_tests = validate_key_political_visibility
 cabinet_section_for_tests = _cabinet_section
 active_buy_section_for_tests = _active_buy_section
+political_section_for_tests = _political_section
