@@ -52,12 +52,51 @@ def test_report_has_workspace_navigation_search_and_responsive_fallbacks():
     assert 'class="report-hero"' in html
     assert 'class="section-nav"' in html
     assert 'id="report-search"' in html
-    assert 'href="#political"' in html
+    assert 'href="#political-details"' in html
     assert 'id="institutional"' in html
     assert "@media (max-width:760px)" in html
     assert "@media print" in html
     assert "is-filtered-out" in html
     assert "UBER" in html
+
+
+def test_report_homepage_removes_top_lists_and_collapses_all_sections_after_business():
+    html = build_html_report(
+        top_scores=[],
+        recent_trades=[
+            {"ticker":"MSFT","action":"BUY","transaction_code":"P","whale_name":"Nancy Pelosi","source":"POLITICAL_HOUSE","trade_date":"2026-05-29","amount_usd":750000},
+            {"ticker":"AAPL","action":"BUY","transaction_code":"P","whale_name":"CEO A","source":"SEC_FORM4","trade_date":"2026-05-20","amount_usd":500000},
+        ],
+        baseline_trade_count=10,
+        wis_rankings={
+            "opportunities":[{"ticker":"AAPL","opportunity_score":90}],
+            "risks":[{"ticker":"MSFT","risk_score":80}],
+            "conflicted":[{"ticker":"NVDA"}],
+            "resonance":[{"ticker":"META"}],
+        },
+    )
+
+    for removed in [
+        "Top10 Opportunities",
+        "Top10 Risks",
+        "Top10 Conflicted / Divergence Watchlist",
+        "Top10 Most Resonant Stocks",
+        "关键行动 Top 摘要",
+    ]:
+        assert removed not in html
+
+    assert 'id="detail-launchpad"' in html
+    assert 'href="#business-details"' in html
+    assert 'href="#political-details"' in html
+    assert 'href="#institutional-details"' in html
+    assert 'href="#methodology-details"' in html
+    assert '<details class="report-detail" id="business-details">' in html
+    assert '<details class="report-detail" id="political-details">' in html
+    assert '<details class="report-detail" id="institutional-details">' in html
+    assert '<details class="report-detail" id="methodology-details">' in html
+    assert '<details class="report-detail" id="business-details" open' not in html
+    assert '<h2 id="political">三、政界巨鲸行动</h2>' in html
+    assert "<b>MSFT</b>" in html
 
 
 def test_new_rows_are_orange_and_oge_assets_excluded_from_political_details():
