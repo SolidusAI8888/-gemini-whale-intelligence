@@ -1205,10 +1205,6 @@ def build_html_report(
     institutional_13f_holdings = institutional_13f_holdings or []
     institutional_13f_status = institutional_13f_status or []
     wis_rankings = wis_rankings or {}
-    wis_opportunities = _wis_ranking_table(list(wis_rankings.get("opportunities") or []), "opportunity")
-    wis_risks = _wis_ranking_table(list(wis_rankings.get("risks") or []), "risk")
-    wis_conflicted = _wis_ranking_table(list(wis_rankings.get("conflicted") or []), "conflicted")
-    wis_resonance = _wis_ranking_table(list(wis_rankings.get("resonance") or []), "resonance")
 
     all_recent = [t for t in recent_trades if _trade_date_ok(t) and not _is_institutional_13f(t)]
     # Political trading details must include only real BUY/SELL/EXCHANGE records.
@@ -1242,11 +1238,6 @@ def build_html_report(
         empty="今日未发现新的重点披露；可继续查看下方既有核心榜单。",
     )
 
-    top_conclusions = _table(
-        ["类别", "股票", "方向", "金额", "反向金额", "主要巨鲸", "交易日期", "变化"],
-        _top_conclusion_rows(business_trades, political_trades, price_by_ticker, limit=10, new_since=new_since),
-        empty="暂无达到阈值的巨鲸行动。",
-    )
     business_chart = _ticker_comparison_chart(business_trades, price_by_ticker, top_tickers=10)
     political_chart = _ticker_comparison_chart(political_trades, price_by_ticker, top_tickers=12)
     institutional_13f_current_concentration_chart = _institutional_13f_current_concentration_chart(institutional_13f_holdings, limit=5)
@@ -1330,29 +1321,16 @@ tr.row-new td {{ background:#fff8ef; border-top:1px solid #fdba74; border-bottom
   <p class="hero-copy">从公开法定披露中提取真实资金行为，以标的、人物与时间为主轴，快速区分当日变化、主动买入、政界披露与机构持仓。</p>
   <div class="hero-meta"><span class="meta-pill">生成 {escape(now)}</span><span class="meta-pill">数据窗口 {escape(settings.scan_start_date)} 至今</span><span class="meta-pill">柏林时间每日 08:00</span></div>
 </header>
-<nav class="section-nav" aria-label="报告导航"><a href="#v40-daily-changes-overview">今日变化</a><a href="#v40-active-buy-radar">主动买入</a><a href="#wis">智能评分</a><a href="#overview">结论总览</a><a href="#business">商界巨鲸</a><a href="#political">政界巨鲸</a><a href="#institutional">13F 机构</a><a href="#methodology">口径</a></nav>
+<nav class="section-nav" aria-label="报告导航"><a href="#v40-daily-changes-overview">今日变化</a><a href="#v40-active-buy-radar">主动买入</a><a href="#overview">结论总览</a><a href="#detail-launchpad">查阅详情</a></nav>
 <div class="report-tools" role="search"><input class="report-search" id="report-search" type="search" placeholder="搜索股票、人物、机构或来源（例如 UBER / Pelosi）" aria-label="搜索报告表格"><span class="search-status" id="search-status">搜索将同时过滤所有表格行</span></div>
 <div class="{change_class}">{escape(change_text)}</div>
 <p class="small">变化口径：{escape(change_note)}</p>
 <p class="notice"><b>报告定位：</b>快速了解近期商界/政界巨鲸在美股及公开投资标的上的真金白银 BUY/SELL 披露。金额来自公开披露，政治期权默认按披露金额区间排序，名义敞口只作备注；本报告不构成个性化投资建议。</p>
 
-<h2 id="wis">Whale Intelligence Score（V39.2）</h2>
-<p class="note">评分采用“可用来源动态归一化”；缺失来源显示 N/A。机会分另受覆盖率折扣和准入门槛约束；13F 使用最近两期持仓变化，不把季度持仓快照当作实时交易。榜单最多展示 Top10。</p>
-<h3>Top10 Opportunities</h3>
-{wis_opportunities}
-<h3>Top10 Risks</h3>
-{wis_risks}
-<h3>Top10 Conflicted / Divergence Watchlist</h3>
-{wis_conflicted}
-<h3>Top10 Most Resonant Stocks</h3>
-{wis_resonance}
-
 <h2 id="overview">一、今日结论总览</h2>
 <p class="note">本部分集中展示所有核心图示。图示以股票/标的为纲，同一股票的 BUY 与 SELL 放在同一图组中对比，旁边列出主要巨鲸和交易日期。</p>
 <h3>今日新增内容总览（相对上一轮成功运行）</h3>
 {new_items_overview}
-<h3>关键行动 Top 摘要</h3>
-{top_conclusions}
 <h3>商界巨鲸 BUY/SELL 对比图（股票 × 巨鲸）</h3>
 {business_chart}
 <h3>政界巨鲸 BUY/SELL 对比图（股票/标的 × 政界巨鲸）</h3>
@@ -1367,13 +1345,32 @@ tr.row-new td {{ background:#fff8ef; border-top:1px solid #fdba74; border-bottom
 <p class="small">口径：第一排序是最近两期中共同减仓/清仓该标的的机构数量，且至少2家机构同向行动；金额只作为第二排序。</p>
 {institutional_13f_decrease_concentration_chart}
 
+<div class="detail-launchpad" id="detail-launchpad">
+<h2>详细数据查阅</h2>
+<p class="small">以下章节默认隐藏，仅在需要核对具体巨鲸、政界披露、13F 持仓或方法口径时展开查阅。</p>
+<div class="detail-actions">
+<a class="detail-link" data-open-detail href="#business-details">查阅商界巨鲸行动</a>
+<a class="detail-link" data-open-detail href="#political-details">查阅政界巨鲸行动</a>
+<a class="detail-link" data-open-detail href="#institutional-details">查阅机构巨鲸 13F</a>
+<a class="detail-link" data-open-detail href="#methodology-details">查阅口径说明</a>
+</div>
+</div>
+
+<details class="report-detail" id="business-details">
+<summary>二、商界巨鲸行动</summary>
+<div class="report-detail-body">
 <h2 id="business">二、商界巨鲸行动</h2>
 <p class="note">仅展示核心摘要与必要明细。更长的审计明细建议另存附件，不放入正式邮件正文。</p>
 <h3>商界巨鲸行动摘要</h3>
 {business_summary}
 <h3>商界巨鲸必要明细</h3>
 {business_details}
+</div>
+</details>
 
+<details class="report-detail" id="political-details">
+<summary>三、政界巨鲸行动</summary>
+<div class="report-detail-body">
 <h2 id="political">三、政界巨鲸行动</h2>
 <p class="note">Trump 作为政界巨鲸与 Pelosi、House/Senate、OGE 行政分支披露统一列示。Trump 与 Pelosi 名字保留高亮，便于快速阅读。</p>
 <h3>政界巨鲸行动摘要</h3>
@@ -1383,7 +1380,12 @@ tr.row-new td {{ background:#fff8ef; border-top:1px solid #fdba74; border-bottom
 <h3>行政分支关键人物投资标的雷达（不限美股）</h3>
 <p class="small">该表基于当前已配置/已发现并可解析的 OGE 资料。278-T 表示交易型披露；278e/伦理协议等资产型披露如后续接入，应显示为持仓/资产而非近期交易。</p>
 {executive_assets}
+</div>
+</details>
 
+<details class="report-detail" id="institutional-details">
+<summary>四、机构巨鲸 13F 持仓雷达</summary>
+<div class="report-detail-body">
 <h2 id="institutional">四、机构巨鲸 13F 持仓雷达</h2>
 <p class="note">13F 是机构投资经理的季度持仓披露，不代表实时买入/卖出交易。表中的“报告期”是季度末持仓日，“披露日”是 13F 文件提交日。</p>
 <h3>13F Top50 机构采集覆盖率</h3>
@@ -1401,7 +1403,12 @@ tr.row-new td {{ background:#fff8ef; border-top:1px solid #fdba74; border-bottom
 <h3>机构巨鲸 13F 持仓明细</h3>
 <p class="small">口径：按机构分组展示每家已成功采集机构最新一期 Top 5 持仓，避免一两家大额机构占满整张明细表。</p>
 {institutional_13f_table}
+</div>
+</details>
 
+<details class="report-detail" id="methodology-details">
+<summary>五、口径说明</summary>
+<div class="report-detail-body">
 <h2 id="methodology">五、口径说明</h2>
 <ul>
 <li>扫描交易日期从 {escape(settings.scan_start_date)} 起，2025 年及以前交易不进入正式正文。</li>
@@ -1411,6 +1418,8 @@ tr.row-new td {{ background:#fff8ef; border-top:1px solid #fdba74; border-bottom
 <li>公开披露存在滞后、OCR/解析误差、共同报告人、10b5-1、信托/基金会、委托账户等因素，关键交易仍建议点击原始披露复核。</li>
 </ul>
 <a class="back-top" href="#top">↑ 返回顶部</a>
+</div>
+</details>
 <script>
 (function () {{
   var input = document.getElementById('report-search');
@@ -1428,6 +1437,13 @@ tr.row-new td {{ background:#fff8ef; border-top:1px solid #fdba74; border-bottom
     status.textContent = query ? ('已在全报告中匹配 ' + visible + ' 行') : '搜索将同时过滤所有表格行';
   }};
   input.addEventListener('input', run);
+  Array.prototype.slice.call(document.querySelectorAll('a[data-open-detail]')).forEach(function (link) {
+    link.addEventListener('click', function () {
+      var id = (link.getAttribute('href') || '').replace(/^#/, '');
+      var detail = document.getElementById(id);
+      if (detail && detail.tagName.toLowerCase() === 'details') detail.open = true;
+    });
+  });
 }})();
 </script>
 </body>
