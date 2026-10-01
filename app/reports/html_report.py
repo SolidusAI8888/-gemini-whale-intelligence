@@ -1437,13 +1437,13 @@ tr.row-new td {{ background:#fff8ef; border-top:1px solid #fdba74; border-bottom
     status.textContent = query ? ('已在全报告中匹配 ' + visible + ' 行') : '搜索将同时过滤所有表格行';
   }};
   input.addEventListener('input', run);
-  Array.prototype.slice.call(document.querySelectorAll('a[data-open-detail]')).forEach(function (link) {
-    link.addEventListener('click', function () {
+  Array.prototype.slice.call(document.querySelectorAll('a[data-open-detail]')).forEach(function (link) {{
+    link.addEventListener('click', function () {{
       var id = (link.getAttribute('href') || '').replace(/^#/, '');
       var detail = document.getElementById(id);
       if (detail && detail.tagName.toLowerCase() === 'details') detail.open = true;
-    });
-  });
+    }});
+  }});
 }})();
 </script>
 </body>
